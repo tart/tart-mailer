@@ -1,0 +1,48 @@
+<!doctype html>
+
+<form method="POST" action="">
+{% if message %}
+    <p>{{ message }}</p>
+{% endif %}
+    <table>
+        <tr>
+            <td>Subscriber Count:</td>
+            <td>{{ subscribercount }}</td>
+        </tr>
+        <tr>
+            <td>From Address:</td>
+            <td>
+                <input type="text" name="fromaddress" maxlength="200" required />
+            </td>
+        </tr>
+        <tr>
+            <td>Title:</td>
+            <td>
+                <input type="text" name="title" maxlength="1000" required />
+            </td>
+        </tr>
+        <tr>
+            <td>Plain Text Body:</td>
+            <td>
+                <textarea name="plainbody" required ></textarea>
+            <td>
+        </tr>
+        <tr>
+            <td>HTML Body:</td>
+            <td>
+                <textarea name="htmlbody" required ></textarea>
+            </td>
+        </tr>
+    </table>
+
+    <p>Properties can be used as {property} inside the title, plain text body or HTML body.</p>
+    <p>Example Properies: {{ exampleproperties }}</p>
+
+    <p>
+        <input type="hidden" name="maxsubscriberid" value="{{ maxsubscriberid }}" />
+    </p>
+    <p>
+        <input type="submit" name"submit" value="Send" />
+    </p>
+</form>
+
