@@ -31,6 +31,14 @@ def newEmail():
     subscriberInfo = postgres.callOneLine('SubscriberInfo')
     return render_template('newEmail.html', message=message, **subscriberInfo) 
 
+@app.route('/unsubscribe/<emailHash>')
+def unsubscribe(emailHash):
+    if postgres.callOneCell('EmailSendUnsubscribe', emailHash):
+        message = 'You are successfully unsubscribed.'
+    else:
+        message = 'You have already unsubscribed.'
+    return render_template('unsubscribe.html', message=message)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

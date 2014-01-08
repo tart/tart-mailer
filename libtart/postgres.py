@@ -25,22 +25,48 @@ class Postgres:
         if self.__connection:
             self.__connection.close()
 
-    def call(self, function, *args, **kwargs):
+    def __functionCallQuery(self, function, *args, **kwargs):
+        '''Generate a query to call a function with the given arguments.'''
+        query = 'Select * from ' + function + '('
+        query += ', '.join(['%s'] * len(args))
+        query += ', '.join(k + ' := %s' for k in kwargs.keys())
+        query += ')'
+
+        return query, list(args) + list(kwargs.values())
+
+    def call(self, *args, **kwargs):
         '''Call a function inside the database.'''
 
         with self.__connection, self.__connection.cursor() as cursor:
-            cursor.execute('Select * from ' + function + '(' + ', '.join(['%s'] * len(args)) +
-                           ', '.join(k + ' := %s' for k in kwargs.keys()) + ')',
-                           list(args) + list(kwargs.values()))
+            cursor.execute(*self.__functionCallQuery(*args, **kwargs))
 
             columnNames = [desc[0] for desc in cursor.description]
             return (dict(zip(columnNames, v)) for v in cursor.fetchall())
 
     def callOneLine(self, function, *args, **kwargs):
-        for line in self.call(function, *args, **kwargs):
-            return line
+        '''Call a function inside the database return the first line.'''
+        with self.__connection, self.__connection.cursor() as cursor:
+            cursor.execute(*self.__functionCallQuery(function, *args, **kwargs))
 
-        raise PostgresException('No lines returned from the function ' + function + '.')
+            line = cursor.fetchone()
+            if line:
+                columnNames = [desc[0] for desc in cursor.description]
+                return dict(zip(columnNames, line))
+
+            raise PostgresException('No lines returned from the function ' + function + '.')
+
+    def callOneCell(self, function, *args, **kwargs):
+        '''Call a function inside the database return the first cell.'''
+        with self.__connection, self.__connection.cursor() as cursor:
+            cursor.execute(*self.__functionCallQuery(function, *args, **kwargs))
+
+            line = cursor.fetchone()
+            if line:
+                for cell in line:
+                    return cell
+
+                raise PostgresException('No cells returned from the function ' + function + '.')
+            raise PostgresException('No lines returned from the function ' + function + '.')
 
 class PostgresException(Exception): pass
 

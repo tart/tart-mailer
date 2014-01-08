@@ -2,11 +2,6 @@ Begin;
 
 Create extension if not exists hstore;
 
-Create type EmailSendStatus as enum (
-    'waiting',
-    'sent'
-);
-
 Create table Email (
     id integer not null,
     fromAddress varchar(200) not null,
@@ -42,16 +37,32 @@ Create table Subscriber (
 Create sequence SubscriberId owned by Subscriber.id;
 Alter table Subscriber alter id set default nextval('SubscriberId'::regclass);
 
+Create type EmailSendStatus as enum (
+    'waiting',
+    'sent',
+    'unsubscribed'
+);
+
 Create table EmailSend (
     emailId integer not null,
     subscriberId integer not null,
-    status emailsendstatus default 'waiting'::EmailSendStatus not null,
+    status emailsendstatus not null default 'waiting'::EmailSendStatus,
     constraint EmailSendPK primary key (emailId, subscriberId),
     constraint EmailSendFK foreign key (emailId) references Email (id) on delete cascade,
     constraint EmailSendSubscriberIdFK foreign key (subscriberId) references Subscriber (id)
 );
 
-Create index EmailSendSubscriberIdFKI on EmailSend (subscriberId);
+Create table EmailSendLog (
+    emailId integer not null,
+    subscriberId integer not null,
+    createdAt timestamptz not null default now(),
+    status emailsendstatus not null,
+    constraint EmailSendLogPK primary key (emailId, subscriberId),
+    constraint EmailSendLogFK foreign key (emailId, subscriberId) references EmailSend (emailId, subscriberId) on delete cascade,
+    constraint EmailSendLogStatusC check (status != 'waiting')
+);
+
+Create index EmailSendLogSubscriberIdFKI on EmailSendLog (subscriberId, status);
 
 Commit;
 
