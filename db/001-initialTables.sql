@@ -8,6 +8,7 @@ Create table Email (
     title varchar(1000) not null,
     plainBody text,
     hTMLBody text,
+    redirectURL text,
     createdAt timestamp with time zone default now() not null,
     revisedAt timestamp with time zone default now() not null,
     constraint emailpk primary key (id),
@@ -40,6 +41,7 @@ Alter table Subscriber alter id set default nextval('SubscriberId'::regclass);
 Create type EmailSendStatus as enum (
     'waiting',
     'sent',
+    'redirected',
     'unsubscribed'
 );
 
@@ -56,7 +58,8 @@ Create table EmailSendLog (
     emailId integer not null,
     subscriberId integer not null,
     createdAt timestamptz not null default now(),
-    status emailsendstatus not null,
+    status EmailSendStatus not null,
+    affected boolean not null,
     constraint EmailSendLogPK primary key (emailId, subscriberId),
     constraint EmailSendLogFK foreign key (emailId, subscriberId) references EmailSend (emailId, subscriberId) on delete cascade,
     constraint EmailSendLogStatusC check (status != 'waiting')

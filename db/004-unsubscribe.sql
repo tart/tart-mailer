@@ -1,15 +1,17 @@
 Create or replace function EmailSendUnsubscribe (
-        unsubscribeHash text
+        emailHash text
     ) returns boolean
     language sql
     as $$
-With UbsubscribedEmailSend as (Update EmailSend
+With UpdatedEmailSend as (update EmailSend
             set status = 'unsubscribed'
-            where UnsubscribeHash(EmailSend) = unsubscribeHash
+            where EmailHash(EmailSend) = emailHash
+                    and status < 'unsubscribed'
             returning *),
-    NewEmailSendLog as (insert into EmailSendLog (emailId, subscriberId, status)
-            select emailId, subscriberId, status
-                from UbsubscribedEmailSend
+    NewEmailSendLog as (insert into EmailSendLog (emailId, subscriberId, status, affected)
+            select emailId, subscriberId, 'unsubscribed', exists(select * from UpdatedEmailSend)
+                from EmailSend
+                    where EmailHash(EmailSend) = emailHash
             returning *),
     UpdatedSubscriber as (update Subscriber
             set status = 'unsubscribed'

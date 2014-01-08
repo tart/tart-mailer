@@ -13,15 +13,16 @@ Usage
 
 Installation:
 
-    Execute the scripts under the db directory in order.
+* Change the secrets on db/003-emailHash.sql
+* Execute the scripts under the db directory in order.
 
 Upgrading:
 
-    Execute the new scripts under the db directory in order.
+* Execute the new scripts under the db directory in order.
 
 Testing web server:
 
-    ./webserver.py
+./webserver.py
 
 License
 -------

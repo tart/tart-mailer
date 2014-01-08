@@ -33,9 +33,15 @@
                 <textarea name="htmlbody" required ></textarea>
             </td>
         </tr>
+        <tr>
+            <td>Redirect URL:</td>
+            <td>
+                <input type="text" name="redirecturl" maxlength="1000" />
+            </td>
+        </tr>
     </table>
 
-    <p>Properties can be used as {property}, ubsubscribe URL can be used as {unsubscribeURL} inside the title, plain text body or HTML body.</p>
+    <p>Properties can be used as {property} in addition to {unsubscribeURL}, {redirectURL} inside the title, plain text body or HTML body.</p>
     <p>Example Properies: {{ exampleproperties }}</p>
 
     <p>

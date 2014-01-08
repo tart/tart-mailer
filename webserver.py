@@ -14,7 +14,7 @@
 # performance of this software.
 ##
 
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, redirect, abort
 from libtart.postgres import Postgres
 
 app = Flask(__name__)
@@ -39,6 +39,14 @@ def unsubscribe(emailHash):
         message = 'You have already unsubscribed.'
     return render_template('unsubscribe.html', message=message)
 
+@app.route('/redirect/<emailHash>')
+def redirect(emailHash):
+    redirectURL = postgres.callOneCell('EmailSendRedirect', emailHash)
+
+    if redirectURL:
+        return redirect(redirectURL)
+
+    abort(404)
 
 if __name__ == '__main__':
     app.run(debug=True)
