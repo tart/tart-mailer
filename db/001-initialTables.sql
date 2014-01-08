@@ -61,6 +61,7 @@ Create table EmailSendLog (
     createdAt timestamptz not null default now(),
     status EmailSendStatus not null,
     affected boolean not null,
+    iPAddress inet not null,
     constraint EmailSendLogPK primary key (emailId, subscriberId),
     constraint EmailSendLogFK foreign key (emailId, subscriberId) references EmailSend (emailId, subscriberId) on delete cascade,
     constraint EmailSendLogStatusC check (status != 'waiting')

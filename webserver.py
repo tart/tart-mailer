@@ -34,7 +34,7 @@ def newEmail():
 
 @app.route('/unsubscribe/<emailHash>')
 def unsubscribe(emailHash):
-    if postgres.callOneCell('UnsubscribeEmailSend', emailHash):
+    if postgres.callOneCell('UnsubscribeEmailSend', emailHash, flask.request.remote_addr):
         message = 'You are successfully unsubscribed.'
     else:
         message = 'You have already unsubscribed.'
@@ -42,7 +42,7 @@ def unsubscribe(emailHash):
 
 @app.route('/redirect/<emailHash>')
 def redirect(emailHash):
-    redirectURL = postgres.callOneCell('RedirectEmailSend', emailHash)
+    redirectURL = postgres.callOneCell('RedirectEmailSend', emailHash, flask.request.remote_addr)
 
     if redirectURL:
         return flask.redirect(redirectURL)
@@ -51,7 +51,7 @@ def redirect(emailHash):
 
 @app.route('/trackerImage/<emailHash>')
 def trackerImage(emailHash):
-    postgres.call('UpdateEmailSend', emailHash, 'trackerImageDisplayed')
+    postgres.call('UpdateEmailSend', emailHash, flask.request.remote_addr, 'trackerImageDisplayed')
 
     return flask.send_file('static/dummy.gif', mimetype='image/gif')
 
