@@ -12,7 +12,7 @@ Create table Email (
     createdAt timestamp with time zone default now() not null,
     revisedAt timestamp with time zone default now() not null,
     constraint emailpk primary key (id),
-    constraint EmailBodyC CHECK (((plainbody IS not null) OR (hTMLBody IS NOT NULL)))
+    constraint EmailBodyC CHECK (((plainbody is not null) OR (hTMLBody is not null)))
 );
 
 Create sequence EmailId owned by Email.id;
@@ -41,6 +41,7 @@ Alter table Subscriber alter id set default nextval('SubscriberId'::regclass);
 Create type EmailSendStatus as enum (
     'waiting',
     'sent',
+    'trackerImageDisplayed',
     'redirected',
     'unsubscribed'
 );

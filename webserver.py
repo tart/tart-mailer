@@ -1,4 +1,5 @@
 #!/usr/bin/env python3.3
+# -*- coding: utf-8 -*-
 ##
 # Tart Mailer
 #
@@ -14,39 +15,45 @@
 # performance of this software.
 ##
 
-from flask import Flask, request, render_template, redirect, abort
+import flask
 from libtart.postgres import Postgres
 
-app = Flask(__name__)
+app = flask.Flask(__name__)
 postgres = Postgres(database='mailer')
 
 @app.route('/newEmail', methods=['GET', 'POST'])
 def newEmail():
     message = ''
 
-    if request.method == 'POST':
+    if flask.request.method == 'POST':
         newEmail = postgres.callOneLine('NewEmail', **dict(request.form.items()))
         message = str(newEmail['subscribercount']) + ' email added to the queue.'
 
     subscriberInfo = postgres.callOneLine('SubscriberInfo')
-    return render_template('newEmail.html', message=message, **subscriberInfo) 
+    return flask.render_template('newEmail.html', message=message, **subscriberInfo)
 
 @app.route('/unsubscribe/<emailHash>')
 def unsubscribe(emailHash):
-    if postgres.callOneCell('EmailSendUnsubscribe', emailHash):
+    if postgres.callOneCell('UnsubscribeEmailSend', emailHash):
         message = 'You are successfully unsubscribed.'
     else:
         message = 'You have already unsubscribed.'
-    return render_template('unsubscribe.html', message=message)
+    return flask.render_template('unsubscribe.html', message=message)
 
 @app.route('/redirect/<emailHash>')
 def redirect(emailHash):
-    redirectURL = postgres.callOneCell('EmailSendRedirect', emailHash)
+    redirectURL = postgres.callOneCell('RedirectEmailSend', emailHash)
 
     if redirectURL:
-        return redirect(redirectURL)
+        return flask.redirect(redirectURL)
 
     abort(404)
+
+@app.route('/trackerImage/<emailHash>')
+def trackerImage(emailHash):
+    postgres.call('UpdateEmailSend', emailHash, 'trackerImageDisplayed')
+
+    return flask.send_file('static/dummy.gif', mimetype='image/gif')
 
 if __name__ == '__main__':
     app.run(debug=True)

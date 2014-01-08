@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ##
 # Tart Library - PostgreSQL Access Layer
 #
@@ -35,8 +36,12 @@ class Postgres:
         return query, list(args) + list(kwargs.values())
 
     def call(self, *args, **kwargs):
-        '''Call a function inside the database.'''
+        '''Call a function inside the database, do not return anything.'''
+        with self.__connection, self.__connection.cursor() as cursor:
+            cursor.execute(*self.__functionCallQuery(*args, **kwargs))
 
+    def callTable(self, *args, **kwargs):
+        '''Call a function inside the database, return the records as dictionaries inside a list.'''
         with self.__connection, self.__connection.cursor() as cursor:
             cursor.execute(*self.__functionCallQuery(*args, **kwargs))
 
