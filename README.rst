@@ -7,13 +7,13 @@ Dependencies
 * Python 3.3
 * Psycopg2 2.5
 * Flask 0.10
-* Flask-Mail 0.9
 
 Usage
 -----
 
 Installation:
 
+* Copy the default configuration file and edit.
 * Change the secrets on db/003-emailHash.sql
 * Execute the scripts under the db directory in order.
 

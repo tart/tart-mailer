@@ -1,3 +1,6 @@
+# Configuration file
+mailer.conf
+
 # Temporary files
 *.py[cod]
 *.swp
