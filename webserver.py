@@ -38,37 +38,41 @@ postgres = Postgres(' '.join(k + '=' + v for k, v in config.items('postgres')))
 
 @app.route('/newEmail', methods=['GET', 'POST'])
 def newEmail():
-    message = ''
+    with postgres:
+        message = ''
 
-    if flask.request.method == 'POST':
-        newEmail = postgres.callOneLine('NewEmail', **dict(request.form.items()))
-        message = str(newEmail['subscribercount']) + ' email added to the queue.'
+        if flask.request.method == 'POST':
+            newEmail = postgres.callOneLine('NewEmail', **dict(request.form.items()))
+            message = str(newEmail['subscribercount']) + ' email added to the queue.'
 
-    subscriberInfo = postgres.callOneLine('SubscriberInfo')
-    return flask.render_template('newEmail.html', message=message, **subscriberInfo)
+            subscriberInfo = postgres.callOneLine('SubscriberInfo')
+        return flask.render_template('newEmail.html', message=message, **subscriberInfo)
 
 @app.route('/unsubscribe/<emailHash>')
 def unsubscribe(emailHash):
-    if postgres.callOneCell('UnsubscribeEmailSend', emailHash, flask.request.remote_addr):
-        message = 'You are successfully unsubscribed.'
-    else:
-        message = 'You have already unsubscribed.'
-    return flask.render_template('unsubscribe.html', message=message)
+    with postgres:
+        if postgres.callOneCell('UnsubscribeEmailSend', emailHash, flask.request.remote_addr):
+            message = 'You are successfully unsubscribed.'
+        else:
+            message = 'You have already unsubscribed.'
+        return flask.render_template('unsubscribe.html', message=message)
 
 @app.route('/redirect/<emailHash>')
 def redirect(emailHash):
-    redirectURL = postgres.callOneCell('RedirectEmailSend', emailHash, flask.request.remote_addr)
+    with postgres:
+        redirectURL = postgres.callOneCell('RedirectEmailSend', emailHash, flask.request.remote_addr)
 
-    if redirectURL:
-        return flask.redirect(redirectURL)
+        if redirectURL:
+            return flask.redirect(redirectURL)
 
-    abort(404)
+        abort(404)
 
 @app.route('/trackerImage/<emailHash>')
 def trackerImage(emailHash):
-    postgres.call('UpdateEmailSend', emailHash, 'trackerImageDisplayed', flask.request.remote_addr)
+    with postgres:
+        postgres.call('UpdateEmailSend', emailHash, 'trackerImageDisplayed', flask.request.remote_addr)
 
-    return flask.send_file('static/dummy.gif', mimetype='image/gif')
+        return flask.send_file('static/dummy.gif', mimetype='image/gif')
 
 if __name__ == '__main__':
     app.run(debug=True)

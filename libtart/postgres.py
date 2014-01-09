@@ -14,17 +14,9 @@
 # performance of this software.
 ##
 
-import psycopg2
+import psycopg2.extensions
 
-class Postgres:
-    def __init__(self, *args, **kwargs):
-        '''Initialize connection to the database.'''
-        self.__connection = psycopg2.connect(*args, **kwargs)
-
-    def __del__(self):
-        '''Close connection to the database.'''
-        if self.__connection:
-            self.__connection.close()
+class Postgres(psycopg2.extensions.connection):
 
     def __functionCallQuery(self, function, *args, **kwargs):
         '''Generate a query to call a function with the given arguments.'''
@@ -37,12 +29,12 @@ class Postgres:
 
     def call(self, *args, **kwargs):
         '''Call a function inside the database, do not return anything.'''
-        with self.__connection, self.__connection.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute(*self.__functionCallQuery(*args, **kwargs))
 
     def callTable(self, *args, **kwargs):
         '''Call a function inside the database, return the records as dictionaries inside a list.'''
-        with self.__connection, self.__connection.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute(*self.__functionCallQuery(*args, **kwargs))
 
             columnNames = [desc[0] for desc in cursor.description]
@@ -50,7 +42,7 @@ class Postgres:
 
     def callOneLine(self, function, *args, **kwargs):
         '''Call a function inside the database return the first line.'''
-        with self.__connection, self.__connection.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute(*self.__functionCallQuery(function, *args, **kwargs))
 
             line = cursor.fetchone()
@@ -62,7 +54,7 @@ class Postgres:
 
     def callOneCell(self, function, *args, **kwargs):
         '''Call a function inside the database return the first cell.'''
-        with self.__connection, self.__connection.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute(*self.__functionCallQuery(function, *args, **kwargs))
 
             line = cursor.fetchone()
