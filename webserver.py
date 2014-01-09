@@ -26,6 +26,7 @@ def parseArguments():
 
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, description=__doc__)
     parser.add_argument('--config', default='./mailer.conf', help='configuration file path')
+    parser.add_argument('-d', '--debug', action='store_true', dest='debug', help='debug mode')
 
     return parser.parse_args()
 
@@ -75,5 +76,5 @@ def trackerImage(emailHash):
         return flask.send_file('static/dummy.gif', mimetype='image/gif')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=arguments.debug)
 
