@@ -4,6 +4,7 @@ Create extension if not exists hstore;
 
 Create table Email (
     id integer not null,
+    fromName varchar(200) not null,
     fromAddress varchar(200) not null,
     title varchar(1000) not null,
     plainBody text,
