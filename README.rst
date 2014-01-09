@@ -5,6 +5,7 @@ Dependencies
 
 * PostgreSQL 9.3 with hstore
 * Python 3.3
+* Psycopg2 2.5
 * Flask 0.10
 * Flask-Mail 0.9
 

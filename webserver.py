@@ -16,10 +16,25 @@
 ##
 
 import flask
+
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from configparser import SafeConfigParser
 from libtart.postgres import Postgres
 
+def parseArguments():
+    '''Create ArgumentParser instance. Return parsed arguments.'''
+
+    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, description=__doc__)
+    parser.add_argument('--config', default='./mailer.conf', help='configuration file path')
+
+    return parser.parse_args()
+
 app = flask.Flask(__name__)
-postgres = Postgres(database='mailer')
+arguments = parseArguments()
+config = SafeConfigParser()
+if not config.read(arguments.config):
+    raise Exception('Configuration file cannot be read.')
+postgres = Postgres(' '.join(k + '=' + v for k, v in config.items('postgres')))
 
 @app.route('/newEmail', methods=['GET', 'POST'])
 def newEmail():
