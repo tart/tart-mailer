@@ -43,10 +43,10 @@ def newEmail():
         message = ''
 
         if flask.request.method == 'POST':
-            newEmail = postgres.callOneLine('NewEmail', **dict(request.form.items()))
+            newEmail = postgres.callOneLine('NewEmail', **dict(flask.request.form.items()))
             message = str(newEmail['subscribercount']) + ' email added to the queue.'
 
-            subscriberInfo = postgres.callOneLine('SubscriberInfo')
+        subscriberInfo = postgres.callOneLine('SubscriberInfo')
         return flask.render_template('newEmail.html', message=message, **subscriberInfo)
 
 @app.route('/unsubscribe/<emailHash>')

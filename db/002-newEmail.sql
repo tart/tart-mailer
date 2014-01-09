@@ -18,9 +18,10 @@ With Stats as (select max(id) as maxSubscriberId, count(*) as subscriberCount
                 limit 1
 $$;
 
-Create or replace function NewEmail (
-        fromAddress varchar,
-        subject varchar,
+Create or replace function NewEmail(
+        fromName varchar(200),
+        fromAddress varchar(200),
+        subject varchar(1000),
         plainBody text,
         hTMLBody text,
         redirectURL varchar(1000),
@@ -30,8 +31,8 @@ Create or replace function NewEmail (
     )
     language sql
     as $$
-With NewEmail as (insert into email (fromAddress, subject, plainBody, hTMLBody, redirectURL) values
-        (fromaddress, subject, plainBody, hTMLBody, redirectURL)
+With NewEmail as (insert into email (fromName, fromAddress, subject, plainBody, hTMLBody, redirectURL) values
+        (fromName, fromAddress, subject, plainBody, hTMLBody, redirectURL)
         returning *),
     NewEmailSent as (insert into EmailSend (emailId, subscriberId)
         select NewEmail.id, Subscriber.id
