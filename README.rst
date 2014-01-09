@@ -25,6 +25,10 @@ Testing web server:
 
 ./webserver.py
 
+Testing the worker:
+
+./worker.py
+
 License
 -------
 
