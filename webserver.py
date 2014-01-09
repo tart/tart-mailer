@@ -51,7 +51,7 @@ def redirect(emailHash):
 
 @app.route('/trackerImage/<emailHash>')
 def trackerImage(emailHash):
-    postgres.call('UpdateEmailSend', emailHash, flask.request.remote_addr, 'trackerImageDisplayed')
+    postgres.call('UpdateEmailSend', emailHash, 'trackerImageDisplayed', flask.request.remote_addr)
 
     return flask.send_file('static/dummy.gif', mimetype='image/gif')
 

@@ -57,19 +57,18 @@ Create table EmailSend (
     constraint EmailSendSubscriberIdFK foreign key (subscriberId) references Subscriber (id)
 );
 
-Create table EmailSendLog (
+Create table EmailSendFeedback (
     emailId integer not null,
     subscriberId integer not null,
     createdAt timestamptz not null default now(),
     status EmailSendStatus not null,
-    affected boolean not null,
-    iPAddress inet not null,
-    constraint EmailSendLogPK primary key (emailId, subscriberId),
-    constraint EmailSendLogFK foreign key (emailId, subscriberId) references EmailSend (emailId, subscriberId) on delete cascade,
-    constraint EmailSendLogStatusC check (status != 'waiting')
+    iPAddress inet,
+    constraint EmailSendFeedbackPK primary key (emailId, subscriberId, status),
+    constraint EmailSendFeedbackFK foreign key (emailId, subscriberId) references EmailSend (emailId, subscriberId) on delete cascade,
+    constraint EmailSendFeedbackStatusC check (status > 'sent')
 );
 
-Create index EmailSendLogSubscriberIdFKI on EmailSendLog (subscriberId, status);
+Create index EmailSendFeedbackSubscriberIdFKI on EmailSendFeedback (subscriberId, status);
 
 Commit;
 
