@@ -6,7 +6,7 @@ Create table Email (
     id integer not null,
     fromName varchar(200) not null,
     fromAddress varchar(200) not null,
-    title varchar(1000) not null,
+    subject varchar(1000) not null,
     plainBody text,
     hTMLBody text,
     redirectURL text,

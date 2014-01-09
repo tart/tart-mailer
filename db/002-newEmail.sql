@@ -20,7 +20,7 @@ $$;
 
 Create or replace function NewEmail (
         fromAddress varchar,
-        title varchar,
+        subject varchar,
         plainBody text,
         hTMLBody text,
         redirectURL varchar(1000),
@@ -30,8 +30,8 @@ Create or replace function NewEmail (
     )
     language sql
     as $$
-With NewEmail as (insert into email (fromAddress, title, plainBody, hTMLBody, redirectURL) values
-        (fromaddress, title, plainBody, hTMLBody, redirectURL)
+With NewEmail as (insert into email (fromAddress, subject, plainBody, hTMLBody, redirectURL) values
+        (fromaddress, subject, plainBody, hTMLBody, redirectURL)
         returning *),
     NewEmailSent as (insert into EmailSend (emailId, subscriberId)
         select NewEmail.id, Subscriber.id
