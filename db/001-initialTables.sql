@@ -26,6 +26,7 @@ Create type SubscriberStatus as enum (
 
 Create table Subscriber (
     id integer not null,
+    fullName varchar(200) not null,
     emailAddress varchar(200) not null,
     createdAt timestamp with time zone default now(),
     revisedAt timestamp with time zone default now(),
