@@ -11,23 +11,18 @@ Dependencies
 Usage
 -----
 
-Installation:
+Copy the default configuration file and edit.
 
-* Copy the default configuration file and edit.
-* Change the secrets on db/003-emailHash.sql
-* Execute the scripts under the db directory in order.
+Execute the scripts under the db directory on PostgreSQL in order. Change the secrets on db/003-emailHash.sql before.
+Execute the only the new scripts ones if you are upgrading.
 
-Upgrading:
+Test the web server:
 
-* Execute the new scripts under the db directory in order.
+./webserver.py --debug
 
-Testing web server:
+Test sending a mail:
 
-./webserver.py
-
-Testing the worker:
-
-./worker.py
+./worker.py --send 1
 
 License
 -------

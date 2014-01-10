@@ -28,6 +28,7 @@ def parseArguments():
 
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, description=__doc__)
     parser.add_argument('--config', default='./mailer.conf', help='configuration file path')
+    parser.add_argument('--send', type=int, help='waiting email amount to send')
 
     return parser.parse_args()
 
@@ -37,12 +38,17 @@ if not config.read(arguments.config):
     raise Exception('Configuration file cannot be read.')
 postgres = Postgres(' '.join(k + '=' + v for k, v in config.items('postgres')))
 
-def sendMail():
+def sendMail(count):
+    assert count > 0
+
     with postgres:
         emailCount = postgres.callOneCell('EmailToSendCount')
 
     if emailCount > 0:
-        print(str(emailCount) + ' emails will be sent.')
+        if count > emailCount:
+            count = emailCount
+
+        print(str(count) + ' of ' + str(emailCount) + ' emails will be sent.')
 
         with smtplib.SMTP(config.get('smtp', 'host'), config.get('smtp', 'port')) as sMTP:
             if config.has_option('smtp', 'starttls') and config.getboolean('smtp', 'starttls'):
@@ -51,7 +57,7 @@ def sendMail():
             if config.has_option('smtp', 'user') and config.has_option('smtp', 'password'):
                 sMTP.login(config.get('smtp', 'user'), config.get('smtp', 'password'))
 
-            while emailCount > 0:
+            while count > 0:
                 with postgres:
                     email = postgres.callOneLine('NextEmailToSend')
 
@@ -67,5 +73,6 @@ def sendMail():
                 emailCount -= 1
 
 if __name__ == '__main__':
-    sendMail()
+    if arguments.send:
+        sendMail(arguments.send)
 
