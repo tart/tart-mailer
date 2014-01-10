@@ -1,0 +1,23 @@
+<!doctype html>
+
+<table border="1" >
+    <tr>
+        <td>From</td>
+        <td>Subject</td>
+        <td>Created</td>
+        <td>Statistics</td>
+    </tr>
+{% for email in emails %}
+    <tr>
+        <td>{{ email['fromname'] }}</td>
+        <td>{{ email['subject'] }}</td>
+        <td>{{ email['createdat'] }}</td>
+        <td>{{ email['stats'] }}</td>
+    </tr>
+{% endfor %}
+</table>
+
+<p>
+    <a href="{{ url_for('newEmail') }}" >New Email</a>
+</p>
+

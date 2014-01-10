@@ -75,6 +75,11 @@ def trackerImage(emailHash):
 
         return flask.send_file('static/dummy.gif', mimetype='image/gif')
 
+@app.route('/email')
+def listEmails():
+    with postgres:
+        return flask.render_template('listEmails.html', emails=postgres.callTable('ListEmails'))
+
 if __name__ == '__main__':
     app.run(debug=arguments.debug)
 
