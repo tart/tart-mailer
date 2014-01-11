@@ -26,7 +26,9 @@ def parseArguments():
 
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, description=__doc__)
     parser.add_argument('--config', default='./mailer.conf', help='configuration file path')
-    parser.add_argument('-d', '--debug', action='store_true', dest='debug', help='debug mode')
+    parser.add_argument('--debug', action='store_true', help='debug mode')
+    parser.add_argument('--listen', default='0.0.0.0', help='hostname to listen on')
+    parser.add_argument('--port', type=int, default=8000, help='connection port on the web server')
 
     return parser.parse_args()
 
@@ -88,5 +90,5 @@ def listEmails():
         return flask.render_template('listEmails.html', emails=postgres.callTable('ListEmails'))
 
 if __name__ == '__main__':
-    app.run(debug=arguments.debug)
+    app.run(host=arguments.listen, port=arguments.port, debug=arguments.debug)
 
