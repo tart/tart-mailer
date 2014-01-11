@@ -9,11 +9,12 @@ Create table Email (
     subject varchar(1000) not null,
     plainBody text,
     hTMLBody text,
-    redirectURL text,
+    returnURLRoot varchar(1000) not null,
+    redirectURL varchar(1000),
     createdAt timestamp with time zone default now() not null,
     revisedAt timestamp with time zone default now() not null,
-    constraint emailpk primary key (id),
-    constraint EmailBodyC CHECK (((plainbody is not null) OR (hTMLBody is not null)))
+    constraint EmailPK primary key (id),
+    constraint EmailBodyC check (((plainbody is not null) OR (hTMLBody is not null)))
 );
 
 Create sequence EmailId owned by Email.id;

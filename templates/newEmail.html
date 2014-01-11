@@ -40,6 +40,12 @@
             </td>
         </tr>
         <tr>
+            <td>Return URL Root:</td>
+            <td>
+                <input type="text" name="returnurlroot" maxlength="1000" value="{{ defaults.returnurlroot }}" />
+            </td>
+        </tr>
+        <tr>
             <td>Redirect URL:</td>
             <td>
                 <input type="text" name="redirecturl" maxlength="1000" />
@@ -50,7 +56,11 @@
     <p>Properties can be used as {property} in addition to {unsubscribeURL}, {redirectURL}, {trackerImageURL} inside the subject, plain text body or HTML body.</p>
     <p>Example Properies: {{ exampleproperties }}</p>
 
-    <p>
+    <p>Review all fields carrefully before sending. Write the Return URL Root and the Redirect URL to your browser. Check that they return 200.</p>
+
+    <p>The current subscribers will be added to the queue. Emails will be send asynchronously. Adding many emails to the queue can take minutes.<p>
+
+    </p>
         <input type="hidden" name="maxsubscriberid" value="{{ maxsubscriberid }}" />
     </p>
     <p>

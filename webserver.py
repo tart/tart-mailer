@@ -37,17 +37,24 @@ if not config.read(arguments.config):
     raise Exception('Configuration file cannot be read.')
 postgres = Postgres(' '.join(k + '=' + v for k, v in config.items('postgres')))
 
+@app.route('/')
+def index():
+    '''Index page to check that the web server works.'''
+    return ''
+
 @app.route('/newEmail', methods=['GET', 'POST'])
 def newEmail():
     with postgres:
         message = ''
+        defaults = {}
+        defaults['returnurlroot'] = flask.request.url_root;
 
         if flask.request.method == 'POST':
             newEmail = postgres.callOneLine('NewEmail', **dict(flask.request.form.items()))
             message = str(newEmail['subscribercount']) + ' email added to the queue.'
 
         subscriberInfo = postgres.callOneLine('SubscriberInfo')
-        return flask.render_template('newEmail.html', message=message, **subscriberInfo)
+        return flask.render_template('newEmail.html', message=message, defaults=defaults, **subscriberInfo)
 
 @app.route('/unsubscribe/<emailHash>')
 def unsubscribe(emailHash):

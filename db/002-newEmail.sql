@@ -24,6 +24,7 @@ Create or replace function NewEmail(
         subject varchar(1000),
         plainBody text,
         hTMLBody text,
+        returnURLRoot varchar(1000),
         redirectURL varchar(1000),
         maxSubscriberId integer
     ) returns table (
@@ -31,8 +32,8 @@ Create or replace function NewEmail(
     )
     language sql
     as $$
-With NewEmail as (insert into email (fromName, fromAddress, subject, plainBody, hTMLBody, redirectURL) values
-        (fromName, fromAddress, subject, plainBody, hTMLBody, redirectURL)
+With NewEmail as (insert into email (fromName, fromAddress, subject, plainBody, hTMLBody, returnURLRoot, redirectURL) values
+        (fromName, fromAddress, subject, plainBody, hTMLBody, returnURLRoot, redirectURL)
         returning *),
     NewEmailSent as (insert into EmailSend (emailId, subscriberId)
         select NewEmail.id, Subscriber.id
