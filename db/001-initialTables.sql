@@ -14,7 +14,11 @@ Create table Email (
     createdAt timestamp with time zone default now() not null,
     revisedAt timestamp with time zone default now() not null,
     constraint EmailPK primary key (id),
-    constraint EmailBodyC check (((plainbody is not null) OR (hTMLBody is not null)))
+    constraint EmailBodyC check (((plainBody is not null) or (hTMLBody is not null))),
+    constraint EmailCreatedAtC check (createdAt >= now()) not valid,
+    constraint EmailRevisedAtC check (revisedAt >= createdAt),
+    constraint EmailReturnURLRootC check (returnURLRoot ~ '^(http|https)://' and returnURLRoot ~ '/$'),
+    constraint EmailRedirectURLC check (redirectURL~ '^(http|https)://')
 );
 
 Create sequence EmailId owned by Email.id;
@@ -34,8 +38,12 @@ Create table Subscriber (
     status SubscriberStatus not null default 'subscribed',
     locale char(5),
     properties hstore default ''::hstore not null,
-    constraint subscriberpk primary key (id),
-    constraint subscriberemailaddressuk unique (emailaddress)
+    constraint SubscriberPK primary key (id),
+    constraint SubscriberEmailAddressUK unique (emailAddress),
+    constraint SubscriberEmailAddressC check (emailAddress ~ '^[^@]+@[^@]+\.[^@]+$'),
+    constraint SubscriberCreatedAtC check (createdAt >= now()) not valid,
+    constraint SubscriberRevisedAtC check (revisedAt >= createdAt),
+    constraint SubscriberLocaleC check (locale ~ '^[a-z]{2}_[A-Z]{2}$')
 );
 
 Create sequence SubscriberId owned by Subscriber.id;
@@ -63,9 +71,10 @@ Create table EmailSendFeedback (
     subscriberId integer not null,
     createdAt timestamptz not null default now(),
     status EmailSendStatus not null,
-    iPAddress inet,
+    iPAddress inet not null,
     constraint EmailSendFeedbackPK primary key (emailId, subscriberId, status),
     constraint EmailSendFeedbackFK foreign key (emailId, subscriberId) references EmailSend (emailId, subscriberId) on delete cascade,
+    constraint EmailSendCreatedAtC check (createdAt >= now()) not valid,
     constraint EmailSendFeedbackStatusC check (status > 'sent')
 );
 
