@@ -1,5 +1,7 @@
 Begin;
 
+Create extension if not exists hstore;
+
 Create or replace function ListEmails()
     returns table (
         id integer,

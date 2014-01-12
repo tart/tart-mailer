@@ -3,8 +3,8 @@ An application to maintain a mailing list, send bulk mails.
 Dependencies
 ------------
 
-* PostgreSQL 9.3 with hstore
-* Python 3.3
+* PostgreSQL 9.3 with contrib
+* Python 3.3 with standart library
 * Psycopg2 2.5
 * Flask 0.10
 

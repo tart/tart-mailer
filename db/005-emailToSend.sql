@@ -1,5 +1,7 @@
 Begin;
 
+Create extension if not exists plpythonu;
+
 Create or replace function EmailToSendCount()
     returns bigint
     language sql
