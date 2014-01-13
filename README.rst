@@ -13,8 +13,8 @@ Usage
 
 Copy the default configuration file and edit.
 
-Execute the scripts under the db directory on PostgreSQL in order. Change the secrets on db/003-emailHash.sql before.
-Execute the only the new scripts ones if you are upgrading.
+Create a PostgreSQL database and execute the scripts under the db/ directory in order. Change the secrets
+on db/003-emailHash.sql before. Execute the only the new scripts ones if you are upgrading.
 
 Test the web server for users:
 
@@ -27,6 +27,12 @@ Test the web server for administrators:
 Test sending a mail:
 
 ./worker.py --send 1
+
+See deployment page of the Flask documentation [1] to run the web servers with Nginx and uWSGI. Command line
+arguments cannot be set with uWSGI. Use the chdir directive of uWSGI to use the configuration with default name
+on the given path.
+
+[1] http://flask.pocoo.org/docs/deploying/uwsgi/
 
 License
 -------
