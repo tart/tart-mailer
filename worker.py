@@ -21,6 +21,7 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from configparser import SafeConfigParser
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.utils import formataddr
 from libtart.postgres import Postgres
 
 def parseArguments():
@@ -71,7 +72,7 @@ def sendMail(count):
                         message = MIMEText(email['plainbody'], 'plain', 'utf-8')
 
                     message['Subject'] = email['subject']
-                    message['From'] = '"' + email['fromname'] + '" <' + email['fromaddress'] + '>'
+                    message['From'] = formataddr((email['fromname'], email['fromaddress']))
                     message['To'] = email['toaddress']
 
                     sMTP.sendmail(email['fromaddress'], email['toaddress'], message.as_string())
