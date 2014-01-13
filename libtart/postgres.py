@@ -46,11 +46,8 @@ class Postgres(psycopg2.extensions.connection):
             cursor.execute(*self.__functionCallQuery(function, *args, **kwargs))
 
             line = cursor.fetchone()
-            if line:
-                columnNames = [desc[0] for desc in cursor.description]
-                return dict(zip(columnNames, line))
-
-            raise PostgresException('No lines returned from the function ' + function + '.')
+            columnNames = [desc[0] for desc in cursor.description]
+            return dict(zip(columnNames, line or []))
 
     def callOneCell(self, function, *args, **kwargs):
         '''Call a function inside the database return the first cell.'''
@@ -61,9 +58,6 @@ class Postgres(psycopg2.extensions.connection):
             if line:
                 for cell in line:
                     return cell
-
-                raise PostgresException('No cells returned from the function ' + function + '.')
-            raise PostgresException('No lines returned from the function ' + function + '.')
 
 class PostgresException(Exception): pass
 
