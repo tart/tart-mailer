@@ -11,7 +11,10 @@ Create or replace function SubscriberInfo()
     language sql
     as $$
 With Stats as (select max(id) as maxSubscriberId, count(*) as subscriberCount
-        from Subscriber where status = 'subscribed')
+        from Subscriber
+            where not exists (select 1 from EmailSendFeedback as Feedback
+                        where Feedback.subscriberId = Subscriber.id
+                                and Feedback.type = 'unsubscribe'))
     select Stats.maxSubscriberId, Stats.subscriberCount, Subscriber.properties
         from Stats
             join Subscriber on id > random() * Stats.maxSubscriberId
@@ -34,13 +37,16 @@ Create or replace function NewEmail(
     )
     language sql
     as $$
-With NewEmail as (insert into email (fromName, fromAddress, subject, plainBody, hTMLBody, returnURLRoot, redirectURL) values
-        (fromName, fromAddress, subject, plainBody, hTMLBody, returnURLRoot, redirectURL)
+With NewEmail as (insert into email (fromName, fromAddress, subject, plainBody, hTMLBody, returnURLRoot, redirectURL)
+        values (fromName, fromAddress, subject, plainBody, hTMLBody, returnURLRoot, redirectURL)
         returning *),
     NewEmailSent as (insert into EmailSend (emailId, subscriberId)
         select NewEmail.id, Subscriber.id
             from NewEmail, Subscriber
-                where Subscriber.id <= maxSubscriberId and Subscriber.status = 'subscribed'
+                where Subscriber.id <= maxSubscriberId
+                        and not exists (select 1 from EmailSendFeedback as Feedback
+                                    where Feedback.subscriberId = Subscriber.id
+                                            and Feedback.type = 'unsubscribe')
         returning *)
     select count(*) from NewEmailSent
 $$;

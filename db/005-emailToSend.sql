@@ -6,7 +6,7 @@ Create or replace function EmailToSendCount()
     returns bigint
     language sql
     as $$
-Select count(*) from EmailSend where status = 'waiting'
+Select count(*) from EmailSend where not sent
 $$;
 
 Create or replace function FormatEmailToSend(body text, k text[], v text[])
@@ -29,12 +29,12 @@ Create or replace function NextEmailToSend()
     language sql
     as $$
 With FirstWaitingEmail as (select * from EmailSend
-            where status = 'waiting'
+            where not sent
             order by emailId, subscriberId
             limit 1
             for update),
     UpdatedEmailSend as (update EmailSend
-            set status = 'sent'
+            set sent = true
             from FirstWaitingEmail
                 where EmailSend = FirstWaitingEmail
             returning EmailSend.*)
@@ -54,7 +54,7 @@ With FirstWaitingEmail as (select * from EmailSend
                                 ('unsubscribeurl',
                                     Email.returnURLRoot || 'unsubscribe/' || EmailHash(UpdatedEmailSend)),
                                 ('redirecturl',
-                                    Email.returnURLRoot || 'subscriber/' || EmailHash(UpdatedEmailSend)),
+                                    Email.returnURLRoot || 'redirect/' || EmailHash(UpdatedEmailSend)),
                                 ('trackerimageurl',
                                     Email.returnURLRoot || 'trackerImage/' ||
                                                 EmailHash(UpdatedEmailSend))) as A) as Formatter

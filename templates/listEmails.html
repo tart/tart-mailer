@@ -5,14 +5,16 @@
         <td>From</td>
         <td>Subject</td>
         <td>Created</td>
-        <td>Statistics</td>
+        <td>Sent</td>
+        <td>Feedbacks</td>
     </tr>
 {% for email in emails %}
     <tr>
-        <td>{{ email['fromname'] }}</td>
+        <td>{{ email['fromname'] }} &lt;{{ email['fromaddress'] }}&gt;</td>
         <td>{{ email['subject'] }}</td>
         <td>{{ email['createdat'] }}</td>
-        <td>{{ email['stats'] }}</td>
+        <td>{{ email['sentcount'] }} / {{ email['totalcount'] }}</td>
+        <td>{{ email['feedbacktypecounts'] }}</td>
     </tr>
 {% endfor %}
 </table>
