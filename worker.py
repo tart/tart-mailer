@@ -18,7 +18,7 @@
 import smtplib
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from configparser import SafeConfigParser
+from configparser import ConfigParser
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formataddr
@@ -34,7 +34,7 @@ def parseArguments():
     return parser.parse_args()
 
 arguments = parseArguments()
-config = SafeConfigParser()
+config = ConfigParser()
 if not config.read(arguments.config):
     raise Exception('Configuration file cannot be read.')
 postgres = Postgres(' '.join(k + '=' + v for k, v in config.items('postgres')))

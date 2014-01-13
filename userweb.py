@@ -18,7 +18,7 @@
 import flask
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from configparser import SafeConfigParser
+from configparser import ConfigParser
 from libtart.postgres import Postgres
 
 def parseArguments():
@@ -34,7 +34,7 @@ def parseArguments():
 
 app = flask.Flask(__name__)
 arguments = parseArguments()
-config = SafeConfigParser()
+config = ConfigParser()
 if not config.read(arguments.config):
     raise Exception('Configuration file cannot be read.')
 postgres = Postgres(' '.join(k + '=' + v for k, v in config.items('postgres')))
