@@ -1,4 +1,4 @@
-Regression test for tart-mailer.
+Regression test for tart-mailer. Currently test does not include web server for administrators.
 
 Dependencies
 ------------

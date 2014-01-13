@@ -44,28 +44,12 @@ def index():
     '''Index page to check that the web server works.'''
     return ''
 
-@app.route('/newEmail', methods=['GET', 'POST'])
-def newEmail():
+@app.route('/trackerImage/<emailHash>')
+def trackerImage(emailHash):
     with postgres:
-        message = ''
-        defaults = {}
-        defaults['returnurlroot'] = flask.request.url_root;
+        postgres.call('NewEmailSendFeedback', emailHash, 'trackerImage', flask.request.remote_addr)
 
-        if flask.request.method == 'POST':
-            newEmail = postgres.callOneLine('NewEmail', **dict(flask.request.form.items()))
-            message = str(newEmail['subscribercount']) + ' email added to the queue.'
-
-        subscriberInfo = postgres.callOneLine('SubscriberInfo')
-        return flask.render_template('newEmail.html', message=message, defaults=defaults, **subscriberInfo)
-
-@app.route('/unsubscribe/<emailHash>')
-def unsubscribe(emailHash):
-    with postgres:
-        if postgres.callOneCell('NewEmailSendFeedback', emailHash, 'unsubscribe', flask.request.remote_addr):
-            message = 'You are successfully unsubscribed.'
-        else:
-            message = 'You have already unsubscribed.'
-        return flask.render_template('unsubscribe.html', message=message)
+        return flask.send_file('static/dummy.gif', mimetype='image/gif')
 
 @app.route('/redirect/<emailHash>')
 def redirect(emailHash):
@@ -78,17 +62,14 @@ def redirect(emailHash):
 
         abort(404)
 
-@app.route('/trackerImage/<emailHash>')
-def trackerImage(emailHash):
+@app.route('/unsubscribe/<emailHash>')
+def unsubscribe(emailHash):
     with postgres:
-        postgres.call('NewEmailSendFeedback', emailHash, 'trackerImage', flask.request.remote_addr)
-
-        return flask.send_file('static/dummy.gif', mimetype='image/gif')
-
-@app.route('/email')
-def listEmails():
-    with postgres:
-        return flask.render_template('listEmails.html', emails=postgres.callTable('ListEmails'))
+        if postgres.callOneCell('NewEmailSendFeedback', emailHash, 'unsubscribe', flask.request.remote_addr):
+            message = 'You are successfully unsubscribed.'
+        else:
+            message = 'You have already unsubscribed.'
+        return flask.render_template('unsubscribe.html', message=message)
 
 if __name__ == '__main__':
     app.run(host=arguments.listen, port=arguments.port, debug=arguments.debug)

@@ -16,9 +16,13 @@ Copy the default configuration file and edit.
 Execute the scripts under the db directory on PostgreSQL in order. Change the secrets on db/003-emailHash.sql before.
 Execute the only the new scripts ones if you are upgrading.
 
-Test the web server:
+Test the web server for users:
 
-./webserver.py --debug
+./userweb.py --debug
+
+Test the web server for administrators:
+
+./adminweb.py --debug
 
 Test sending a mail:
 

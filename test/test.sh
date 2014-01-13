@@ -21,8 +21,8 @@ echo "Trying to send emails..."
 ../worker.py --send 5
 echo
 
-echo "Running the web server..."
-../webserver.py --debug --port 8080 &
+echo "Running the web server for users..."
+../userweb.py --debug --port 8080 &
 sleep 1
 echo
 
