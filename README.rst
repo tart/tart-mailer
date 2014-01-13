@@ -4,7 +4,7 @@ Dependencies
 ------------
 
 * PostgreSQL 9.3 with contrib
-* Python 3.3 with standart library
+* Python 2.6 or greater with standart library
 * Psycopg2 2.5
 * Flask 0.10
 
