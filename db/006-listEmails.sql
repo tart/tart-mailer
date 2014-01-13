@@ -17,7 +17,8 @@ Create or replace function ListEmails()
     as $$
 With EmailSendFeedbackTypeStats as (select emailId, type, count(*) as count
             from EmailSendFeedback
-            group by emailId, type),
+            group by emailId, type
+            order by emailId, type),
     EmailSendFeedbackStats as (select emailId, hstore(array_agg(type::text), array_agg(count::text)) as typeCounts
             from EmailSendFeedbackTypeStats
             group by emailId),
