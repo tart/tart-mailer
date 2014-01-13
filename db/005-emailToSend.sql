@@ -11,7 +11,7 @@ $$;
 
 Create or replace function FormatEmailToSend(body text, k text[], v text[])
     returns text
-    language plpythonu
+    language plpythonu strict
     as $$
 return body.format(**dict(zip(k, v)))
 $$;

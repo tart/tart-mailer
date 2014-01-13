@@ -61,12 +61,18 @@ def sendMail(count):
                 with postgres:
                     email = postgres.callOneLine('NextEmailToSend')
 
-                    message = MIMEMultipart('alternative')
+                    if email['plainbody'] and email['htmlbody']:
+                        message = MIMEMultipart('alternative')
+                        message.attach(MIMEText(email['plainbody'], 'plain', 'utf-8'))
+                        message.attach(MIMEText(email['htmlbody'], 'html', 'utf-8'))
+                    elif email['htmlbody']:
+                        message = MIMEText(email['htmlbody'], 'html', 'utf-8')
+                    else:
+                        message = MIMEText(email['plainbody'], 'plain', 'utf-8')
+
                     message['Subject'] = email['subject']
                     message['From'] = '"' + email['fromname'] + '" <' + email['fromaddress'] + '>'
                     message['To'] = '"' + email['toname'] + '" <' + email['toaddress'] + '>'
-                    message.attach(MIMEText(email['plainbody'], 'plain', 'utf-8'))
-                    message.attach(MIMEText(email['htmlbody'], 'html', 'utf-8'))
 
                     sMTP.sendmail(email['fromaddress'], email['toaddress'], message.as_string())
 

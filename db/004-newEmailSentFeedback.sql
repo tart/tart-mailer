@@ -21,7 +21,7 @@ $$;
 
 Create or replace function EmailSendRedirectURL (emailHash text)
     returns varchar(1000)
-    language sql
+    language sql strict
     as $$
 Select Email.redirectURL
     from EmailSend
