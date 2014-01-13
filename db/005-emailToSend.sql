@@ -18,10 +18,9 @@ $$;
 
 Create or replace function NextEmailToSend()
     returns table (
-        toName varchar(200),
-        toAddress varchar(200),
         fromName varchar(200),
         fromAddress varchar(200),
+        toAddress varchar(200),
         subject varchar(1000),
         plainBody text,
         hTMLBody text
@@ -38,20 +37,18 @@ With FirstWaitingEmail as (select * from EmailSend
             from FirstWaitingEmail
                 where EmailSend = FirstWaitingEmail
             returning EmailSend.*)
-    select Subscriber.fullName as toName,
-            Subscriber.emailAddress as toAddress,
-            Email.fromName,
+    select Email.fromName,
             Email.fromAddress,
+            Subscriber.emailAddress as toAddress,
             FormatEmailToSend(Email.subject, Formatter.k, Formatter.v) as subject,
             FormatEmailToSend(Email.plainBody, Formatter.k, Formatter.v) as plainBody,
             FormatEmailToSend(Email.hTMLBody, Formatter.k, Formatter.v) as hTMLBody
         from UpdatedEmailSend
-            join Subscriber on UpdatedEmailSend.subscriberId = Subscriber.id
             join Email on UpdatedEmailSend.emailId = Email.id
+            join Subscriber on UpdatedEmailSend.subscriberId = Subscriber.id
                 cross join lateral (select array_agg(key) as k, array_agg(value) as v
                     from ((select * from each(Subscriber.properties))
-                        union values ('fullname', Subscriber.fullName),
-                                ('unsubscribeurl',
+                        union values ('unsubscribeurl',
                                     Email.returnURLRoot || 'unsubscribe/' || EmailHash(UpdatedEmailSend)),
                                 ('redirecturl',
                                     Email.returnURLRoot || 'redirect/' || EmailHash(UpdatedEmailSend)),

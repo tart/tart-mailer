@@ -26,7 +26,6 @@ Alter table Email alter id set default nextval('EmailId'::regclass);
 
 Create table Subscriber (
     id integer not null,
-    fullName varchar(200) not null,
     emailAddress varchar(200) not null,
     createdAt timestamp with time zone default now(),
     revisedAt timestamp with time zone default now(),

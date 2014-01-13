@@ -12,7 +12,7 @@ cat ../db/* | psql $dbname
 echo
 
 echo "Adding data..."
-echo "\Copy Subscriber (fullName, emailAddress, properties) from 'subscriber.data'" | psql $dbname
+echo "\Copy Subscriber (emailAddress, properties) from 'subscriber.data'" | psql $dbname
 echo "\Copy Email (fromName, fromAddress, subject, plainBody, hTMLBody, returnURLRoot, redirectURL) from 'email.data'" | psql $dbname
 echo "Insert into EmailSend (emailId, subscriberId) select Email.id, Subscriber.id from Email, Subscriber" | psql $dbname
 echo

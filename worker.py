@@ -72,7 +72,7 @@ def sendMail(count):
 
                     message['Subject'] = email['subject']
                     message['From'] = '"' + email['fromname'] + '" <' + email['fromaddress'] + '>'
-                    message['To'] = '"' + email['toname'] + '" <' + email['toaddress'] + '>'
+                    message['To'] = email['toaddress']
 
                     sMTP.sendmail(email['fromaddress'], email['toaddress'], message.as_string())
 
