@@ -30,7 +30,7 @@ Test sending a mail:
 
 See deployment page of the Flask documentation [1] to run the web servers with Nginx and uWSGI. Command line
 arguments cannot be set with uWSGI. Use the chdir directive of uWSGI to use the configuration with default name
-on the given path.
+on the given path. There are example configurations under conf/ directory.
 
 [1] http://flask.pocoo.org/docs/deploying/uwsgi/
 
