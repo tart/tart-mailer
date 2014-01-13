@@ -70,7 +70,7 @@ def sendMail(count):
 
                     sMTP.sendmail(email['fromaddress'], email['toaddress'], message.as_string())
 
-                emailCount -= 1
+                count -= 1
 
 if __name__ == '__main__':
     if arguments.send:
