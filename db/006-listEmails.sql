@@ -22,7 +22,7 @@ With EmailSendFeedbackTypeStats as (select emailId, type, count(*) as count
     EmailSendFeedbackStats as (select emailId, hstore(array_agg(type::text), array_agg(count::text)) as typeCounts
             from EmailSendFeedbackTypeStats
             group by emailId),
-    EmailSendStats as (select emailId, count(*) as totalCount, count(sent::int) as sentCount
+    EmailSendStats as (select emailId, count(*) as totalCount, sum(sent::int) as sentCount
             from EmailSend
             group by emailId)
 Select Email.id, Email.fromName, Email.fromAddress, Email.subject, Email.createdAt,
