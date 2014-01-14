@@ -48,36 +48,35 @@ def sendMail(count):
     if emailCount > 0:
         if count > emailCount:
             count = emailCount
-
         print(str(count) + ' of ' + str(emailCount) + ' emails will be sent.')
 
-        with smtplib.SMTP(config.get('smtp', 'host'), config.get('smtp', 'port')) as sMTP:
-            if config.has_option('smtp', 'starttls') and config.getboolean('smtp', 'starttls'):
-                sMTP.starttls()
+        sMTP = smtplib.SMTP(config.get('smtp', 'host'), config.getint('smtp', 'port'))
+        if config.has_option('smtp', 'starttls') and config.getboolean('smtp', 'starttls'):
+            sMTP.starttls()
+        if config.has_option('smtp', 'user') and config.has_option('smtp', 'password'):
+            sMTP.login(config.get('smtp', 'user'), config.get('smtp', 'password'))
+        print('SMTP connection successful.')
 
-            if config.has_option('smtp', 'user') and config.has_option('smtp', 'password'):
-                sMTP.login(config.get('smtp', 'user'), config.get('smtp', 'password'))
+        while count > 0:
+            with postgres:
+                email = postgres.callOneLine('NextEmailToSend')
 
-            while count > 0:
-                with postgres:
-                    email = postgres.callOneLine('NextEmailToSend')
+                if email['plainbody'] and email['htmlbody']:
+                    message = MIMEMultipart('alternative')
+                    message.attach(MIMEText(email['plainbody'], 'plain', 'utf-8'))
+                    message.attach(MIMEText(email['htmlbody'], 'html', 'utf-8'))
+                elif email['htmlbody']:
+                    message = MIMEText(email['htmlbody'], 'html', 'utf-8')
+                else:
+                    message = MIMEText(email['plainbody'], 'plain', 'utf-8')
 
-                    if email['plainbody'] and email['htmlbody']:
-                        message = MIMEMultipart('alternative')
-                        message.attach(MIMEText(email['plainbody'], 'plain', 'utf-8'))
-                        message.attach(MIMEText(email['htmlbody'], 'html', 'utf-8'))
-                    elif email['htmlbody']:
-                        message = MIMEText(email['htmlbody'], 'html', 'utf-8')
-                    else:
-                        message = MIMEText(email['plainbody'], 'plain', 'utf-8')
+                message['Subject'] = email['subject']
+                message['From'] = formataddr((email['fromname'], email['fromaddress']))
+                message['To'] = email['toaddress']
 
-                    message['Subject'] = email['subject']
-                    message['From'] = formataddr((email['fromname'], email['fromaddress']))
-                    message['To'] = email['toaddress']
+                sMTP.sendmail(email['fromaddress'], email['toaddress'], message.as_string())
 
-                    sMTP.sendmail(email['fromaddress'], email['toaddress'], message.as_string())
-
-                count -= 1
+            count -= 1
 
 if __name__ == '__main__':
     if arguments.send:
