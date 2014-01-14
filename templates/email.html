@@ -44,12 +44,19 @@
                 <input type="text" name="redirecturl" maxlength="1000" value="{{ email.redirecturl }}" {{ 'disabled ' if not email.draft }}/>
             </td>
         </tr>
+{% if exampleproperties %}
+        <tr>
+            <td>Example Properies:</td>
+            <td>{{ exampleproperties }}</td>
+        </tr>
+{% endif %}
     </table>
 
     <p>Properties can be used as {property} in addition to {unsubscribeurl}, {redirecturl}, {trackerimageurl} inside the subject, plain text body or HTML body.</p>
-    <p>Example Properies: {{ exampleproperties }}</p>
 
-    <strong>{{ message.save }}</strong>
+{% if action == 'save' %}
+    <strong>{{ message }}</strong>
+{% endif %}
 
     <p>
         <input type="hidden" name="emailid" value="{{ email.id }}" />
@@ -69,7 +76,9 @@
         </tr>
     </table>
 
-    <strong>{{ message.sendTest }}</strong>
+{% if action == 'sendTest' %}
+    <strong>{{ message }}</strong>
+{% endif %}
 
     <p>
         <input type="hidden" name="emailid" value="{{ email.id }}" />
@@ -78,7 +87,9 @@
 </form>
 
 <form method="POST" action="removeTest">
-    <strong>{{ message.removeTest }}</strong>
+{% if action == 'removeTest' %}
+    <strong>{{ message }}</strong>
+{% endif %}
 
     <p>
         <input type="hidden" name="emailid" value="{{ email.id }}" />
@@ -87,28 +98,56 @@
 </form>
 
 <form method="POST" action="send">
+    <table border="1">
+        <tr>
+            <th></th>
+            <th>Locale</th>
+            <th>Send</th>
+            <th>Total</th>
+        </tr>
+    {% for stat in subscriberlocalestats %}
+        <tr>
+            <td>
+                <input type="checkbox" name="locales[]" value="{{ stat.locale }}" {{ 'disabled ' if stat.sendcount == stat.count }}/>
+             </td>
+            <td>{{ stat.locale }}</td>
+            <td>{{ stat.sendcount }}</td>
+            <td>{{ stat.count }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+
     <table>
         <tr>
-            <td>Subscriber Count:</td>
-            <td>{{ subscribercount }}</td>
+            <td>Maximum Subscriber Count:</td>
+            <td>
+                <input type="text" name="subscribercount" maxlength="20" value="{{ subscribercount }}" required {{ 'disabled ' if subscribercount == 0 }}/>
+            </td>
         </tr>
     </table>
+
+    <p>Counts does not include unsubscribed or complained subscribers. Emails may have been sent to them before.</p>
 
     <p>Review all fields carrefully before sending. Write the Return URL Root and the Redirect URL to your browser. Check that they return 200.</p>
 
     <p>The current subscribers will be added to the queue. Emails will be send asynchronously. Adding many emails to the queue can take minutes.<p>
 
-    <strong>{{ message.send }}</strong>
+    {% if action == 'send' %}
+    <strong>{{ message }}</strong>
+    {% endif %}
 
     <p>
         <input type="hidden" name="emailid" value="{{ email.id }}" />
-        <input type="hidden" name="maxsubscriberid" value="{{ maxsubscriberid }}" />
-        <input type="submit" name"submit" value="Send" />
+        <input type="submit" name"submit" value="Send" {{ 'disabled ' if subscribercount == 0 }}/>
     </p>
 </form>
 {% endif %}
 
 <p>
     <a href="{{ url_for('listEmails') }}" >List Emails</a>
+</p>
+
+<p>
+    <a href="{{ url_for('newEmail') }}" >New Email</a>
 </p>
 

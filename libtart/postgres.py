@@ -38,7 +38,7 @@ class Postgres(psycopg2.extensions.connection):
             cursor.execute(*self.__functionCallQuery(*args, **kwargs))
 
             columnNames = [desc[0] for desc in cursor.description]
-            return (dict(zip(columnNames, v)) for v in cursor.fetchall())
+            return [dict(zip(columnNames, v)) for v in cursor.fetchall()]
 
     def callOneLine(self, function, *args, **kwargs):
         '''Call a function inside the database return the first line.'''
