@@ -10,11 +10,13 @@
     </tr>
 {% for email in emails %}
     <tr>
-        <td>{{ email['fromname'] }} &lt;{{ email['fromaddress'] }}&gt;</td>
-        <td>{{ email['subject'] }}</td>
-        <td>{{ email['createdat'] }}</td>
-        <td>{{ email['sentcount'] }} / {{ email['totalcount'] }}</td>
-        <td>{{ email['feedbacktypecounts'] }}</td>
+        <td>{{ email.fromname }} &lt;{{ email.fromaddress }}&gt;</td>
+        <td>
+            <a href="{{ email.id }}" >{{ email.subject }}</a>
+        </td>
+        <td>{{ email.createdat }}</td>
+        <td>{{ email.sentcount }} / {{ email.totalcount }}</td>
+        <td>{{ email.feedbacktypecounts }}</td>
     </tr>
 {% endfor %}
 </table>

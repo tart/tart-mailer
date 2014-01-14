@@ -37,7 +37,7 @@ Create or replace function NewEmail(
     )
     language sql
     as $$
-With NewEmail as (insert into email (fromName, fromAddress, subject, plainBody, hTMLBody, returnURLRoot, redirectURL)
+With NewEmail as (insert into Email (fromName, fromAddress, subject, plainBody, hTMLBody, returnURLRoot, redirectURL)
         values (fromName, fromAddress, subject, plainBody, hTMLBody, returnURLRoot, redirectURL)
         returning *),
     NewEmailSent as (insert into EmailSend (emailId, subscriberId)

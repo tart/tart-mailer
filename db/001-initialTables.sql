@@ -15,7 +15,6 @@ Create table Email (
     revisedAt timestamp with time zone default now() not null,
     constraint EmailPK primary key (id),
     constraint EmailBodyC check (((plainBody is not null) or (hTMLBody is not null))),
-    constraint EmailCreatedAtC check (createdAt >= now()) not valid,
     constraint EmailRevisedAtC check (revisedAt >= createdAt),
     constraint EmailReturnURLRootC check (returnURLRoot ~ '^(http|https)://' and returnURLRoot ~ '/$'),
     constraint EmailRedirectURLC check (redirectURL~ '^(http|https)://')
@@ -34,7 +33,6 @@ Create table Subscriber (
     constraint SubscriberPK primary key (id),
     constraint SubscriberEmailAddressUK unique (emailAddress),
     constraint SubscriberEmailAddressC check (emailAddress ~ '^[^@]+@[^@]+\.[^@]+$'),
-    constraint SubscriberCreatedAtC check (createdAt >= now()) not valid,
     constraint SubscriberRevisedAtC check (revisedAt >= createdAt),
     constraint SubscriberLocaleC check (locale ~ '^[a-z]{2}_[A-Z]{2}$')
 );

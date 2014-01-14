@@ -44,19 +44,50 @@ def listEmails():
     with postgres:
         return flask.render_template('listEmails.html', emails=postgres.callTable('ListEmails'))
 
-@app.route('/new', methods=['GET', 'POST'])
-def newEmail():
+@app.route('/new', methods=['GET', 'POST'], defaults={'action': 'save'})
+@app.route('/<int:emailId>', methods=['GET', 'POST'], defaults={'action': 'save'})
+@app.route('/sendTest', methods=['POST'], defaults={'action': 'sendTest'})
+@app.route('/removeTest', methods=['POST'], defaults={'action': 'removeTest'})
+@app.route('/send', methods=['POST'], defaults={'action': 'send'})
+def newEmail(emailId=None, action=None):
     with postgres:
-        message = ''
-        defaults = {}
-        defaults['returnurlroot'] = flask.request.url_root;
+        if flask.request.method == 'GET':
+            message = {}
 
-        if flask.request.method == 'POST':
-            newEmail = postgres.callOneLine('NewEmail', **dict(flask.request.form.items()))
-            message = str(newEmail['subscribercount']) + ' email added to the queue.'
+            if not emailId:
+                email = {'draft': True, 'returnurlroot': flask.request.url_root}
+            else:
+                email = postgres.callOneLine('GetEmail', emailId)
+        else:
+            form = dict((k, v) for k, v in flask.request.form.items() if v != '')
+
+            if action == 'save':
+                if 'emailid' not in form:
+                    message = {action: 'Email created.'}
+                    email = postgres.callOneLine('NewEmail', **form)
+                else:
+                    message = {action: 'Email updated.'}
+                    email = postgres.callOneLine('ReviseEmail', **form)
+            else:
+                if action == 'sendTest':
+                    subscriberCount = postgres.callOneCell('SendTestEmail', **form)
+                    if subscriberCount:
+                        message = {action: 'Test email added to the queue.'}
+                    else:
+                        message = {action: 'Subscriber could not found.'}
+
+                elif action == 'removeTest':
+                    subscriberCount = postgres.callOneCell('RemoveTestEmailSend', **form)
+                    message = {action: str(subscriberCount) + ' test email removed.'}
+
+                elif action == 'send':
+                    subscriberCount = postgres.callOneCell('SendEmail', **form)
+                    message = {action: str(subscriberCount) + ' email added to the queue.'}
+
+                email = postgres.callOneLine('GetEmail', form['emailid'])
 
         subscriberInfo = postgres.callOneLine('SubscriberInfo')
-        return flask.render_template('newEmail.html', message=message, defaults=defaults, **subscriberInfo)
+        return flask.render_template('email.html', message=message, email=email, **subscriberInfo)
 
 if __name__ == '__main__':
     app.run(host=arguments.listen, port=arguments.port, debug=arguments.debug)

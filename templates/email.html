@@ -1,0 +1,114 @@
+<!doctype html>
+
+<form method="POST" action="">
+    <table>
+        <tr>
+            <td>From Name:</td>
+            <td>
+                <input type="text" name="fromname" maxlength="200" value="{{ email.fromname }}" required {{ 'disabled ' if not email.draft }}/>
+            </td>
+        </tr>
+        <tr>
+            <td>From Address:</td>
+            <td>
+                <input type="text" name="fromaddress" maxlength="200" value="{{ email.fromaddress }}" required {{ 'disabled ' if not email.draft }}/>
+            </td>
+        </tr>
+        <tr>
+            <td>Subject:</td>
+            <td>
+                <input type="text" name="subject" maxlength="1000" value="{{ email.subject }}" required {{ 'disabled ' if not email.draft }}/>
+            </td>
+        </tr>
+        <tr>
+            <td>Plain Text Body:</td>
+            <td>
+                <textarea name="plainbody" {{ 'disabled ' if not email.draft }}>{{ email.plainbody }}</textarea>
+            <td>
+        </tr>
+        <tr>
+            <td>HTML Body:</td>
+            <td>
+                <textarea name="htmlbody" {{ 'disabled ' if not email.draft }}>{{ email.htmlbody }}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>Return URL Root:</td>
+            <td>
+                <input type="text" name="returnurlroot" maxlength="1000" value="{{ email.returnurlroot }}" {{ 'disabled ' if not email.draft }}/>
+            </td>
+        </tr>
+        <tr>
+            <td>Redirect URL:</td>
+            <td>
+                <input type="text" name="redirecturl" maxlength="1000" value="{{ email.redirecturl }}" {{ 'disabled ' if not email.draft }}/>
+            </td>
+        </tr>
+    </table>
+
+    <p>Properties can be used as {property} in addition to {unsubscribeurl}, {redirecturl}, {trackerimageurl} inside the subject, plain text body or HTML body.</p>
+    <p>Example Properies: {{ exampleproperties }}</p>
+
+    <strong>{{ message.save }}</strong>
+
+    <p>
+        <input type="hidden" name="emailid" value="{{ email.id }}" />
+        <input type="hidden" name="draft" value="{{ email.draft }}" />
+        <input type="submit" name"submit" value="Save" {{ 'disabled ' if not email.draft }}/>
+    </p>
+</form>
+
+{% if email.id %}
+<form method="POST" action="sendTest">
+    <table>
+        <tr>
+            <td>Email Address:</td>
+            <td>
+                <input type="text" name="subscriberemailaddress" maxlength="200" required {{ 'disabled ' if not email.draft }}/>
+            </td>
+        </tr>
+    </table>
+
+    <strong>{{ message.sendTest }}</strong>
+
+    <p>
+        <input type="hidden" name="emailid" value="{{ email.id }}" />
+        <input type="submit" name"submit" value="Send Test Email" {{ 'disabled ' if not email.draft }}/>
+    </p>
+</form>
+
+<form method="POST" action="removeTest">
+    <strong>{{ message.removeTest }}</strong>
+
+    <p>
+        <input type="hidden" name="emailid" value="{{ email.id }}" />
+        <input type="submit" name"submit" value="Remove Send Test Emails" {{ 'disabled ' if not email.draft }}/>
+    </p>
+</form>
+
+<form method="POST" action="send">
+    <table>
+        <tr>
+            <td>Subscriber Count:</td>
+            <td>{{ subscribercount }}</td>
+        </tr>
+    </table>
+
+    <p>Review all fields carrefully before sending. Write the Return URL Root and the Redirect URL to your browser. Check that they return 200.</p>
+
+    <p>The current subscribers will be added to the queue. Emails will be send asynchronously. Adding many emails to the queue can take minutes.<p>
+
+    <strong>{{ message.send }}</strong>
+
+    <p>
+        <input type="hidden" name="emailid" value="{{ email.id }}" />
+        <input type="hidden" name="maxsubscriberid" value="{{ maxsubscriberid }}" />
+        <input type="submit" name"submit" value="Send" />
+    </p>
+</form>
+{% endif %}
+
+<p>
+    <a href="{{ url_for('listEmails') }}" >List Emails</a>
+</p>
+
