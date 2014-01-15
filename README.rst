@@ -26,7 +26,7 @@ Test the web server for administrators:
 
 Test sending a mail:
 
-./worker.py --send 1
+./worker.py
 
 See deployment page of the Flask documentation [1] to run the web servers with Nginx and uWSGI. Command line
 arguments cannot be set with uWSGI. Use the chdir directive of uWSGI to use the configuration with default name

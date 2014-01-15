@@ -29,7 +29,8 @@ def parseArguments():
 
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, description=__doc__)
     parser.add_argument('--config', default='./mailer.conf', help='configuration file path')
-    parser.add_argument('--send', type=int, help='waiting email amount to send')
+    parser.add_argument('--server', default='localhost', help='outgoing server to send emails')
+    parser.add_argument('--amount', type=int, default=1, help='waiting email amount to send')
 
     return parser.parse_args()
 
@@ -39,27 +40,27 @@ if not config.read(arguments.config):
     raise Exception('Configuration file cannot be read.')
 postgres = Postgres(' '.join(k + '=' + v for k, v in config.items('postgres')))
 
-def sendMail(count):
-    assert count > 0
+def sendMail(serverName, amount):
+    assert amount> 0
 
     with postgres:
-        emailCount = postgres.callOneCell('EmailToSendCount')
+        server = postgres.callOneLine('OutgoingServerToSend', serverName)
 
-    if emailCount > 0:
-        if count > emailCount:
-            count = emailCount
-        print(str(count) + ' of ' + str(emailCount) + ' emails will be sent.')
+    if server:
+        if amount > server['totalcount']:
+            amount = server['totalcount']
+        print(str(amount) + ' of ' + str(server['totalcount']) + ' emails will be sent.')
 
-        sMTP = smtplib.SMTP(config.get('smtp', 'host'), config.getint('smtp', 'port'))
-        if config.has_option('smtp', 'starttls') and config.getboolean('smtp', 'starttls'):
+        sMTP = smtplib.SMTP(server['hostname'], server['port'])
+        if server['usetls']:
             sMTP.starttls()
-        if config.has_option('smtp', 'user') and config.has_option('smtp', 'password'):
-            sMTP.login(config.get('smtp', 'user'), config.get('smtp', 'password'))
+        if server['username']:
+            sMTP.login(server['username'], server['password'])
         print('SMTP connection successful.')
 
-        while count > 0:
+        while amount > 0:
             with postgres:
-                email = postgres.callOneLine('NextEmailToSend')
+                email = postgres.callOneLine('NextEmailToSend', serverName)
 
                 if email['plainbody'] and email['htmlbody']:
                     message = MIMEMultipart('alternative')
@@ -76,9 +77,8 @@ def sendMail(count):
 
                 sMTP.sendmail(email['fromaddress'], email['toaddress'], message.as_string())
 
-            count -= 1
+            amount -= 1
 
 if __name__ == '__main__':
-    if arguments.send:
-        sendMail(arguments.send)
+    sendMail(arguments.server, arguments.amount)
 

@@ -16,8 +16,8 @@ statements inside the test script.
 
 Add tab seperated emails to the file named email.data.
 
-Add tab seperated subscribers to the file named subscriber.data. Emails will be send to the top 5 subscribers. Add
-valid email addresses to them. Feedback functionality will be tested for the first one.
+Add tab seperated subscribers to the file named subscriber.data. Only one email will be send and feedback
+functionality will be tested for this one. The email and the subscriber will be the ones on top of the list.
 
 Run the script inside this directory:
 

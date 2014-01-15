@@ -13,12 +13,12 @@ echo
 
 echo "Adding data..."
 echo "\Copy Subscriber (emailAddress, properties) from 'subscriber.data'" | psql $dbname
-echo "\Copy Email (fromName, fromAddress, subject, plainBody, hTMLBody, returnURLRoot, redirectURL) from 'email.data'" | psql $dbname
+echo "\Copy Email (fromName, fromAddress, subject, plainBody, hTMLBody, returnURLRoot, redirectURL, outgoingServerName) from 'email.data'" | psql $dbname
 echo "Insert into EmailSend (emailId, subscriberId) select Email.id, Subscriber.id from Email, Subscriber" | psql $dbname
 echo
 
-echo "Trying to send emails..."
-../worker.py --send 5
+echo "Trying to send an email..."
+../worker.py
 echo
 
 echo "Running the web server for users..."

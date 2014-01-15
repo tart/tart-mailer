@@ -3,6 +3,16 @@
 <form method="POST" action="">
     <table>
         <tr>
+            <td>Outgoing Server:</td>
+            <td>
+                <select name="outgoingservername" required {{ 'disabled ' if not email.draft }}>
+{% for outgoingServer in outgoingServers %}
+                    <option value="{{ outgoingServer }}" {{ 'selected' if outgoingServer == email.outgoingservername}}>{{ outgoingServer }}</option>
+{% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
             <td>From Name:</td>
             <td>
                 <input type="text" name="fromname" maxlength="200" value="{{ email.fromname }}" required {{ 'disabled ' if not email.draft }}/>

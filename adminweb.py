@@ -42,7 +42,8 @@ postgres = Postgres(' '.join(k + '=' + v for k, v in config.items('postgres')))
 @app.route('/')
 def listEmails():
     with postgres:
-        return flask.render_template('listEmails.html', emails=postgres.callTable('ListEmails'))
+        return flask.render_template('listEmails.html', emails=postgres.callTable('ListEmails'),
+                                     outgoingServers=postgres.callTable('ListOutgoingServers'))
 
 @app.route('/new', methods=['GET', 'POST'], defaults={'action': 'save'})
 @app.route('/<int:emailId>', methods=['GET', 'POST'], defaults={'action': 'save'})
@@ -93,6 +94,7 @@ def newEmail(emailId=None, action=None):
         else:
             newForm['email'] = {'draft': True, 'returnurlroot': flask.request.url_root}
             newForm['exampleproperties'] = postgres.callOneLine('SubscriberExampleProperties')
+        newForm['outgoingServers'] = postgres.callOneCell('OutgoingServerNames')
 
         return flask.render_template('email.html', **newForm)
 
