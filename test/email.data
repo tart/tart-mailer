@@ -1,0 +1,1 @@
+Tart Mailer	tart-mailer@github.com	Test Email	Hi {firstname} {lastname},\nClick {redirecturl}	\N	http://localhost:8000/	https://github.com/tart/tart-mailer	localhost
