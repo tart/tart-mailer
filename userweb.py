@@ -22,7 +22,6 @@ from libtart.postgres import Postgres
 
 app = flask.Flask(__name__)
 app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == 'FLASK_'))
-postgres = Postgres('')
 
 @app.route('/')
 def index():
@@ -31,14 +30,14 @@ def index():
 
 @app.route('/trackerImage/<emailHash>')
 def trackerImage(emailHash):
-    with postgres:
+    with Postgres('') as postgres:
         postgres.call('NewEmailSendFeedback', emailHash, 'trackerImage', flask.request.remote_addr)
 
         return flask.send_file('static/dummy.gif', mimetype='image/gif')
 
 @app.route('/redirect/<emailHash>')
 def redirect(emailHash):
-    with postgres:
+    with Postgres('') as postgres:
         postgres.call('NewEmailSendFeedback', emailHash, 'redirect', flask.request.remote_addr)
         redirectURL = postgres.callOneCell('EmailSendRedirectURL', emailHash)
 
@@ -49,7 +48,7 @@ def redirect(emailHash):
 
 @app.route('/unsubscribe/<emailHash>')
 def unsubscribe(emailHash):
-    with postgres:
+    with Postgres('') as postgres:
         if postgres.callOneCell('NewEmailSendFeedback', emailHash, 'unsubscribe', flask.request.remote_addr):
             message = 'You are successfully unsubscribed.'
         else:

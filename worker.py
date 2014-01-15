@@ -33,10 +33,9 @@ def parseArguments():
     return parser.parse_args()
 
 arguments = parseArguments()
-postgres = Postgres('')
 
 def sendMail(serverName, amount):
-    assert amount> 0
+    postgres = Postgres('')
 
     with postgres:
         server = postgres.callOneLine('OutgoingServerToSend', serverName)

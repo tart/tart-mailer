@@ -22,11 +22,10 @@ from libtart.postgres import Postgres
 
 app = flask.Flask(__name__)
 app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == 'FLASK_'))
-postgres = Postgres('')
 
 @app.route('/')
 def listEmails():
-    with postgres:
+    with Postgres('') as postgres:
         return flask.render_template('listEmails.html', emails=postgres.callTable('ListEmails'),
                                      outgoingServers=postgres.callTable('ListOutgoingServers'))
 
@@ -36,7 +35,7 @@ def listEmails():
 @app.route('/removeTest', methods=['POST'], defaults={'action': 'removeTest'})
 @app.route('/send', methods=['POST'], defaults={'action': 'send'})
 def newEmail(emailId=None, action=None):
-    with postgres:
+    with Postgres('') as postgres:
         newForm = {}
 
         if flask.request.method == 'POST':
