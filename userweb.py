@@ -16,28 +16,13 @@
 ##
 
 import flask
+import os
 
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from configparser import ConfigParser
 from libtart.postgres import Postgres
 
-def parseArguments():
-    '''Create ArgumentParser instance. Return parsed arguments.'''
-
-    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, description=__doc__)
-    parser.add_argument('--config', default='./mailer.conf', help='configuration file path')
-    parser.add_argument('--debug', action='store_true', help='debug mode')
-    parser.add_argument('--listen', default='0.0.0.0', help='hostname to listen on')
-    parser.add_argument('--port', type=int, default=8000, help='connection port on the web server')
-
-    return parser.parse_args()
-
 app = flask.Flask(__name__)
-arguments = parseArguments()
-config = ConfigParser()
-if not config.read(arguments.config):
-    raise Exception('Configuration file cannot be read.')
-postgres = Postgres(' '.join(k + '=' + v for k, v in config.items('postgres')))
+app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == 'FLASK_'))
+postgres = Postgres('')
 
 @app.route('/')
 def index():
@@ -72,5 +57,5 @@ def unsubscribe(emailHash):
         return flask.render_template('unsubscribe.html', message=message)
 
 if __name__ == '__main__':
-    app.run(host=arguments.listen, port=arguments.port, debug=arguments.debug)
+    app.run(host='0.0.0.0', port=8000, debug=True)
 

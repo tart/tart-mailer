@@ -18,7 +18,6 @@
 import smtplib
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from configparser import ConfigParser
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formataddr
@@ -28,17 +27,13 @@ def parseArguments():
     '''Create ArgumentParser instance. Return parsed arguments.'''
 
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, description=__doc__)
-    parser.add_argument('--config', default='./mailer.conf', help='configuration file path')
     parser.add_argument('--server', default='localhost', help='outgoing server to send emails')
     parser.add_argument('--amount', type=int, default=1, help='waiting email amount to send')
 
     return parser.parse_args()
 
 arguments = parseArguments()
-config = ConfigParser()
-if not config.read(arguments.config):
-    raise Exception('Configuration file cannot be read.')
-postgres = Postgres(' '.join(k + '=' + v for k, v in config.items('postgres')))
+postgres = Postgres('')
 
 def sendMail(serverName, amount):
     assert amount> 0

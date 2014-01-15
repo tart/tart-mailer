@@ -4,33 +4,37 @@ Dependencies
 ------------
 
 * PostgreSQL 9.3 with contrib
-* Python 2.6 or greater with standart library
+* Python 2.6 or 3.3 with standart library
 * Psycopg2 2.5
 * Flask 0.10
 
-Usage
------
+Installation
+------------
 
-Copy the default configuration file and edit.
+All configuration parameters are optional. PostgreSQL connection parameters can be given as environment variables
+via libpg. See http://www.postgresql.org/docs/current/static/libpq-envars.html for the list.
 
-Create a PostgreSQL database and execute the scripts under the db/ directory in order. Change the secrets
-on db/003-emailHash.sql before. Execute the only the new scripts ones if you are upgrading.
+Flesk configuration parameters can be given as environment variables with FLESK_ prefix. See
+http://flask.pocoo.org/docs/config/ for the default ones.
 
-Test the web server for users:
+A seperate PostgreSQL database is required. The scripts under the db/ directory should be executed in order.
+db/003-emailHash.sql includes the hash function for user URL's. Is is better to change the secrets in it, before.
+Executing only the new scripts should be sufficient for upgrading.
 
-./userweb.py --debug
+There are two seperate web servers. One of them is for users to redirect, unsubscribe... Other one is for
+administratiors to list emails, send new ones... They both can be run directly::
 
-Test the web server for administrators:
+    ./userweb.py
 
-./adminweb.py --debug
+    ./adminweb.py
 
-Test sending a mail:
+Emailes are send asynchronously. worker.py should be run periodically with outgoing mail server name. Command
+line arguments will be listed by::
 
-./worker.py
+    ./worker.py --help
 
-See deployment page of the Flask documentation [1] to run the web servers with Nginx and uWSGI. Command line
-arguments cannot be set with uWSGI. Use the chdir directive of uWSGI to use the configuration with default name
-on the given path. There are example configurations under conf/ directory.
+See deployment page of the Flask documentation [1] to run the web servers with Nginx and uWSGI. There are
+example configurations under the conf/ directory. Also, there is a test script under the test/ directory.
 
 [1] http://flask.pocoo.org/docs/deploying/uwsgi/
 
