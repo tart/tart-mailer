@@ -16,6 +16,7 @@
 ##
 
 import smtplib
+import signal
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from email.mime.multipart import MIMEMultipart
@@ -29,10 +30,12 @@ def parseArguments():
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, description=__doc__)
     parser.add_argument('--server', default='localhost', help='outgoing server to send emails')
     parser.add_argument('--amount', type=int, default=1, help='waiting email amount to send')
+    parser.add_argument('--timeout', type=int, default=60, help='seconds to kill the process')
 
     return parser.parse_args()
 
 arguments = parseArguments()
+signal.alarm(arguments.timeout)
 
 def sendMail(serverName, amount):
     postgres = Postgres('')
