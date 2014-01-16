@@ -44,5 +44,5 @@ echo
 echo
 
 echo "Killing the web server..."
-kill %1
+trap "kill 0" SIGINT SIGTERM EXIT
 
