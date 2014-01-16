@@ -28,6 +28,7 @@ Select Subscriber.locale, count(*) as count, count(EmailSend) as sendCount
                     where Feedback.subscriberId = Subscriber.id
                             and Feedback.type = 'unsubscribe')
         group by Subscriber.locale
+        order by Subscriber.locale
 $$;
 
 Commit;
