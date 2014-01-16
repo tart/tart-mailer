@@ -15,43 +15,43 @@
         <tr>
             <td>From Name:</td>
             <td>
-                <input type="text" name="fromname" maxlength="200" value="{{ email.fromname }}" required {{ 'disabled ' if not email.draft }}/>
+                <input type="text" name="fromname" size="100" maxlength="200" value="{{ email.fromname }}" required {{ 'disabled ' if not email.draft }}/>
             </td>
         </tr>
         <tr>
             <td>From Address:</td>
             <td>
-                <input type="text" name="fromaddress" maxlength="200" value="{{ email.fromaddress }}" required {{ 'disabled ' if not email.draft }}/>
+                <input type="text" name="fromaddress" size="100" maxlength="200" value="{{ email.fromaddress }}" required {{ 'disabled ' if not email.draft }}/>
             </td>
         </tr>
         <tr>
             <td>Subject:</td>
             <td>
-                <input type="text" name="subject" maxlength="1000" value="{{ email.subject }}" required {{ 'disabled ' if not email.draft }}/>
+                <input type="text" name="subject" size="100" maxlength="1000" value="{{ email.subject }}" required {{ 'disabled ' if not email.draft }}/>
             </td>
         </tr>
         <tr>
             <td>Plain Text Body:</td>
             <td>
-                <textarea name="plainbody" {{ 'disabled ' if not email.draft }}>{{ email.plainbody }}</textarea>
+                <textarea name="plainbody" rows="10" cols="100" {{ 'disabled ' if not email.draft }}>{{ email.plainbody }}</textarea>
             <td>
         </tr>
         <tr>
             <td>HTML Body:</td>
             <td>
-                <textarea name="htmlbody" {{ 'disabled ' if not email.draft }}>{{ email.htmlbody }}</textarea>
+                <textarea name="htmlbody" rows="10" cols="100" {{ 'disabled ' if not email.draft }}>{{ email.htmlbody }}</textarea>
             </td>
         </tr>
         <tr>
             <td>Return URL Root:</td>
             <td>
-                <input type="text" name="returnurlroot" maxlength="1000" value="{{ email.returnurlroot }}" {{ 'disabled ' if not email.draft }}/>
+                <input type="text" name="returnurlroot" size="100" maxlength="1000" value="{{ email.returnurlroot }}" {{ 'disabled ' if not email.draft }}/>
             </td>
         </tr>
         <tr>
             <td>Redirect URL:</td>
             <td>
-                <input type="text" name="redirecturl" maxlength="1000" value="{{ email.redirecturl }}" {{ 'disabled ' if not email.draft }}/>
+                <input type="text" name="redirecturl" size="100" maxlength="1000" value="{{ email.redirecturl }}" {{ 'disabled ' if not email.draft }}/>
             </td>
         </tr>
 {% if exampleproperties %}
@@ -81,7 +81,7 @@
         <tr>
             <td>Email Address:</td>
             <td>
-                <input type="text" name="subscriberemailaddress" maxlength="200" required {{ 'disabled ' if not email.draft }}/>
+                <input type="text" name="subscriberemailaddress" size="100" maxlength="200" required {{ 'disabled ' if not email.draft }}/>
             </td>
         </tr>
     </table>
