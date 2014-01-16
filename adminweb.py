@@ -60,7 +60,7 @@ def newEmail(emailId=None, action=None):
                     if subscriberCount:
                         newForm['message'] = 'Test email added to the queue.'
                     else:
-                        newForm['message'] = 'Subscriber could not found.'
+                        newForm['message'] = 'Test email could not send. Subscriber may not be in the database.'
 
                 elif action == 'removeTest':
                     subscriberCount = postgres.callOneCell('RemoveTestEmailSend', **form)
