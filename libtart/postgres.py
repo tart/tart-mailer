@@ -16,6 +16,9 @@
 
 import psycopg2.extensions
 
+psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
+psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
+
 class Postgres(psycopg2.extensions.connection):
 
     def __functionCallQuery(self, function, *args, **kwargs):
