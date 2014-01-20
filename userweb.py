@@ -17,6 +17,7 @@
 
 import flask
 import os
+import io
 
 from libtart.postgres import Postgres
 
@@ -32,7 +33,9 @@ def index():
 def trackerImage(emailHash):
     with Postgres('') as postgres:
         postgres.call('NewEmailSendFeedback', emailHash, 'trackerImage', flask.request.remote_addr)
-        return ''
+
+        # Return 1px * 1px transparent image.
+        return flask.send_file(io.BytesIO('GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'), mimetype='image/gif')
 
 @app.route('/redirect/<emailHash>')
 def redirect(emailHash):
