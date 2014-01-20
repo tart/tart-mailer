@@ -34,8 +34,8 @@ def trackerImage(emailHash):
     with Postgres('') as postgres:
         postgres.call('NewEmailSendFeedback', emailHash, 'trackerImage', flask.request.remote_addr)
 
-        # Return 1px * 1px transparent image.
-        return flask.send_file(io.BytesIO('GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'), mimetype='image/gif')
+    # Return 1px * 1px transparent image.
+    return flask.send_file(io.BytesIO('GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'), mimetype='image/gif')
 
 @app.route('/redirect/<emailHash>')
 def redirect(emailHash):
@@ -43,10 +43,10 @@ def redirect(emailHash):
         postgres.call('NewEmailSendFeedback', emailHash, 'redirect', flask.request.remote_addr)
         redirectURL = postgres.callOneCell('EmailSendRedirectURL', emailHash)
 
-        if redirectURL:
-            return flask.redirect(redirectURL)
+    if redirectURL:
+        return flask.redirect(redirectURL)
 
-        abort(404)
+    abort(404)
 
 @app.route('/unsubscribe/<emailHash>')
 def unsubscribe(emailHash):
