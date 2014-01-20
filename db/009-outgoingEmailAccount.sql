@@ -37,7 +37,7 @@ Create or replace function ListOutgoingServers()
     as $$
 Select OutgoingServer.name, OutgoingServer.hostname, OutgoingServer.createdAt,
         coalesce(count(distinct Email), 0) as emailCount,
-        coalesce(count(*), 0) as totalCount,
+        coalesce(count(EmailSend), 0) as totalCount,
         coalesce(sum(EmailSend.sent::int), 0) as sentCount
     from OutgoingServer
         left join Email on Email.outgoingServerName = OutgoingServer.name
