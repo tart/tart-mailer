@@ -37,6 +37,16 @@ def trackerImage(emailHash):
     # Return 1px * 1px transparent image.
     return flask.send_file(io.BytesIO('GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'), mimetype='image/gif')
 
+@app.route('/view/<emailHash>')
+def view(emailHash):
+    with Postgres('') as postgres:
+        postgres.call('NewEmailSendFeedback', emailHash, 'view', flask.request.remote_addr)
+        body = postgres.callOneCell('ViewEmailBody', emailHash)
+
+    if body:
+        return body
+    abort(404)
+
 @app.route('/redirect/<emailHash>')
 def redirect(emailHash):
     with Postgres('') as postgres:
@@ -45,7 +55,6 @@ def redirect(emailHash):
 
     if redirectURL:
         return flask.redirect(redirectURL)
-
     abort(404)
 
 @app.route('/unsubscribe/<emailHash>')

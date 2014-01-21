@@ -43,6 +43,11 @@ curl http://localhost:8000/unsubscribe/$emailHash
 echo
 echo
 
+echo "Trying to view..."
+curl http://localhost:8000/view/$emailHash
+echo
+echo
+
 echo "Killing the web server..."
 trap "kill 0" SIGINT SIGTERM EXIT
 

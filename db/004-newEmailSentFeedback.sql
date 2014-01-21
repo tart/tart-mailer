@@ -1,6 +1,6 @@
 Begin;
 
-Create or replace function NewEmailSendFeedback (
+Create or replace function NewEmailSendFeedback(
         emailHash text,
         newType EmailSendFeedbackType,
         iPAddress inet
@@ -19,14 +19,14 @@ With NewEmailSendFeedback as (insert into EmailSendFeedback (emailId, subscriber
     select exists (select 1 from NewEmailSendFeedback)
 $$;
 
-Create or replace function EmailSendRedirectURL (emailHash text)
+Create or replace function EmailSendRedirectURL(text)
     returns varchar(1000)
     language sql strict
     as $$
 Select Email.redirectURL
     from EmailSend
         join Email on EmailSend.emailId = Email.id
-        where EmailHash(EmailSend) = emailHash
+        where EmailHash(EmailSend) = $1
 $$;
 
 Commit;
