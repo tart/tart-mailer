@@ -62,7 +62,12 @@
 {% endif %}
     </table>
 
-    <p>Properties can be used as {property} in addition to {unsubscribeurl}, {redirecturl}, {trackerimageurl} inside the subject, plain text body or HTML body.</p>
+    <p>
+        Properties can be used as {property} in addition to {unsubscribeurl}, {redirecturl}, {trackerimageurl}
+        inside the subject, plain text body or HTML body. Anything that is not contained in braces is considered
+        literal text, which is copied unchanged to the output. If you need to include a brace character in
+        the literal text, it can be escaped by doubling: {{ '{{ and }}' }}.
+    </p>
 
 {% if action == 'save' %}
     <strong>{{ message }}</strong>
@@ -77,7 +82,10 @@
 
 {% if email.id %}
 <form method="POST" action="sendTest">
-    <p>Email hashes for URL's generated from the identifiers of the email and the subscriber. Because of that same email would not be send to the same subscriber. Test emails can be deleted, before sending new ones.</p>
+    <p>
+        Email hashes for URL's generated from the identifiers of the email and the subscriber. Because of that,
+        same email would not be send to the same subscriber. Test emails can be deleted, before sending new ones.
+    </p>
 
     <table>
         <tr>
