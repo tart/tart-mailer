@@ -152,11 +152,11 @@
         </tr>
     </table>
 
-    <p>Counts does not include unsubscribed or complained subscribers. Emails may have been sent to them before.</p>
-
-    <p>Review all fields carrefully before sending. Write the Return URL Root and the Redirect URL to your browser. Check that they return 200.</p>
-
-    <p>The current subscribers will be added to the queue. Emails will be send asynchronously. Adding many emails to the queue can take minutes.<p>
+    <p>
+        The current subscribers will be added to the queue. Emails will be send asynchronously. Adding many emails
+        to the queue can take few minutes. Counts does not include unsubscribed or complained subscribers but
+        emails may have been sent to them before.
+    </p>
 
     {% if action == 'send' %}
     <strong>{{ message }}</strong>
