@@ -56,8 +56,7 @@ def newEmail(emailId=None, action=None):
                         newForm['message'] = 'Email could not found.'
             else:
                 if action == 'sendTest':
-                    subscriberCount = postgres.callOneCell('SendTestEmail', **form)
-                    if subscriberCount:
+                    if postgres.callOneCell('SendTestEmail', **form):
                         newForm['message'] = 'Test email added to the queue.'
                     else:
                         newForm['message'] = 'Test email could not send. Subscriber may not be in the database.'
@@ -73,6 +72,7 @@ def newEmail(emailId=None, action=None):
 
         if emailId:
             newForm['email'] = postgres.callOneLine('GetEmail', emailId)
+            newForm['previewEmailURL'] = postgres.callOneCell('PreviewEmailURL', emailId)
             newForm['subscriberlocalestats'] = postgres.callTable('SubscriberLocaleStats', emailId)
             newForm['subscribercount'] = sum(s['count'] - s['sendcount'] for s in newForm['subscriberlocalestats'])
         else:

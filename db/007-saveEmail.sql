@@ -46,11 +46,11 @@ Update Email
     returning *
 $$;
 
-Create or replace function GetEmail(emailId integer)
+Create or replace function GetEmail(integer)
     returns Email
     language sql
     as $$
-Select * from Email where id = emailId
+Select * from Email where id = $1
 $$;
 
 Create or replace function SendTestEmail(

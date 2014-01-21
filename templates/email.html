@@ -80,6 +80,12 @@
     </p>
 </form>
 
+{% if previewEmailURL %}
+<p>
+    <a href="{{ previewEmailURL }}">Preview Email</a>
+</p>
+{% endif %}
+
 {% if email.id %}
 <form method="POST" action="sendTest">
     <p>
