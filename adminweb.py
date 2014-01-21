@@ -76,11 +76,20 @@ def newEmail(emailId=None, action=None):
             newForm['subscriberlocalestats'] = postgres.callTable('SubscriberLocaleStats', emailId)
             newForm['subscribercount'] = sum(s['count'] - s['sendcount'] for s in newForm['subscriberlocalestats'])
         else:
-            newForm['email'] = {'draft': True, 'returnurlroot': flask.request.url_root}
+            parts = parseURL(flask.request.url_root)
+            newForm['email'] = {'draft': True, 'returnurlroot': parts['protocol'] + '//' + parts['root'] + '/'}
             newForm['exampleproperties'] = postgres.callOneLine('SubscriberExampleProperties')
         newForm['outgoingServers'] = postgres.callOneCell('OutgoingServerNames')
 
         return flask.render_template('email.html', **newForm)
+
+def parseURL(uRL):
+    parts = {}
+    parts['protocol'], address = uRL.split('//')
+    parts['root'], parts['uRI'] = address.split('/', 1)
+    if ':' in parts['root']:
+        parts['root'], parts['port'] = parts['root'].split(':')
+    return parts
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=9000, debug=True)
