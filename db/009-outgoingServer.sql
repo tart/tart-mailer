@@ -24,27 +24,6 @@ Alter table Email alter column outgoingServerName set not null;
 
 Create index EmailOutgoingServerNameFKI on Email (outgoingServerName);
 
-Create or replace function ListOutgoingServers()
-    returns table (
-        name varchar(200),
-        hostname varchar(200),
-        createdAt timestamptz,
-        emailCount bigint,
-        totalCount bigint,
-        sentCount bigint
-    )
-    language sql
-    as $$
-Select OutgoingServer.name, OutgoingServer.hostname, OutgoingServer.createdAt,
-        coalesce(count(distinct Email), 0) as emailCount,
-        coalesce(count(EmailSend), 0) as totalCount,
-        coalesce(sum(EmailSend.sent::int), 0) as sentCount
-    from OutgoingServer
-        left join Email on Email.outgoingServerName = OutgoingServer.name
-            left join EmailSend on EmailSend.emailId = Email.id
-    group by OutgoingServer.name
-$$;
-
 Create or replace function OutgoingServerToSend(varchar(200))
     returns table (
         hostname varchar(200),
