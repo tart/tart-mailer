@@ -80,24 +80,13 @@
     </p>
 </form>
 
-{% if previewEmailURL %}
-<p>
-    <a href="{{ previewEmailURL }}">Preview Email</a>
-</p>
-{% endif %}
-
 {% if email.id %}
 <form method="POST" action="sendTest">
-    <p>
-        Email hashes for URL's generated from the identifiers of the email and the subscriber. Because of that,
-        same email would not be send to the same subscriber. Test emails can be deleted, before sending new ones.
-    </p>
-
     <table>
         <tr>
             <td>Email Address:</td>
             <td>
-                <input type="text" name="subscriberemailaddress" size="100" maxlength="200" required {{ 'disabled ' if not email.draft }}/>
+                <input type="text" name="subscriberemailaddress" size="100" maxlength="200" />
             </td>
         </tr>
     </table>
@@ -108,20 +97,15 @@
 
     <p>
         <input type="hidden" name="emailid" value="{{ email.id }}" />
-        <input type="submit" name"submit" value="Send Test Email" {{ 'disabled ' if not email.draft }}/>
+        <input type="submit" name"submit" value="Send Test Email" />
     </p>
 </form>
 
-<form method="POST" action="removeTest">
-{% if action == 'removeTest' %}
-    <strong>{{ message }}</strong>
+{% if previewEmailURL %}
+<p>
+    <a href="{{ previewEmailURL }}">Preview Email</a>
+</p>
 {% endif %}
-
-    <p>
-        <input type="hidden" name="emailid" value="{{ email.id }}" />
-        <input type="submit" name"submit" value="Remove Send Test Emails" {{ 'disabled ' if not email.draft }}/>
-    </p>
-</form>
 
 <form method="POST" action="send">
     <table border="1">
@@ -155,7 +139,7 @@
     <p>
         The current subscribers will be added to the queue. Emails will be send asynchronously. Adding many emails
         to the queue can take few minutes. Counts does not include unsubscribed or complained subscribers but
-        emails may have been sent to them before.
+        emails may have been sent to them, before.
     </p>
 
     {% if action == 'send' %}

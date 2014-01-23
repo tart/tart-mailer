@@ -1,26 +1,5 @@
 Begin;
 
-Drop function if exists SendTestEmail(integer, varchar(200));
-
-Create or replace function SendTestEmail(
-        emailId integer,
-        subscriberEmailAddress varchar(200)
-    ) returns boolean
-    language sql
-    as $$
-With NewEmailSend as (insert into EmailSend (emailId, subscriberId)
-        select Email.id, Subscriber.id
-            from Email, Subscriber
-                where Email.id = emailId
-                        and Email.draft
-                        and Subscriber.emailAddress = subscriberEmailAddress
-                        and not exists (select 1 from EmailSend
-                                    where EmailSend.emailId = Email.id
-                                            and EmailSend.subscriberId = Subscriber.id)
-        returning *)
-    select exists (select * from NewEmailSend)
-$$;
-
 Drop function if exists SendEmail(integer, integer, char(5)[]);
 
 Create or replace function SendEmail(

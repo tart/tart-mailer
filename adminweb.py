@@ -32,7 +32,6 @@ def listEmails():
 @app.route('/new', methods=['GET', 'POST'], defaults={'action': 'save'})
 @app.route('/<int:emailId>', methods=['GET', 'POST'], defaults={'action': 'save'})
 @app.route('/sendTest', methods=['POST'], defaults={'action': 'sendTest'})
-@app.route('/removeTest', methods=['POST'], defaults={'action': 'removeTest'})
 @app.route('/send', methods=['POST'], defaults={'action': 'send'})
 def newEmail(emailId=None, action=None):
     with Postgres('') as postgres:
@@ -60,10 +59,6 @@ def newEmail(emailId=None, action=None):
                         newForm['message'] = 'Test email added to the queue.'
                     else:
                         newForm['message'] = 'Test email could not send. Subscriber may not be in the database.'
-
-                elif action == 'removeTest':
-                    subscriberCount = postgres.callOneCell('RemoveTestEmailSend', **form)
-                    newForm['message'] = str(subscriberCount) + ' test email removed.'
 
                 elif action == 'send':
                     form['locales'] = [None if v == 'None' else v for v in flask.request.form.getlist('locales[]')]
