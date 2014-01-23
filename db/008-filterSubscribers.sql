@@ -1,17 +1,3 @@
-Begin;
-
-Create extension if not exists hstore;
-
-Create or replace function SubscriberExampleProperties()
-    returns hstore
-    language sql
-    as $$
-Select properties
-    from Subscriber 
-        order by array_length(hstore_to_array(properties), 1) * random()
-            limit 1
-$$;
-
 Create or replace function SubscriberLocaleStats(integer)
     returns table (
         locale char(5),
@@ -30,6 +16,4 @@ Select Subscriber.locale, count(*) as count, count(EmailSend) as sendCount
         group by Subscriber.locale
         order by Subscriber.locale
 $$;
-
-Commit;
 
