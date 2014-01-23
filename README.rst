@@ -1,3 +1,5 @@
+.. image:: logo.png
+
 An application to maintain a mailing list, send bulk mails.
 
 Dependencies
