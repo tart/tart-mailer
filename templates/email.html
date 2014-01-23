@@ -5,9 +5,9 @@
         <tr>
             <td>Outgoing Server:</td>
             <td>
-                <select name="outgoingservername" required {{ 'disabled ' if not email.draft }}>
-{% for outgoingServer in outgoingServers %}
-                    <option value="{{ outgoingServer }}" {{ 'selected' if outgoingServer == email.outgoingservername}}>{{ outgoingServer }}</option>
+                <select name="outgoingservername" required {{ 'disabled ' if not email['draft'] }}>
+{% for outgoingServerName in email['outgoingservernames'] %}
+                    <option value="{{ outgoingServerName }}" {{ 'selected' if outgoingServerName == email['outgoingservername'] }}>{{ outgoingServerName }}</option>
 {% endfor %}
                 </select>
             </td>
@@ -15,51 +15,49 @@
         <tr>
             <td>From Name:</td>
             <td>
-                <input type="text" name="fromname" size="100" maxlength="200" value="{{ email.fromname }}" required {{ 'disabled ' if not email.draft }}/>
+                <input type="text" name="fromname" size="100" maxlength="200" value="{{ email['fromname'] }}" required {{ 'disabled ' if not email['draft'] }}/>
             </td>
         </tr>
         <tr>
             <td>From Address:</td>
             <td>
-                <input type="text" name="fromaddress" size="100" maxlength="200" value="{{ email.fromaddress }}" required {{ 'disabled ' if not email.draft }}/>
+                <input type="text" name="fromaddress" size="100" maxlength="200" value="{{ email['fromaddress'] }}" required {{ 'disabled ' if not email['draft'] }}/>
             </td>
         </tr>
         <tr>
             <td>Subject:</td>
             <td>
-                <input type="text" name="subject" size="100" maxlength="1000" value="{{ email.subject }}" required {{ 'disabled ' if not email.draft }}/>
+                <input type="text" name="subject" size="100" maxlength="1000" value="{{ email['subject'] }}" required {{ 'disabled ' if not email['draft'] }}/>
             </td>
         </tr>
         <tr>
             <td>Plain Text Body:</td>
             <td>
-                <textarea name="plainbody" rows="10" cols="100" {{ 'disabled ' if not email.draft }}>{{ email.plainbody }}</textarea>
+                <textarea name="plainbody" rows="10" cols="100" {{ 'disabled ' if not email['draft'] }}>{{ email['plainbody'] }}</textarea>
             <td>
         </tr>
         <tr>
             <td>HTML Body:</td>
             <td>
-                <textarea name="htmlbody" rows="10" cols="100" {{ 'disabled ' if not email.draft }}>{{ email.htmlbody }}</textarea>
+                <textarea name="htmlbody" rows="10" cols="100" {{ 'disabled ' if not email['draft'] }}>{{ email['htmlbody'] }}</textarea>
             </td>
         </tr>
         <tr>
             <td>Return URL Root:</td>
             <td>
-                <input type="text" name="returnurlroot" size="100" maxlength="1000" value="{{ email.returnurlroot }}" {{ 'disabled ' if not email.draft }}/>
+                <input type="text" name="returnurlroot" size="100" maxlength="1000" value="{{ email['returnurlroot'] }}" {{ 'disabled ' if not email['draft'] }}/>
             </td>
         </tr>
         <tr>
             <td>Redirect URL:</td>
             <td>
-                <input type="text" name="redirecturl" size="100" maxlength="1000" value="{{ email.redirecturl }}" {{ 'disabled ' if not email.draft }}/>
+                <input type="text" name="redirecturl" size="100" maxlength="1000" value="{{ email['redirecturl'] }}" {{ 'disabled ' if not email['draft'] }}/>
             </td>
         </tr>
-{% if exampleproperties %}
         <tr>
             <td>Example Properies:</td>
-            <td>{{ exampleproperties }}</td>
+            <td>{{ email['exampleproperties'] }}</td>
         </tr>
-{% endif %}
     </table>
 
     <p>
@@ -74,9 +72,9 @@
 {% endif %}
 
     <p>
-        <input type="hidden" name="emailid" value="{{ email.id }}" />
-        <input type="hidden" name="draft" value="{{ email.draft }}" />
-        <input type="submit" name"submit" value="Save" {{ 'disabled ' if not email.draft }}/>
+        <input type="hidden" name="emailid" value="{{ email['id'] }}" />
+        <input type="hidden" name="draft" value="{{ email['draft'] }}" />
+        <input type="submit" name"submit" value="Save" {{ 'disabled ' if not email['draft'] }}/>
     </p>
 </form>
 
@@ -96,14 +94,14 @@
 {% endif %}
 
     <p>
-        <input type="hidden" name="emailid" value="{{ email.id }}" />
+        <input type="hidden" name="emailid" value="{{ email['id'] }}" />
         <input type="submit" name"submit" value="Send Test Email" />
     </p>
 </form>
 
-{% if previewEmailURL %}
+{% if email['previewurl'] %}
 <p>
-    <a href="{{ previewEmailURL }}">Preview Email</a>
+    <a href="{{ email['previewurl'] }}">Preview Email</a>
 </p>
 {% endif %}
 
@@ -115,14 +113,14 @@
             <th>Send</th>
             <th>Total</th>
         </tr>
-    {% for stat in subscriberlocalestats %}
+    {% for stat in email['subscriberlocalestats'] %}
         <tr>
             <td>
-                <input type="checkbox" name="locales[]" value="{{ stat.locale }}" {{ 'disabled ' if stat.sendcount == stat.count }}/>
+                <input type="checkbox" name="locales[]" value="{{ stat['locale'] }}" {{ 'disabled ' if stat['sendcount'] == stat['count'] }}/>
              </td>
-            <td>{{ stat.locale }}</td>
-            <td>{{ stat.sendcount }}</td>
-            <td>{{ stat.count }}</td>
+            <td>{{ stat['locale'] }}</td>
+            <td>{{ stat['sendcount'] }}</td>
+            <td>{{ stat['count'] }}</td>
         </tr>
     {% endfor %}
     </table>
@@ -131,7 +129,7 @@
         <tr>
             <td>Maximum Subscriber Count:</td>
             <td>
-                <input type="text" name="subscribercount" maxlength="20" value="{{ subscribercount }}" required {{ 'disabled ' if subscribercount == 0 }}/>
+                <input type="text" name="subscribercount" maxlength="20" value="{{ email['subscribercount'] }}" required {{ 'disabled ' if email['subscribercount'] == 0 }}/>
             </td>
         </tr>
     </table>
@@ -147,8 +145,8 @@
     {% endif %}
 
     <p>
-        <input type="hidden" name="emailid" value="{{ email.id }}" />
-        <input type="submit" name"submit" value="Send" {{ 'disabled ' if subscribercount == 0 }}/>
+        <input type="hidden" name="emailid" value="{{ email['id'] }}" />
+        <input type="submit" name"submit" value="Send" {{ 'disabled ' if email['subscribercount'] == 0 }}/>
     </p>
 </form>
 {% endif %}

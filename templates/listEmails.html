@@ -11,10 +11,10 @@
     </tr>
 {% for outgoingServer in outgoingServers %}
     <tr>
-        <td>{{ outgoingServer.name }}</td>
-        <td>{{ outgoingServer.hostname }}</td>
-        <td>{{ outgoingServer.createdat }}</td>
-        <td>{{ outgoingServer.emailcount }}</td>
+        <td>{{ outgoingServer['name'] }}</td>
+        <td>{{ outgoingServer['hostname'] }}</td>
+        <td>{{ outgoingServer['createdat'] }}</td>
+        <td>{{ outgoingServer['emailcount'] }}</td>
     </tr>
 {% endfor %}
 </table>
@@ -32,14 +32,14 @@
     </tr>
 {% for email in emails %}
     <tr>
-        <td>{{ email.fromname }} &lt;{{ email.fromaddress }}&gt;</td>
+        <td>{{ email['fromname'] }} &lt;{{ email['fromaddress'] }}&gt;</td>
         <td>
-            <a href="{{ email.id }}" >{{ email.subject }}</a>
+            <a href="{{ email['id'] }}" >{{ email['subject'] }}</a>
         </td>
-        <td>{{ email.createdat }}</td>
-        <td>{{ email.outgoingservername }}</td>
-        <td>{{ email.sentcount }} / {{ email.totalcount }}</td>
-        <td>{{ email.feedbacktypecounts }}</td>
+        <td>{{ email['createdat'] }}</td>
+        <td>{{ email['outgoingservername'] }}</td>
+        <td>{{ email['sentcount'] }} / {{ email['totalcount'] }}</td>
+        <td>{{ email['feedbacktypecounts'] }}</td>
     </tr>
 {% endfor %}
 </table>

@@ -47,3 +47,12 @@ Open Source Initiative [1].
 
 [1] http://opensource.org/licenses/isc-license.txt
 
+Coding Style
+------------
+
+In PostgreSQL, relation names are case-insensitive when they are not in double quotes. PostgreSQL returns
+them in lower-case. That is why column names, which will be keys of the dictionaries, are lower-case. This
+rule should be kept even the dictionary is not return from the database, for convenience. HTML forms are
+also mapped to dictionaries. Input names on the forms should also be lower-case as they will be the keys
+of the dictionaries.
+
