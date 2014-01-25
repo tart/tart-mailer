@@ -8,6 +8,7 @@
         <td>Subject</td>
         <td>Created</td>
         <td>Outgoing Server</td>
+        <td>Incoming Server</td>
         <td>Sent</td>
         <td>Feedbacks</td>
     </tr>
@@ -19,6 +20,7 @@
         </td>
         <td>{{ email['createdat'] }}</td>
         <td>{{ email['outgoingservername'] }}</td>
+        <td>{{ email['incomingservername'] }}</td>
         <td>{{ email['sentcount'] }} / {{ email['totalcount'] }}</td>
         <td>{{ email['feedbacktypecounts'] }}</td>
     </tr>
@@ -46,6 +48,27 @@
         <td>{{ outgoingServer['username'] }}</td>
         <td>{{ outgoingServer['createdat'] }}</td>
         <td>{{ outgoingServer['emailcount'] }}</td>
+    </tr>
+{% endfor %}
+</table>
+
+<h2>Incoming Servers</h2>
+
+<table border="1" >
+    <tr>
+        <td>Name</td>
+        <td>Hostname</td>
+        <td>Username</td>
+        <td>Mailbox</td>
+        <td>Created</td>
+    </tr>
+{% for incomingServer in incomingServers %}
+    <tr>
+        <td>{{ incomingServer['name'] }}</td>
+        <td>{{ incomingServer['hostname'] }}</td>
+        <td>{{ incomingServer['username'] }}</td>
+        <td>{{ incomingServer['mailbox'] }}</td>
+        <td>{{ incomingServer['createdat'] }}</td>
     </tr>
 {% endfor %}
 </table>

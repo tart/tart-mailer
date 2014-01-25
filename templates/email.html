@@ -13,6 +13,16 @@
             </td>
         </tr>
         <tr>
+            <td>Incoming Server:</td>
+            <td>
+                <select name="incomingservername" required {{ 'disabled ' if not email['draft'] }}>
+{% for incomingServer in email['incomingservers'] %}
+                    <option value="{{ incomingServer['name'] }}" {{ 'selected' if incomingServer['name'] == email['incomingservername'] }}>{{ incomingServer['name'] }}</option>
+{% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
             <td>From Name:</td>
             <td>
                 <input type="text" name="fromname" size="100" maxlength="200" value="{{ email['fromname'] }}" required {{ 'disabled ' if not email['draft'] }}/>

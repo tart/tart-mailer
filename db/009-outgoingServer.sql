@@ -56,54 +56,5 @@ Create or replace function OutgoingServerNames()
 Select array_agg(name order by name) from OutgoingServer;
 $$;
 
-Create or replace function NewEmail(
-        outgoingServerName varchar(200),
-        fromName varchar(200),
-        fromAddress varchar(200),
-        subject varchar(1000),
-        returnURLRoot varchar(1000),
-        plainBody text default null,
-        hTMLBody text default null,
-        redirectURL varchar(1000) default null,
-        draft boolean default true
-    ) returns Email
-    language sql
-    as $$
-Insert into Email (outgoingServerName, fromName, fromAddress, subject, returnURLRoot,
-        plainBody, hTMLBody, redirectURL, draft)
-    values (outgoingServerName, fromName, fromAddress, subject, returnURLRoot,
-            plainBody, hTMLBody, redirectURL, draft)
-    returning *
-$$;
-
-Create or replace function ReviseEmail(
-        outgoingServerName varchar(200),
-        emailId integer,
-        fromName varchar(200),
-        fromAddress varchar(200),
-        subject varchar(1000),
-        returnURLRoot varchar(1000),
-        plainBody text default null,
-        hTMLBody text default null,
-        redirectURL varchar(1000) default null,
-        draft boolean default true
-    ) returns Email
-    language sql
-    as $$
-Update Email
-    set outgoingServerName = outgoingServerName,
-            fromName = fromName,
-            fromAddress = fromAddress,
-            subject = subject,
-            returnURLRoot = returnURLRoot,
-            plainBody = plainBody,
-            hTMLBody = hTMLBody,
-            redirectURL = redirectURL,
-            draft = draft,
-            revisedAt = now()
-    where id = emailId
-    returning *
-$$;
-
 Commit;
 
