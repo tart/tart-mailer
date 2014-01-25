@@ -25,7 +25,7 @@ app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == '
 
 @app.route('/')
 def listEmails():
-    with Postgres('') as postgres:
+    with Postgres() as postgres:
         return flask.render_template('listEmails.html', emails=postgres.callTable('ListEmails'),
                                      outgoingServers=postgres.callTable('ListOutgoingServers'),
                                      incomingServers=postgres.callTable('ListIncomingServers'))
@@ -35,7 +35,7 @@ def listEmails():
 @app.route('/sendTest', methods=['POST'], defaults={'action': 'sendTest'})
 @app.route('/send', methods=['POST'], defaults={'action': 'send'})
 def newEmail(emailId=None, action=None):
-    with Postgres('') as postgres:
+    with Postgres() as postgres:
         message = ''
 
         if flask.request.method == 'POST':

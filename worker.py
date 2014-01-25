@@ -38,7 +38,7 @@ arguments = parseArguments()
 signal.alarm(arguments.timeout)
 
 def sendMail(serverName, amount):
-    postgres = Postgres('')
+    postgres = Postgres()
 
     with postgres:
         server = postgres.callOneLine('OutgoingServerToSend', serverName)

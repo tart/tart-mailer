@@ -15,11 +15,17 @@
 ##
 
 import psycopg2.extensions
+import psycopg2.extras
 
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 
 class Postgres(psycopg2.extensions.connection):
+
+    def __init__(self, dsn=''):
+        psycopg2.extensions.connection.__init__(self, dsn)
+
+        psycopg2.extras.register_hstore(self)
 
     def __functionCallQuery(self, function, *args, **kwargs):
         '''Generate a query to call a function with the given arguments.'''

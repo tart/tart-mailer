@@ -31,7 +31,7 @@ def index():
 
 @app.route('/trackerImage/<emailHash>')
 def trackerImage(emailHash):
-    with Postgres('') as postgres:
+    with Postgres() as postgres:
         postgres.call('NewEmailSendFeedback', emailHash, 'trackerImage', flask.request.remote_addr)
 
     # Return 1px * 1px transparent image.
@@ -39,7 +39,7 @@ def trackerImage(emailHash):
 
 @app.route('/view/<emailHash>')
 def view(emailHash):
-    with Postgres('') as postgres:
+    with Postgres() as postgres:
         postgres.call('NewEmailSendFeedback', emailHash, 'view', flask.request.remote_addr)
         body = postgres.callOneCell('ViewEmailBody', emailHash)
 
@@ -49,7 +49,7 @@ def view(emailHash):
 
 @app.route('/redirect/<emailHash>')
 def redirect(emailHash):
-    with Postgres('') as postgres:
+    with Postgres() as postgres:
         postgres.call('NewEmailSendFeedback', emailHash, 'redirect', flask.request.remote_addr)
         redirectURL = postgres.callOneCell('EmailSendRedirectURL', emailHash)
 
@@ -59,7 +59,7 @@ def redirect(emailHash):
 
 @app.route('/unsubscribe/<emailHash>')
 def unsubscribe(emailHash):
-    with Postgres('') as postgres:
+    with Postgres() as postgres:
         if postgres.callOneCell('NewEmailSendFeedback', emailHash, 'unsubscribe', flask.request.remote_addr):
             message = 'You are successfully unsubscribed.'
         else:
