@@ -1,26 +1,5 @@
 <!doctype html>
 
-<h2>Outgoing Servers</h2>
-
-<table border="1" >
-    <tr>
-        <td>Name</td>
-        <td>Hostname</td>
-        <td>Username</td>
-        <td>Created</td>
-        <td>Emails</td>
-    </tr>
-{% for outgoingServer in outgoingServers %}
-    <tr>
-        <td>{{ outgoingServer['name'] }}</td>
-        <td>{{ outgoingServer['hostname'] }}</td>
-        <td>{{ outgoingServer['username'] }}</td>
-        <td>{{ outgoingServer['createdat'] }}</td>
-        <td>{{ outgoingServer['emailcount'] }}</td>
-    </tr>
-{% endfor %}
-</table>
-
 <h2>Emails</h2>
 
 <table border="1" >
@@ -49,4 +28,25 @@
 <p>
     <a href="{{ url_for('newEmail') }}" >New Email</a>
 </p>
+
+<h2>Outgoing Servers</h2>
+
+<table border="1" >
+    <tr>
+        <td>Name</td>
+        <td>Hostname</td>
+        <td>Username</td>
+        <td>Created</td>
+        <td>Emails</td>
+    </tr>
+{% for outgoingServer in outgoingServers %}
+    <tr>
+        <td>{{ outgoingServer['name'] }}</td>
+        <td>{{ outgoingServer['hostname'] }}</td>
+        <td>{{ outgoingServer['username'] }}</td>
+        <td>{{ outgoingServer['createdat'] }}</td>
+        <td>{{ outgoingServer['emailcount'] }}</td>
+    </tr>
+{% endfor %}
+</table>
 
