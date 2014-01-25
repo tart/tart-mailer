@@ -52,6 +52,7 @@ With EmailSendFeedbackTypeStats as (select emailId, type, count(*) as count
         from Email
             left join EmailSendStats on EmailSendStats.emailId = Email.id
             left join EmailSendFeedbackStats on EmailSendFeedbackStats.emailId = Email.id
+            order by Email.id
 $$;
 
 Commit;
