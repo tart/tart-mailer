@@ -28,54 +28,59 @@ def parseArguments():
     '''Create ArgumentParser instance. Return parsed arguments.'''
 
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, description=__doc__)
-    parser.add_argument('--server', default='localhost', help='outgoing server to send emails')
-    parser.add_argument('--amount', type=int, default=1, help='waiting email amount to send')
-    parser.add_argument('--timeout', type=int, default=60, help='seconds to kill the process')
+    parser.add_argument('--send', type=int, help='waiting email amount to send')
+    parser.add_argument('--outgoing-server', help='outgoing server to send emails')
+    parser.add_argument('--timeout', type=int, help='seconds to kill the process')
 
     return parser.parse_args()
 
-arguments = parseArguments()
-signal.alarm(arguments.timeout)
-
-def sendMail(serverName, amount):
+def sendEmail(serverName, amount):
     postgres = Postgres()
 
     with postgres:
         server = postgres.callOneLine('OutgoingServerToSend', serverName)
+        if not server:
+            raise Exception('Outgoing server could not find in the database.')
 
-    if server:
-        if amount > server['totalcount']:
-            amount = server['totalcount']
-        print(str(amount) + ' of ' + str(server['totalcount']) + ' emails will be sent.')
+    if amount > server['totalcount']:
+        amount = server['totalcount']
+    print(str(amount) + ' of ' + str(server['totalcount']) + ' emails will be sent.')
 
-        sMTP = smtplib.SMTP(server['hostname'], server['port'])
-        if server['usetls']:
-            sMTP.starttls()
-        if server['username']:
-            sMTP.login(server['username'], server['password'])
-        print('SMTP connection successful.')
+    sMTP = smtplib.SMTP(server['hostname'], server['port'])
+    if server['usetls']:
+        sMTP.starttls()
+    if server['username']:
+        sMTP.login(server['username'], server['password'])
+    print('SMTP connection successful.')
 
-        while amount > 0:
-            with postgres:
-                email = postgres.callOneLine('NextEmailToSend', serverName)
+    while amount > 0:
+        with postgres:
+            email = postgres.callOneLine('NextEmailToSend', serverName)
 
-                if email['plainbody'] and email['htmlbody']:
-                    message = MIMEMultipart('alternative')
-                    message.attach(MIMEText(email['plainbody'], 'plain', 'utf-8'))
-                    message.attach(MIMEText(email['htmlbody'], 'html', 'utf-8'))
-                elif email['htmlbody']:
-                    message = MIMEText(email['htmlbody'], 'html', 'utf-8')
-                else:
-                    message = MIMEText(email['plainbody'], 'plain', 'utf-8')
+            if email['plainbody'] and email['htmlbody']:
+                message = MIMEMultipart('alternative')
+                message.attach(MIMEText(email['plainbody'], 'plain', 'utf-8'))
+                message.attach(MIMEText(email['htmlbody'], 'html', 'utf-8'))
+            elif email['htmlbody']:
+                message = MIMEText(email['htmlbody'], 'html', 'utf-8')
+            else:
+                message = MIMEText(email['plainbody'], 'plain', 'utf-8')
 
-                message['Subject'] = email['subject']
-                message['From'] = formataddr((email['fromname'], email['fromaddress']))
-                message['To'] = email['toaddress']
+            message['Subject'] = email['subject']
+            message['From'] = formataddr((email['fromname'], email['fromaddress']))
+            message['To'] = email['toaddress']
 
-                sMTP.sendmail(email['fromaddress'], email['toaddress'], message.as_string())
+            sMTP.sendmail(email['fromaddress'], email['toaddress'], message.as_string())
 
-            amount -= 1
+        amount -= 1
 
 if __name__ == '__main__':
-    sendMail(arguments.server, arguments.amount)
+    arguments = parseArguments()
 
+    if arguments.timeout:
+        signal.alarm(arguments.timeout)
+
+    if arguments.send:
+        if not arguments.outgoing_server:
+            raise Exception('--outgoing-server is requred for sending emails.')
+        sendEmail(arguments.outgoing_server, arguments.send)

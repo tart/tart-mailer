@@ -18,7 +18,7 @@ echo "Insert into EmailSend (emailId, subscriberId) select Email.id, Subscriber.
 echo
 
 echo "Trying to send an email..."
-../worker.py
+../worker.py --send 1 --outgoing-server localhost --timeout 10
 echo
 
 echo "Running the web server for users..."
