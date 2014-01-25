@@ -6,13 +6,14 @@ Create or replace function ListOutgoingServers()
     returns table (
         name varchar(200),
         hostname varchar(200),
+        username varchar(200),
         createdAt timestamptz,
         emailCount bigint
     )
     language sql
     as $$
-Select OutgoingServer.name, OutgoingServer.hostname, OutgoingServer.createdAt,
-        coalesce(count(distinct Email), 0) as emailCount
+Select OutgoingServer.name, OutgoingServer.hostname, OutgoingServer.username, OutgoingServer.createdAt,
+        count(Email) as emailCount
     from OutgoingServer
         left join Email on Email.outgoingServerName = OutgoingServer.name
     group by OutgoingServer.name
