@@ -6,8 +6,8 @@
             <td>Outgoing Server:</td>
             <td>
                 <select name="outgoingservername" required {{ 'disabled ' if not email['draft'] }}>
-{% for outgoingServerName in email['outgoingservernames'] %}
-                    <option value="{{ outgoingServerName }}" {{ 'selected' if outgoingServerName == email['outgoingservername'] }}>{{ outgoingServerName }}</option>
+{% for outgoingServer in email['outgoingservers'] %}
+                    <option value="{{ outgoingServer['name'] }}" {{ 'selected' if outgoingServer['name'] == email['outgoingservername'] }}>{{ outgoingServer['name'] }}</option>
 {% endfor %}
                 </select>
             </td>

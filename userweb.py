@@ -32,7 +32,7 @@ def index():
 @app.route('/trackerImage/<emailHash>')
 def trackerImage(emailHash):
     with Postgres() as postgres:
-        postgres.call('NewEmailSendFeedback', emailHash, 'trackerImage', flask.request.remote_addr)
+        postgres.call('NewEmailSendFeedback', (emailHash, 'trackerImage', flask.request.remote_addr))
 
     # Return 1px * 1px transparent image.
     return flask.send_file(io.BytesIO('GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'), mimetype='image/gif')
@@ -40,8 +40,8 @@ def trackerImage(emailHash):
 @app.route('/view/<emailHash>')
 def view(emailHash):
     with Postgres() as postgres:
-        postgres.call('NewEmailSendFeedback', emailHash, 'view', flask.request.remote_addr)
-        body = postgres.callOneCell('ViewEmailBody', emailHash)
+        postgres.call('NewEmailSendFeedback', (emailHash, 'view', flask.request.remote_addr))
+        body = postgres.call('ViewEmailBody', emailHash)
 
     if body:
         return body
@@ -50,8 +50,8 @@ def view(emailHash):
 @app.route('/redirect/<emailHash>')
 def redirect(emailHash):
     with Postgres() as postgres:
-        postgres.call('NewEmailSendFeedback', emailHash, 'redirect', flask.request.remote_addr)
-        redirectURL = postgres.callOneCell('EmailSendRedirectURL', emailHash)
+        postgres.call('NewEmailSendFeedback', (emailHash, 'redirect', flask.request.remote_addr))
+        redirectURL = postgres.call('EmailSendRedirectURL', emailHash)
 
     if redirectURL:
         return flask.redirect(redirectURL)
@@ -60,7 +60,7 @@ def redirect(emailHash):
 @app.route('/unsubscribe/<emailHash>')
 def unsubscribe(emailHash):
     with Postgres() as postgres:
-        if postgres.callOneCell('NewEmailSendFeedback', emailHash, 'unsubscribe', flask.request.remote_addr):
+        if postgres.call('NewEmailSendFeedback', (emailHash, 'unsubscribe', flask.request.remote_addr)):
             message = 'You are successfully unsubscribed.'
         else:
             message = 'You have already unsubscribed.'

@@ -38,7 +38,7 @@ def sendEmail(serverName, amount):
     postgres = Postgres()
 
     with postgres:
-        server = postgres.callOneLine('OutgoingServerToSend', serverName)
+        server = postgres.call('OutgoingServerToSend', serverName)
         if not server:
             raise Exception('Outgoing server could not find in the database.')
 
@@ -55,7 +55,7 @@ def sendEmail(serverName, amount):
 
     while amount > 0:
         with postgres:
-            email = postgres.callOneLine('NextEmailToSend', serverName)
+            email = postgres.call('NextEmailToSend', serverName)
 
             if email['plainbody'] and email['htmlbody']:
                 message = MIMEMultipart('alternative')

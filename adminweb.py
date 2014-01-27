@@ -26,9 +26,9 @@ app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == '
 @app.route('/')
 def listEmails():
     with Postgres() as postgres:
-        return flask.render_template('listEmails.html', emails=postgres.callTable('ListEmails'),
-                                     outgoingServers=postgres.callTable('ListOutgoingServers'),
-                                     incomingServers=postgres.callTable('ListIncomingServers'))
+        return flask.render_template('listEmails.html', emails=postgres.call('ListEmails', table=True),
+                                     outgoingServers=postgres.select('OutgoingServer'),
+                                     incomingServers=postgres.select('IncomingServer'))
 
 @app.route('/new', methods=['GET', 'POST'], defaults={'action': 'save'})
 @app.route('/<int:emailId>', methods=['GET', 'POST'], defaults={'action': 'save'})
@@ -40,45 +40,45 @@ def newEmail(emailId=None, action=None):
 
         if flask.request.method == 'POST':
             form = dict((k, v) for k, v in flask.request.form.items() if k[-2:] != '[]' and v != '')
-            emailId = form.get('emailid')
+            emailId = form.pop('emailid') if 'emailid' in form else None
 
             if action == 'save':
                 if not emailId: 
-                    email = postgres.callOneLine('NewEmail', **form)
+                    email = postgres.insert('Email', form)
                     if email:
                         message = 'Email created.'
                         emailId = email['id']
                 else:
-                    if postgres.callOneLine('ReviseEmail', **form):
+                    if postgres.update('Email', form, {'id': emailId}):
                         message = 'Email updated.'
                     else:
                         message = 'Email could not found.'
             else:
                 if action == 'sendTest':
-                    if postgres.callOneCell('SendTestEmail', **form):
+                    if postgres.call('SendTestEmail', form):
                         message = 'Test email added to the queue.'
                     else:
                         message = 'Test email could not send. Subscriber may not be in the database.'
 
                 elif action == 'send':
                     form['locales'] = [None if v == 'None' else v for v in flask.request.form.getlist('locales[]')]
-                    subscriberCount = postgres.callOneCell('SendEmail', **form)
+                    subscriberCount = postgres.call('SendEmail', form)
                     message = str(subscriberCount) + ' email added to the queue.'
 
         if emailId:
-            email = postgres.callOneLine('GetEmail', emailId)
-            email['previewurl'] = postgres.callOneCell('PreviewEmailURL', emailId)
+            email = postgres.select('Email', {'id': emailId}, table=False)
+            email['previewurl'] = postgres.call('PreviewEmailURL', emailId)
 
-            subscriberLocaleStats = postgres.callTable('SubscriberLocaleStats', emailId)
+            subscriberLocaleStats = postgres.call('SubscriberLocaleStats', emailId, table=True)
             email['subscriberlocalestats'] = subscriberLocaleStats
             email['subscribercount'] = sum(s['count'] - s['sendcount'] for s in subscriberLocaleStats)
         else:
             parts = parseURL(flask.request.url_root)
             email = {'draft': True, 'returnurlroot': parts['protocol'] + '//' + parts['root'] + '/'}
 
-        email['exampleproperties'] = postgres.callOneCell('SubscriberExampleProperties')
-        email['outgoingservernames'] = postgres.callOneCell('OutgoingServerNames')
-        email['incomingservers'] = postgres.callTable('ListIncomingServers')
+        email['exampleproperties'] = postgres.call('SubscriberExampleProperties')
+        email['outgoingservers'] = postgres.select('OutgoingServer')
+        email['incomingservers'] = postgres.select('IncomingServer')
 
         return flask.render_template('email.html', action=action, message=message, email=email)
 

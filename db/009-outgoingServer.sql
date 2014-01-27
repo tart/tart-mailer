@@ -49,12 +49,5 @@ Select OutgoingServer.hostname,
     group by OutgoingServer.name
 $$;
 
-Create or replace function OutgoingServerNames()
-    returns varchar(200)[]
-    language sql
-    as $$
-Select array_agg(name order by name) from OutgoingServer;
-$$;
-
 Commit;
 

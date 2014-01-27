@@ -27,46 +27,73 @@ class Postgres(psycopg2.extensions.connection):
 
         psycopg2.extras.register_hstore(self)
 
-    def __functionCallQuery(self, function, *args, **kwargs):
-        '''Generate a query to call a function with the given arguments.'''
-        query = 'Select * from ' + function + '('
-        query += ', '.join(['%s'] * len(args))
-        query += ', '.join(k + ' := %s' for k in kwargs.keys())
+    def __execute(self, query, parameters, table):
+        '''Execute a query on the database; return None, the value of the cell, the values in the row in
+        a dictionary or the values of the rows in a list of dictionary.'''
+
+        with self.cursor() as cursor:
+            cursor.execute(query, parameters)
+            rows = cursor.fetchall()
+            columnNames = [desc[0] for desc in cursor.description]
+
+        if table:
+            return [dict(zip(columnNames, row)) for row in rows]
+
+        if len(rows) > 1:
+            raise PostgresException('Query returned more than one row.')
+
+        if len(columnNames) > 1:
+            return dict(zip(columnNames, rows[0]))
+
+        if rows and columnNames:
+            return rows[0][0]
+
+    def call(self, functionName, parameters=[], table=False):
+        '''Call a function inside the database with the given arguments.'''
+
+        query = 'Select * from ' + functionName + '('
+        if isinstance(parameters, dict):
+            query += ', '.join(k + ' := %s' for k in parameters.keys())
+            parameters = parameters.values()
+        elif hasattr(parameters, '__iter__'):
+            query += ', '.join(['%s'] * len(parameters))
+        else:
+            query += '%s'
+            parameters = [parameters]
         query += ')'
 
-        return query, list(args) + list(kwargs.values())
+        return self.__execute(query, parameters, table)
 
-    def call(self, *args, **kwargs):
-        '''Call a function inside the database, do not return anything.'''
-        with self.cursor() as cursor:
-            cursor.execute(*self.__functionCallQuery(*args, **kwargs))
+    def select(self, tableName, whereCondition={}, table=True):
+        '''Execute a select query from a single table.'''
 
-    def callTable(self, *args, **kwargs):
-        '''Call a function inside the database, return the records as dictionaries inside a list.'''
-        with self.cursor() as cursor:
-            cursor.execute(*self.__functionCallQuery(*args, **kwargs))
+        query = 'Select * from ' + tableName
+        if whereCondition:
+            query += ' where ' + ' and '.join(k + ' = %s' for k in whereCondition.keys())
 
-            columnNames = [desc[0] for desc in cursor.description]
-            return [dict(zip(columnNames, v)) for v in cursor.fetchall()]
+        return self.__execute(query, whereCondition.values(), table)
 
-    def callOneLine(self, function, *args, **kwargs):
-        '''Call a function inside the database return the first line.'''
-        with self.cursor() as cursor:
-            cursor.execute(*self.__functionCallQuery(function, *args, **kwargs))
+    def insert(self, tableName, setColumns, table=False):
+        '''Execute an insert one row to a single table.'''
 
-            line = cursor.fetchone()
-            columnNames = [desc[0] for desc in cursor.description]
-            return dict(zip(columnNames, line or []))
+        query = 'Insert into ' + tableName + ' (' + ', '.join(setColumns.keys()) + ')'
+        query += ' values (' + ', '.join(['%s'] * len(setColumns)) + ')'
+        query += ' returning *'
+        print(query)
 
-    def callOneCell(self, function, *args, **kwargs):
-        '''Call a function inside the database return the first cell.'''
-        with self.cursor() as cursor:
-            cursor.execute(*self.__functionCallQuery(function, *args, **kwargs))
+        return self.__execute(query, setColumns.values(), table)
 
-            line = cursor.fetchone()
-            if line:
-                for cell in line:
-                    return cell
+    def update(self, tableName, setColumns, whereCondition={}, table=True):
+        '''Execute an update for a single table.'''
+
+        query = 'Update ' + tableName + ' set ' + ', '.join(k + ' = %s' for k in setColumns.keys())
+        parameters = setColumns.values()
+        if whereCondition:
+            query += ' where ' + ' and '.join(k + ' = %s' for k in whereCondition.keys())
+            parameters += whereCondition.values()
+        query += ' returning *'
+
+        return self.__execute(query, parameters, table)
 
 class PostgresException(Exception): pass
 

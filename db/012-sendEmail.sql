@@ -1,5 +1,7 @@
 Begin;
 
+Alter table Email add column draft boolean not null default false;
+
 Drop function if exists SendEmail(integer, integer, char(5)[]);
 
 Create or replace function SendEmail(
