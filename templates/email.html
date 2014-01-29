@@ -16,6 +16,7 @@
             <td>Incoming Server:</td>
             <td>
                 <select name="incomingservername" required {{ 'disabled ' if not email['draft'] }}>
+                    <option></option>
 {% for incomingServer in email['incomingservers'] %}
                     <option value="{{ incomingServer['name'] }}" {{ 'selected' if incomingServer['name'] == email['incomingservername'] }}>{{ incomingServer['name'] }}</option>
 {% endfor %}
@@ -43,13 +44,13 @@
         <tr>
             <td>Plain Text Body:</td>
             <td>
-                <textarea name="plainbody" rows="10" cols="100" {{ 'disabled ' if not email['draft'] }}>{{ email['plainbody'] }}</textarea>
+                <textarea name="plainbody" rows="10" cols="100" {{ 'disabled ' if not email['draft'] }}>{{ email['plainbody'] or '' }}</textarea>
             <td>
         </tr>
         <tr>
             <td>HTML Body:</td>
             <td>
-                <textarea name="htmlbody" rows="10" cols="100" {{ 'disabled ' if not email['draft'] }}>{{ email['htmlbody'] }}</textarea>
+                <textarea name="htmlbody" rows="10" cols="100" {{ 'disabled ' if not email['draft'] }}>{{ email['htmlbody'] or '' }}</textarea>
             </td>
         </tr>
         <tr>
@@ -61,7 +62,7 @@
         <tr>
             <td>Redirect URL:</td>
             <td>
-                <input type="text" name="redirecturl" size="100" maxlength="1000" value="{{ email['redirecturl'] }}" {{ 'disabled ' if not email['draft'] }}/>
+                <input type="text" name="redirecturl" size="100" maxlength="1000" value="{{ email['redirecturl'] or '' }}" {{ 'disabled ' if not email['draft'] }}/>
             </td>
         </tr>
         <tr>
