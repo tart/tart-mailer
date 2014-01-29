@@ -20,6 +20,11 @@ import os
 
 from libtart.postgres import Postgres
 
+try:
+    from urllib.parse import quote # For Python 3
+except ImportError:
+    from urllib import quote # For Python 2
+
 app = flask.Flask(__name__)
 app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == 'FLASK_'))
 
@@ -68,6 +73,9 @@ def newEmail(emailId=None, action=None):
         if emailId:
             email = postgres.select('Email', {'id': emailId}, table=False)
             email['previewurl'] = postgres.call('PreviewEmailURL', emailId)
+
+            if email['previewurl'] and email['htmlbody']:
+                email['validateurl'] = 'http://validator.w3.org/check?uri=' + quote(email['previewurl'])
 
             subscriberLocaleStats = postgres.call('SubscriberLocaleStats', emailId, table=True)
             email['subscriberlocalestats'] = subscriberLocaleStats

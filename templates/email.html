@@ -115,6 +115,12 @@
 </p>
 {% endif %}
 
+{% if email['validateurl'] %}
+<p>
+    <a href="{{ email['validateurl'] }}">Validate HTML</a>
+</p>
+{% endif %}
+
 <form method="POST" action="send">
     <table border="1">
         <tr>
