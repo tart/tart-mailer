@@ -26,7 +26,8 @@ Create or replace function NextEmailToSend(varchar(200))
         toAddress varchar(200),
         subject varchar(1000),
         plainBody text,
-        hTMLBody text
+        hTMLBody text,
+        unsubscribeURL text
     )
     language sql strict
     as $$
@@ -48,7 +49,8 @@ With FirstWaitingEmail as (select EmailSend.*
             Subscriber.emailAddress,
             FormatEmailToSend(Email.subject, Subscriber.properties, Email.returnURLRoot, EmailHash(UpdatedEmailSend)),
             FormatEmailToSend(Email.plainBody, Subscriber.properties, Email.returnURLRoot, EmailHash(UpdatedEmailSend)),
-            FormatEmailToSend(Email.hTMLBody, Subscriber.properties, Email.returnURLRoot, EmailHash(UpdatedEmailSend))
+            FormatEmailToSend(Email.hTMLBody, Subscriber.properties, Email.returnURLRoot, EmailHash(UpdatedEmailSend)),
+            Email.returnURLRoot || 'unsubscribe/' || EmailHash(UpdatedEmailSend)
         from UpdatedEmailSend
             join Email on UpdatedEmailSend.emailId = Email.id
             join Subscriber on UpdatedEmailSend.subscriberId = Subscriber.id
