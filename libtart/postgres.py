@@ -14,6 +14,7 @@
 # performance of this software.
 ##
 
+import collections
 import psycopg2.extensions
 import psycopg2.extras
 
@@ -37,7 +38,7 @@ class Postgres(psycopg2.extensions.connection):
             columnNames = [desc[0] for desc in cursor.description]
 
         if table:
-            return [dict(zip(columnNames, row)) for row in rows]
+            return [collections.OrderedDict(zip(columnNames, row)) for row in rows]
 
         if len(rows) == 0:
             raise PostgresException('Query does not return any rows.')
@@ -46,7 +47,7 @@ class Postgres(psycopg2.extensions.connection):
             raise PostgresException('Query returned more than one row.')
 
         if len(columnNames) > 1:
-            return dict(zip(columnNames, rows[0]))
+            return collections.OrderedDict(zip(columnNames, rows[0]))
 
         if rows and columnNames:
             return rows[0][0]
