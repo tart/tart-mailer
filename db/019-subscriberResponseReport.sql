@@ -14,13 +14,17 @@ Create table EmailSendResponseReport (
 
 Create index EmailSendResponseReportSubscriberIdFKI on EmailSendResponseReport (subscriberId);
 
-Create or replace function NewEmailSendResponseReport(fields hstore, originalHeaders hstore)
-    returns boolean
+Create or replace function NewEmailSendResponseReport(
+        incomingServerName varchar(200),
+        fields hstore,
+        originalHeaders hstore
+    ) returns boolean
     language sql
     as $$
 With OriginalEmailSend as (select EmailSend.*
             from EmailSend
                 join Email on EmailSend.emailId = Email.id
+                        and Email.incomingServerName = NewEmailSendResponseReport.incomingServerName
                         and ((NewEmailSendResponseReport.originalHeaders -> 'Subject') is null
                                 or Email.subject = (NewEmailSendResponseReport.originalHeaders -> 'Subject'))
                 join Subscriber on EmailSend.subscriberID = Subscriber.id

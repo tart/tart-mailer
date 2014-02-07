@@ -132,7 +132,7 @@ def receiveEmail(serverName, amount):
 
             with postgres:
                 try:
-                    if postgres.call('NewEmailSendResponseReport', [dict(fields), dict(originalHeaders)]):
+                    if postgres.call('NewEmailSendResponseReport', [serverName, dict(fields), dict(originalHeaders)]):
                         iMAP.store(emailId, '+FLAGS', '\DELETED')
                     else:
                         warning('Email could not found in the database:', **dict(fields + originalHeaders))
