@@ -40,10 +40,10 @@ Select OutgoingServer.hostname,
         OutgoingServer.useTLS,
         OutgoingServer.username,
         OutgoingServer.password,
-        count(*) as totalCount
+        count(EmailSend) as totalCount
     from OutgoingServer
         join Email on Email.outgoingServerName = OutgoingServer.name
-            join EmailSend on EmailSend.emailId = Email.id
+            left join EmailSend on EmailSend.emailId = Email.id
                     and not EmailSend.sent
         where OutgoingServer.name = $1
     group by OutgoingServer.name
