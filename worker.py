@@ -15,8 +15,14 @@
 # performance of this software.
 ##
 
+from __future__ import print_function
+
+import sys
+import email
 import smtplib
+import imaplib
 import signal
+import psycopg2
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from email.mime.multipart import MIMEMultipart
@@ -30,6 +36,8 @@ def parseArguments():
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, description=__doc__)
     parser.add_argument('--send', type=int, help='waiting email amount to send')
     parser.add_argument('--outgoing-server', help='outgoing server to send emails')
+    parser.add_argument('--receive', type=int, help='waiting email amount to send')
+    parser.add_argument('--incoming-server', help='incoming server to receive emails')
     parser.add_argument('--timeout', type=int, help='seconds to kill the process')
 
     return parser.parse_args()
@@ -44,7 +52,7 @@ def sendEmail(serverName, amount):
 
     if amount > server['totalcount']:
         amount = server['totalcount']
-    print(str(amount) + ' of ' + str(server['totalcount']) + ' emails will be sent.')
+    print(str(server['totalcount']) + ' emails to send.')
 
     sMTP = smtplib.SMTP(server['hostname'], server['port'])
     if server['usetls']:
@@ -76,6 +84,73 @@ def sendEmail(serverName, amount):
 
         amount -= 1
 
+def receiveEmail(serverName, amount):
+    postgres = Postgres()
+
+    with postgres:
+        server = postgres.select('IncomingServer', {'name': serverName}, table=False)
+        if not server:
+            raise Exception('Incoming server could not find in the database.')
+
+    iMAP = imaplib.IMAP4(server['hostname'], server['port'])
+    if server['username']:
+        iMAP.login(server['username'], server['password'])
+    print('IMAP connection successful.')
+
+    status, response = iMAP.select(server['mailbox']) if server['mailbox'] else iMAP.select()
+    if status != 'OK':
+        raise Exception('IMAP mailbox problem: ' + status + ': ' + ' '.join(response))
+
+    status, response = iMAP.search('utf-8', 'UNDELETED')
+    if status != 'OK':
+        raise Exception('IMAP search problem: ' + status + ': ' + ' '.join(response))
+
+    emailIds = response[0].split()
+    print(str(len(emailIds)) + ' emails to process.')
+
+    while amount > 0 and emailIds:
+        emailId = emailIds.pop(0)
+        status, response = iMAP.fetch(emailId, '(RFC822)')
+        if status != 'OK':
+            raise Exception('IMAP fetch problem: ' + status + ': ' + ' '.join(response))
+
+        message = email.message_from_string(response[0][1])
+
+        # Sanity checks, see http://tools.ietf.org/html/rfc3464#page-7
+        if (message.get_content_type() == 'multipart/report'
+                and message.is_multipart()
+                and len(message.get_payload()) >= 2
+                and message.get_payload(1).get_content_type() == 'message/delivery-status'):
+
+            fields = message.get_payload(1).items()
+            originalHeaders = message.get_payload(2).items() if len(message.get_payload()) > 2 else []
+
+            if message.get_payload(1).is_multipart():
+                # Merge the fields if the delivery-status is also multipart.
+                for part in message.get_payload(1).walk():
+                    fields += part.items()
+
+            with postgres:
+                try:
+                    if postgres.call('NewEmailSendResponseReport', [dict(fields), dict(originalHeaders)]):
+                        iMAP.store(emailId, '+FLAGS', '\DELETED')
+                    else:
+                        warning('Email could not found in the database:', **dict(fields + originalHeaders))
+                except psycopg2.IntegrityError as error:
+                    warning(str(error), **message)
+        else:
+            warning('Unexpected email:', **message)
+
+        amount -= 1
+
+def warning(message, **kwargs):
+    print('WARNING: ' + str(message), file=sys.stderr)
+
+    for key, value in kwargs.items():
+        print('\t' + key + ': ' + value, file=sys.stderr)
+
+    print(file=sys.stderr)
+
 if __name__ == '__main__':
     arguments = parseArguments()
 
@@ -86,3 +161,8 @@ if __name__ == '__main__':
         if not arguments.outgoing_server:
             raise Exception('--outgoing-server is requred for sending emails.')
         sendEmail(arguments.outgoing_server, arguments.send)
+
+    if arguments.receive:
+        if not arguments.incoming_server:
+            raise Exception('--incoming-server is requred for sending emails.')
+        receiveEmail(arguments.incoming_server, arguments.receive)
