@@ -39,6 +39,9 @@ class Postgres(psycopg2.extensions.connection):
         if table:
             return [dict(zip(columnNames, row)) for row in rows]
 
+        if len(rows) == 0:
+            raise PostgresException('Query does not return any rows.')
+
         if len(rows) > 1:
             raise PostgresException('Query returned more than one row.')
 
