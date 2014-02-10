@@ -1,3 +1,7 @@
+Begin;
+
+Drop view if exists EmailDetail;
+
 Create or replace view EmailDetail as
     with EmailSendFeedbackTypeStats as (select emailId, type, count(*) as count
                     from EmailSendFeedback
@@ -20,7 +24,9 @@ Create or replace view EmailDetail as
         EmailVariationStats as (select emailId, string_agg(rank::text || ': ' || count::text, ' ') as rankCounts
                     from EmailVariationRankStats
                     group by emailId)
-        select Email.id, Email.fromName, Email.fromAddress, Email.createdAt, Email.outgoingServerName,
+        select Email.id, Email.fromName, Email.fromAddress, Email.createdAt,
+                Email.outgoingServerName as outgoingServer,
+                Email.incomingServerName as incomingServer,
                 coalesce(EmailSendStats.totalCount, 0) as total,
                 coalesce(EmailSendStats.sentCount, 0) as sent,
                 coalesce(EmailSendResponseReportStats.count, 0) as responseReports,
@@ -32,3 +38,5 @@ Create or replace view EmailDetail as
                 left join EmailSendResponseReportStats on EmailSendResponseReportStats.emailId = Email.id
                 left join EmailVariationStats on EmailVariationStats.emailId = Email.id
                 order by Email.id;
+
+Commit;
