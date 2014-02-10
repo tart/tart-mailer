@@ -50,6 +50,9 @@ def sendEmail(serverName, amount):
         if not server:
             raise Exception('Outgoing server could not find in the database.')
 
+        for emailSend in postgres.call('RemoveNotAllowedEmailSend', serverName, table=True):
+            warning('Not allowed email removed from the queue:' **emailSend)
+
     if amount > server['totalcount']:
         amount = server['totalcount']
     print(str(server['totalcount']) + ' emails to send.')
