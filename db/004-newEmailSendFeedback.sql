@@ -30,4 +30,3 @@ Select Email.redirectURL
 $$;
 
 Commit;
-
