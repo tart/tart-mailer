@@ -1,21 +1,24 @@
 <!doctype html>
 
-<form method="POST" action="">
+<h3>{{ email.id ~ '.' if email.id else 'New' }} Email</h3>
+
+<form method="POST" action="{{ url_for('saveEmail', id=email.get('id')) }}">
     <table>
         <tr>
             <td>Outgoing Server:</td>
             <td>
-                <select name="outgoingservername" required {{ 'disabled ' if not email['draft'] }}>
+                <select name="outgoingservername" required >
 {% for outgoingServer in email['outgoingservers'] %}
                     <option value="{{ outgoingServer['name'] }}" {{ 'selected' if outgoingServer['name'] == email['outgoingservername'] }}>{{ outgoingServer['name'] }}</option>
 {% endfor %}
                 </select>
             </td>
         </tr>
+
         <tr>
             <td>Incoming Server:</td>
             <td>
-                <select name="incomingservername" required {{ 'disabled ' if not email['draft'] }}>
+                <select name="incomingservername">
                     <option></option>
 {% for incomingServer in email['incomingservers'] %}
                     <option value="{{ incomingServer['name'] }}" {{ 'selected' if incomingServer['name'] == email['incomingservername'] }}>{{ incomingServer['name'] }}</option>
@@ -23,48 +26,35 @@
                 </select>
             </td>
         </tr>
+
         <tr>
             <td>From Name:</td>
             <td>
-                <input type="text" name="fromname" size="100" maxlength="200" value="{{ email['fromname'] }}" required {{ 'disabled ' if not email['draft'] }}/>
+                <input type="text" name="fromname" size="100" maxlength="200" value="{{ email['fromname'] }}" required />
             </td>
         </tr>
+
         <tr>
             <td>From Address:</td>
             <td>
-                <input type="text" name="fromaddress" size="100" maxlength="200" value="{{ email['fromaddress'] }}" required {{ 'disabled ' if not email['draft'] }}/>
+                <input type="text" name="fromaddress" size="100" maxlength="200" value="{{ email['fromaddress'] }}" required />
             </td>
         </tr>
-        <tr>
-            <td>Subject:</td>
-            <td>
-                <input type="text" name="subject" size="100" maxlength="1000" value="{{ email['subject'] }}" required {{ 'disabled ' if not email['draft'] }}/>
-            </td>
-        </tr>
-        <tr>
-            <td>Plain Text Body:</td>
-            <td>
-                <textarea name="plainbody" rows="10" cols="100" {{ 'disabled ' if not email['draft'] }}>{{ email['plainbody'] or '' }}</textarea>
-            <td>
-        </tr>
-        <tr>
-            <td>HTML Body:</td>
-            <td>
-                <textarea name="htmlbody" rows="10" cols="100" {{ 'disabled ' if not email['draft'] }}>{{ email['htmlbody'] or '' }}</textarea>
-            </td>
-        </tr>
+
         <tr>
             <td>Return URL Root:</td>
             <td>
                 <input type="text" name="returnurlroot" size="100" maxlength="1000" value="{{ email['returnurlroot'] }}" {{ 'disabled ' if not email['draft'] }}/>
             </td>
         </tr>
+
         <tr>
             <td>Redirect URL:</td>
             <td>
                 <input type="text" name="redirecturl" size="100" maxlength="1000" value="{{ email['redirecturl'] or '' }}" {{ 'disabled ' if not email['draft'] }}/>
             </td>
         </tr>
+
         <tr>
             <td>Example Properies:</td>
             <td>{{ email['exampleproperties'] }}</td>
@@ -78,94 +68,177 @@
         a brace character in the literal text, it can be escaped by doubling: {{ '{{ and }}' }}.
     </p>
 
-{% if action == 'save' %}
-    <strong>{{ message }}</strong>
-{% endif %}
+    <strong>{{ saveMessage }}</strong>
 
     <p>
-        <input type="hidden" name="emailid" value="{{ email['id'] }}" />
-        <input type="hidden" name="draft" value="{{ email['draft'] }}" />
-        <input type="submit" name"submit" value="Save" {{ 'disabled ' if not email['draft'] }}/>
+        <input type="submit" name"submit" value="Save"/>
     </p>
 </form>
 
 {% if email.id %}
-<form method="POST" action="sendTest">
-    <table>
-        <tr>
-            <td>Email Address:</td>
-            <td>
-                <input type="text" name="subscriberemailaddress" size="100" maxlength="200" />
-            </td>
-        </tr>
-    </table>
+    {% for emailVariation in email['variations'] %}
+        <h3>{{ emailVariation['rank'] }}. Variation</h3>
 
-{% if action == 'sendTest' %}
-    <strong>{{ message }}</strong>
-{% endif %}
+        <form method="POST" action="{{ url_for('saveEmailVariation', id=email['id'], rank=emailVariation['rank']) }}">
+            <table>
+                <tr>
+                    <td>Subject:</td>
+                    <td>
+                        <input type="text" name="subject" size="100" maxlength="1000"
+                               value="{{ emailVariation['subject'] }}" required
+                               {{ 'disabled' if not emailVariation['status'] != 'draft' }} />
+                    </td>
+                </tr>
 
-    <p>
-        <input type="hidden" name="emailid" value="{{ email['id'] }}" />
-        <input type="submit" name"submit" value="Send Test Email" />
-    </p>
-</form>
+                <tr>
+                    <td>Plain Text Body:</td>
+                    <td>
+                        <textarea name="plainbody" rows="10" cols="100"
+                                  {{ 'disabled' if emailVariation['status'] != 'draft' }} >{{ emailVariation['plainbody'] or '' }}</textarea>
+                    <td>
+                </tr>
 
-{% if email['previewurl'] %}
-<p>
-    <a href="{{ email['previewurl'] }}">Preview Email</a>
-</p>
-{% endif %}
+                <tr>
+                    <td>HTML Body:</td>
+                    <td>
+                        <textarea name="htmlbody" rows="10" cols="100"
+                                  {{ 'disabled' if emailVariation['status'] != 'draft' }} >{{ emailVariation['htmlbody'] or '' }}</textarea>
+                    </td>
+                </tr>
+            </table>
 
-{% if email['validateurl'] %}
-<p>
-    <a href="{{ email['validateurl'] }}">Validate HTML</a>
-</p>
-{% endif %}
+            {% if emailVariation['rank'] == variationRank %}
+                <strong>{{ saveEmailVariationMessage }}</strong>
+            {% endif %}
 
-<form method="POST" action="send">
-    <table border="1">
-        <tr>
-            <th></th>
-            <th>Locale</th>
-            <th>Send</th>
-            <th>Total</th>
-        </tr>
-    {% for stat in email['subscriberlocalestats'] %}
-        <tr>
-            <td>
-                <input type="checkbox" name="locales[]" value="{{ stat['locale'] }}" {{ 'disabled ' if stat['sendcount'] == stat['count'] }}/>
-             </td>
-            <td>{{ stat['locale'] }}</td>
-            <td>{{ stat['sendcount'] }}</td>
-            <td>{{ stat['count'] }}</td>
-        </tr>
+            <p>
+                <input type="submit" name"submit" value="Save"
+                       {{ 'disabled' if emailVariation['status'] != 'draft' }} />
+            </p>
+        </form>
+
+        <form method="POST" action="{{ url_for('removeEmailVariation', id=email['id'], rank=emailVariation['rank']) }}">
+
+            {% if emailVariation['rank'] == variationRank %}
+                <strong>{{ removeEmailVariationMessage }}</strong>
+            {% endif %}
+
+            <p>
+                <input type="submit" name"submit" value="Remove" />
+            </p>
+        </form>
+
+        {% set previewURL = url_for('preview', emailid=email['id'], rank=emailVariation['rank']) %}
+
+        {% if emailVariation['htmlbody'] %}
+            <p>
+                <a href="{{ previewURL }}">Preview HTML</a>
+            </p>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('sendTestEmail', id=email['id'], rank=emailVariation['rank']) }}">
+            <table>
+                <tr>
+                    <td>Email Address:</td>
+                    <td>
+                        <input type="text" name="emailaddress" size="100" maxlength="200" required />
+                    </td>
+                </tr>
+            </table>
+
+            {% if emailVariation['rank'] == variationRank %}
+                <strong>{{ sendTestEmailMessage }}</strong>
+            {% endif %}
+
+            <p>
+                <input type="submit" name"submit" value="Send Test Email" />
+            </p>
+        </form>
     {% endfor %}
-    </table>
 
-    <table>
-        <tr>
-            <td>Maximum Subscriber Count:</td>
-            <td>
-                <input type="text" name="subscribercount" maxlength="20" value="{{ email['subscribercount'] }}" required {{ 'disabled ' if email['subscribercount'] == 0 }}/>
-            </td>
-        </tr>
-    </table>
+    <h3>New Variation</h3>
 
-    <p>
-        The current subscribers will be added to the queue. Emails will be send asynchronously. Adding many emails
-        to the queue can take few minutes. Counts does not include unsubscribed or complained subscribers but
-        emails may have been sent to them, before.
-    </p>
+    <form method="POST" action="{{ url_for('saveEmailVariation', id=email['id']) }}">
+        <table>
+            <tr>
+                <td>Subject:</td>
+                <td>
+                    <input type="text" name="subject" size="100" maxlength="1000" required />
+                </td>
+            </tr>
 
-    {% if action == 'send' %}
-    <strong>{{ message }}</strong>
-    {% endif %}
+            <tr>
+                <td>Plain Text Body:</td>
+                <td>
+                    <textarea name="plainbody" rows="10" cols="100"></textarea>
+                <td>
+            </tr>
 
-    <p>
-        <input type="hidden" name="emailid" value="{{ email['id'] }}" />
-        <input type="submit" name"submit" value="Send" {{ 'disabled ' if email['subscribercount'] == 0 }}/>
-    </p>
-</form>
+            <tr>
+                <td>HTML Body:</td>
+                <td>
+                    <textarea name="htmlbody" rows="10" cols="100"></textarea>
+                </td>
+            </tr>
+        </table>
+
+        <p>
+            <input type="submit" name"submit" value="Save" />
+        </p>
+    </form>
+
+    <h3>Send</h3>
+
+    {% macro checkboxTable(tableData, checkboxColumn) %}
+        <table border="1" >
+            <tr>
+                <th></th>
+
+                {% for header in tableData[0].keys() %}
+                    <th>{{ header }}</th>
+                {% endfor %}
+            </tr>
+
+            {% for row in tableData %}
+                <tr>
+                    <td>
+                        <input type="checkbox" name="{{ checkboxColumn }}[]" value="{{ row[checkboxColumn] }}" />
+                     </td>
+
+                    {% for header, cell in row.items() %}
+                        <td>{{ cell }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    {% endmacro %}
+
+    <form method="POST" action="{{ url_for('sendEmail', id=email['id']) }}">
+        {{ checkboxTable(email['subscriberlocalestats'], 'locale') if email['subscriberlocalestats'] }}
+
+        {{ checkboxTable(email['variationstats'], 'variation') if email['variationstats'] }}
+
+        <table>
+            <tr>
+                <td>Maximum Subscriber Count:</td>
+                <td>
+                    <input type="text" name="subscribercount" maxlength="20" value="{{ email['subscribercount'] }}" required {{ 'disabled ' if email['subscribercount'] == 0 }}/>
+                </td>
+            </tr>
+        </table>
+
+        <p>
+            The current subscribers will be added to the queue. Emails will be send asynchronously. Adding many emails
+            to the queue can take few minutes. Counts does not include unsubscribed or complained subscribers but
+            emails may have been sent to them, before.
+        </p>
+
+        <strong>{{ sendEmailMessage }}</strong>
+
+        <p>
+            <input type="submit" name"submit" value="Send" {{ 'disabled ' if email['subscribercount'] == 0 }}/>
+        </p>
+    </form>
 {% endif %}
 
 <p>
@@ -173,6 +246,6 @@
 </p>
 
 <p>
-    <a href="{{ url_for('newEmail') }}" >New Email</a>
+    <a href="{{ url_for('email') }}" >New Email</a>
 </p>
 

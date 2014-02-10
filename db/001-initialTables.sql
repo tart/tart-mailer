@@ -53,6 +53,7 @@ Create index EmailSendSubscriberIdFKI on EmailSend (subscriberId, sent);
 
 Create type EmailSendFeedbackType as enum (
     'trackerImage',
+    'view',
     'redirect',
     'unsubscribe'
 );

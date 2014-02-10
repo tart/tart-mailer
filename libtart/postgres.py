@@ -99,5 +99,17 @@ class Postgres(psycopg2.extensions.connection):
 
         return self.__execute(query, parameters, table)
 
+    def delete(self, tableName, whereCondition={}, table=True):
+        '''Execute a delete for a single table.'''
+
+        query = 'Delete from ' + tableName
+        parameters = []
+        if whereCondition:
+            query += ' where ' + ' and '.join(k + ' = %s' for k in whereCondition.keys())
+            parameters += whereCondition.values()
+        query += ' returning *'
+
+        return self.__execute(query, parameters, table)
+
 class PostgresException(Exception): pass
 

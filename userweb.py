@@ -45,7 +45,7 @@ def view(emailHash):
 
     if body:
         return body
-    abort(404)
+    flask.abort(404)
 
 @app.route('/redirect/<emailHash>')
 def redirect(emailHash):
@@ -55,7 +55,7 @@ def redirect(emailHash):
 
     if redirectURL:
         return flask.redirect(redirectURL)
-    abort(404)
+    flask.abort(404)
 
 @app.route('/unsubscribe/<emailHash>')
 def unsubscribe(emailHash):

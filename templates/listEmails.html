@@ -1,6 +1,6 @@
 <!doctype html>
 
-{% macro table(tableData, linkColumn=None) %}
+{% macro table(tableData, linkTo=None, linkColumn=None) %}
     <table border="1" >
         <tr>
             {% for header in tableData[0].keys() %}
@@ -14,7 +14,7 @@
                     <td>
                         {% if cell %}
                             {% if header == linkColumn %}
-                                <a href="{{ cell }}">{{ cell }}</a>
+                                <a href="{{ url_for(linkTo, **row) }}">{{ cell }}</a>
                             {% else %}
                                 {{ cell }}
                             {% endif %}
@@ -28,10 +28,10 @@
 
 <h2>Emails</h2>
 
-{{ table(emails, 'id') if emails }}
+{{ table(emails, 'email', 'id') if emails }}
 
 <p>
-    <a href="{{ url_for('newEmail') }}" >New Email</a>
+    <a href="{{ url_for('email') }}" >New Email</a>
 </p>
 
 <h2>Outgoing Servers</h2>

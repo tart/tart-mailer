@@ -12,9 +12,12 @@ cat ../db/* | psql
 echo
 
 echo "Adding data..."
-echo "\Copy Subscriber (emailAddress, properties) from 'subscriber.data'" | psql
-echo "\Copy Email (fromName, fromAddress, subject, plainBody, hTMLBody, returnURLRoot, redirectURL, outgoingServerName) from 'email.data'" | psql
-echo "Insert into EmailSend (emailId, subscriberId) select Email.id, Subscriber.id from Email, Subscriber" | psql
+echo "\Copy Subscriber (emailAddress, properties) from 'subscriber.data';
+\Copy Email (fromName, fromAddress, returnURLRoot, redirectURL, outgoingServerName) from 'email.data';
+Create temp table TempEmailVariation (subject varchar(1000), plainBody text, hTMLBody text);
+\Copy TempEmailVariation from 'emailvariation.data';
+Insert into EmailVariation (emailId, subject, plainBody, hTMLBody) select Email.id, TempEmailVariation.* from Email, TempEmailVariation;
+Insert into EmailSend (emailId, subscriberId, variationRank) select EmailVariation.emailId, Subscriber.id, EmailVariation.rank from EmailVariation, Subscriber;" | psql
 echo
 
 echo "Trying to send an email..."
