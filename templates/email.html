@@ -1,6 +1,6 @@
 <!doctype html>
 
-<h3>{{ email.id ~ '.' if email.id else 'New' }} Email</h3>
+<h1>{{ email.id ~ '.' if email.id else 'New' }} Email</h1>
 
 <form method="POST" action="{{ url_for('saveEmail', id=email.get('id')) }}">
     <table>
