@@ -124,7 +124,8 @@
             {% endif %}
 
             <p>
-                <input type="submit" name"submit" value="Remove" />
+                <input type="submit" name"submit" value="Remove"
+                       {{ 'disabled' if emailVariation['status'] != 'draft' }} />
             </p>
         </form>
 
