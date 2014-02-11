@@ -217,6 +217,11 @@
     <form method="POST" action="{{ url_for('sendEmail', id=email['id']) }}">
         {{ checkboxTable(email['subscriberlocalestats'], 'locale') if email['subscriberlocalestats'] }}
 
+        <p>
+            Counts does not include unsubscribed or response report sent subscribers but emails may have been sent
+            to them, before.
+        </p>
+
         {{ checkboxTable(email['variationstats'], 'variation') if email['variationstats'] }}
 
         <table>
@@ -230,8 +235,7 @@
 
         <p>
             The current subscribers will be added to the queue. Emails will be send asynchronously. Adding many emails
-            to the queue can take few minutes. Counts does not include unsubscribed or complained subscribers but
-            emails may have been sent to them, before.
+            to the queue can take few minutes.
         </p>
 
         <strong>{{ sendEmailMessage }}</strong>
