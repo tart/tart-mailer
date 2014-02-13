@@ -54,7 +54,7 @@ Drop function if exists SendTestEmail(integer, varchar(200));
 
 Create or replace function SendTestEmail(
         emailId integer,
-        variationRank smallint,
+        variationRank integer,
         emailAddress varchar(200)
     ) returns boolean
     language sql
