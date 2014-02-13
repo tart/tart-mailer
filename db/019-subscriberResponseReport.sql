@@ -14,29 +14,6 @@ Create table EmailSendResponseReport (
 
 Create index EmailSendResponseReportSubscriberIdFKI on EmailSendResponseReport (subscriberId);
 
-Create or replace function NewEmailSendResponseReport(
-        incomingServerName varchar(200),
-        fields hstore,
-        originalHeaders hstore
-    ) returns boolean
-    language sql
-    as $$
-With OriginalEmailSend as (select EmailSend.*
-            from EmailSend
-                join Email on EmailSend.emailId = Email.id
-                        and Email.incomingServerName = NewEmailSendResponseReport.incomingServerName
-                        and ((NewEmailSendResponseReport.originalHeaders -> 'Subject') is null
-                                or Email.subject = (NewEmailSendResponseReport.originalHeaders -> 'Subject'))
-                join Subscriber on EmailSend.subscriberID = Subscriber.id
-                        and Subscriber.emailAddress in (NewEmailSendResponseReport.fields -> 'Final-Recipient',
-                                trim(split_part(NewEmailSendResponseReport.fields -> 'Final-Recipient', ';', 2)))
-                where EmailSend.sent)
-    insert into EmailSendResponseReport (emailId, subscriberId, fields, originalHeaders)
-        select emailId, subscriberId, NewEmailSendResponseReport.fields, NewEmailSendResponseReport.originalHeaders
-            from OriginalEmailSend
-        returning true
-$$;
-
 Drop function if exists SubscriberLocaleStats(integer);
 
 Create function SubscriberLocaleStats(integer)
