@@ -27,6 +27,16 @@
 {% endmacro %}
 
 {% block body %}
+    <h2>Projects</h2>
+
+    <strong>{{ projectMessage }}</strong>
+
+    {{ table(projects, 'project', 'name') if projects }}
+
+    <p>
+        <a href="{{ url_for('project') }}" >New Project</a>
+    </p>
+
     <h2>Emails</h2>
 
     <strong>{{ emailMessage }}</strong>
@@ -45,4 +55,3 @@
 
     {{ table(incomingServers) if incomingServers }}
 {% endblock %}
-

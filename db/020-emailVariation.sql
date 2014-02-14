@@ -134,59 +134,6 @@ With RevisedEmailVariation as (update EmailVariation
     select count(*) from NewEmailSend
 $$;
 
-Create or replace function NextEmailToSend(varchar(200))
-    returns table (
-        fromName varchar(200),
-        fromAddress varchar(200),
-        toAddress varchar(200),
-        subject varchar(1000),
-        plainBody text,
-        hTMLBody text,
-        unsubscribeURL text
-    )
-    language sql strict
-    as $$
-With FirstWaitingEmail as (select EmailSend.*
-            from Email
-                join EmailSend on EmailSend.emailId = Email.id
-                        and not sent
-                where Email.outgoingServerName = $1
-                order by Email.id, EmailSend.subscriberId
-            limit 1
-            for update),
-    UpdatedEmailSend as (update EmailSend
-            set sent = true
-            from FirstWaitingEmail
-                where EmailSend = FirstWaitingEmail
-            returning EmailSend.*)
-    select Email.fromName,
-            Email.fromAddress,
-            Subscriber.emailAddress,
-            FormatEmailToSend(EmailVariation.subject, Subscriber.properties, Email.returnURLRoot, EmailHash(UpdatedEmailSend)),
-            FormatEmailToSend(EmailVariation.plainBody, Subscriber.properties, Email.returnURLRoot, EmailHash(UpdatedEmailSend)),
-            FormatEmailToSend(EmailVariation.hTMLBody, Subscriber.properties, Email.returnURLRoot, EmailHash(UpdatedEmailSend)),
-            Email.returnURLRoot || 'unsubscribe/' || EmailHash(UpdatedEmailSend)
-        from UpdatedEmailSend
-            join Email on UpdatedEmailSend.emailId = Email.id
-            join EmailVariation on UpdatedEmailSend.emailId = EmailVariation.emailId
-                    and UpdatedEmailSend.variationRank = EmailVariation.rank
-            join Subscriber on UpdatedEmailSend.subscriberId = Subscriber.id
-$$;
-
-Create or replace function ViewEmailBody(text)
-    returns text
-    language sql strict
-    as $$
-Select coalesce(FormatEmailToSend(EmailVariation.hTMLBody, Subscriber.properties, Email.returnURLRoot, $1),
-                FormatEmailToSend(EmailVariation.plainBody, Subscriber.properties, Email.returnURLRoot, $1))
-    from EmailSend
-        join Email on EmailSend.emailId = Email.id
-            join EmailVariation on EmailSend.emailId = EmailVariation.emailId
-                    and EmailSend.variationRank = EmailVariation.rank
-        join Subscriber on EmailSend.subscriberId = Subscriber.id
-        where EmailHash(EmailSend) = $1
-$$;
-
 Create or replace function NewEmailSendResponseReport(
         incomingServerName varchar(200),
         fields hstore,

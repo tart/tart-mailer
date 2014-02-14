@@ -27,10 +27,52 @@ postgres = Postgres(debug=(__name__ == '__main__'))
 @app.route('/')
 def index(**kwargs):
     with postgres:
-        return flask.render_template('index.html', emails=postgres.select('EmailDetail'),
-                                     outgoingServers=postgres.select('OutgoingServer'),
-                                     incomingServers=postgres.select('IncomingServer'),
-                                     **kwargs)
+        return flask.render_template('index.html', projects=postgres.select('ProjectDetail'),
+                                    emails=postgres.select('EmailDetail'),
+                                    outgoingServers=postgres.select('OutgoingServer'),
+                                    incomingServers=postgres.select('IncomingServer'),
+                                    **kwargs)
+
+@app.route('/project')
+@app.route('/project/<string:name>')
+def project(name=None, **kwargs):
+    with postgres:
+        if name:
+            project = postgres.select('Project', {'name': name}, table=False)
+        else:
+            parts = parseURL(flask.request.url_root)
+            project = {'returnurlroot': parts['protocol'] + '//' + parts['root'] + '/'}
+
+    return flask.render_template('project.html', project=project, **kwargs)
+
+@app.route('/project', methods=['POST'])
+@app.route('/project/<string:name>', methods=['POST'])
+def saveProject(name=None):
+    with postgres:
+        form = dict([(k, v) for k, v in flask.request.form.items() if v != ''])
+
+        if not name:
+            name = postgres.insert('Project', form)['name']
+            message = 'Project "' + name + '" created.'
+        else:
+            newProject = postgres.update('Project', form, {'name': name}, table=False)
+            if newProject:
+                name = newProject['name']
+                message = 'Project "' + name + '" updated.'
+            else:
+                message = 'Project "' + name + '" could not found.'
+
+        return project(name, saveMessage=message)
+
+@app.route('/project/<string:name>/remove', methods=['POST'])
+def removeProject(name):
+    with postgres:
+        if postgres.delete('Project', {'name': name}):
+            message = 'Project "' + name + '" removed.'
+        else:
+            message = 'Project "' + name + '" could not be removed.'
+
+        return index(projectMessage=message)
 
 @app.route('/email')
 @app.route('/email/<int:id>')

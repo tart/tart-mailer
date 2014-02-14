@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    <h1>{{ 'Project "' ~ project['name'] ~ '"' if project.get('name') else 'New Project' }}</h1>
+
+    <form method="POST" action="{{ url_for('saveProject', name=project.get('name')) }}">
+        <table>
+            <tr>
+                <td>Name:</td>
+                <td>
+                    <input type="text" name="name" size="100" maxlength="200" value="{{ project['name'] }}" />
+                </td>
+            </tr>
+
+            <tr>
+                <td>From Name:</td>
+                <td>
+                    <input type="text" name="fromname" size="100" maxlength="200" value="{{ project['fromname'] }}" />
+                </td>
+            </tr>
+
+            <tr>
+                <td>Email Address:</td>
+                <td>
+                    <input type="text" name="emailaddress" size="100" maxlength="200" value="{{ project['emailaddress'] }}" />
+                </td>
+            </tr>
+
+            <tr>
+                <td>Return URL Root:</td>
+                <td>
+                    <input type="text" name="returnurlroot" size="100" maxlength="1000" value="{{ project['returnurlroot'] }}" />
+                </td>
+            </tr>
+        </table>
+
+        <strong>{{ saveMessage }}</strong>
+
+        <p>
+            <input type="submit" value="Save Project" />
+        </p>
+    </form>
+
+    {% if project.get('name') %}
+        <form method="POST" action="{{ url_for('removeProject', name=project['name']) }}">
+            <p>
+                <input type="submit" value="Remove Project" />
+            </p>
+        </form>
+    {% endif %}
+
+    <p>
+        <a href="{{ url_for('index') }}" >Index</a>
+    </p>
+
+    <p>
+        <a href="{{ url_for('project') }}" >New Project</a>
+    </p>
+{% endblock %}

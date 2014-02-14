@@ -37,13 +37,29 @@
     <form method="POST" action="{{ url_for('saveEmail', id=email.get('id')) }}">
         <table>
             <tr>
+                <td>Project:</td>
+                <td>
+                    <select name="projectname" required {{ 'disabled ' if not email['draft'] }} >
+                        <option value="">-- select --</option>
+
+                        {% for project in email['projects'] %}
+                            <option {{ 'selected' if project['name'] == email['projectname'] }}
+                                    >{{ project['name'] }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+
+            <tr>
                 <td>Outgoing Server:</td>
                 <td>
                     <select name="outgoingservername" required {{ 'disabled ' if not email['draft'] }} >
                         <option value="">-- select --</option>
-    {% for outgoingServer in email['outgoingservers'] %}
-                        <option {{ 'selected' if outgoingServer['name'] == email['outgoingservername'] }}>{{ outgoingServer['name'] }}</option>
-    {% endfor %}
+
+                        {% for outgoingServer in email['outgoingservers'] %}
+                            <option {{ 'selected' if outgoingServer['name'] == email['outgoingservername'] }}
+                                    >{{ outgoingServer['name'] }}</option>
+                        {% endfor %}
                     </select>
                 </td>
             </tr>
@@ -53,34 +69,12 @@
                 <td>
                     <select name="incomingservername" {{ 'disabled ' if not email['draft'] }} >
                         <option value="">-- select --</option>
-    {% for incomingServer in email['incomingservers'] %}
-                        <option {{ 'selected' if incomingServer['name'] == email['incomingservername'] }}>{{ incomingServer['name'] }}</option>
-    {% endfor %}
+
+                        {% for incomingServer in email['incomingservers'] %}
+                            <option {{ 'selected' if incomingServer['name'] == email['incomingservername'] }}
+                                    >{{ incomingServer['name'] }}</option>
+                        {% endfor %}
                     </select>
-                </td>
-            </tr>
-
-            <tr>
-                <td>From Name:</td>
-                <td>
-                    <input type="text" name="fromname" size="100" maxlength="200" value="{{ email['fromname'] }}"
-                           required {{ 'disabled ' if not email['draft'] }} />
-                </td>
-            </tr>
-
-            <tr>
-                <td>From Address:</td>
-                <td>
-                    <input type="text" name="fromaddress" size="100" maxlength="200" value="{{ email['fromaddress'] }}"
-                           required {{ 'disabled ' if not email['draft'] }} />
-                </td>
-            </tr>
-
-            <tr>
-                <td>Return URL Root:</td>
-                <td>
-                    <input type="text" name="returnurlroot" size="100" maxlength="1000" value="{{ email['returnurlroot'] }}"
-                           {{ 'disabled ' if not email['draft'] }} />
                 </td>
             </tr>
 

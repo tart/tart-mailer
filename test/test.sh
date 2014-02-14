@@ -12,8 +12,9 @@ cat ../db/* | psql
 echo
 
 echo "Adding data..."
-echo "\Copy Subscriber (emailAddress, properties) from 'subscriber.data';
-\Copy Email (fromName, fromAddress, returnURLRoot, redirectURL, outgoingServerName) from 'email.data';
+echo "\Copy Project (name, fromName, emailAddress, returnURLRoot) from 'project.data';
+\Copy Subscriber (projectName, emailAddress, properties) from 'subscriber.data';
+\Copy Email (projectName, redirectURL, outgoingServerName) from 'email.data';
 Create temp table TempEmailVariation (subject varchar(1000), plainBody text, hTMLBody text);
 \Copy TempEmailVariation from 'emailvariation.data';
 Insert into EmailVariation (emailId, subject, plainBody, hTMLBody) select Email.id, TempEmailVariation.* from Email, TempEmailVariation;
@@ -53,4 +54,3 @@ echo
 
 echo "Killing the web server..."
 trap "kill 0" SIGINT SIGTERM EXIT
-
