@@ -29,6 +29,8 @@
 {% block body %}
     <h2>Emails</h2>
 
+    <strong>{{ emailMessage }}</strong>
+
     {{ table(emails, 'email', 'id') if emails }}
 
     <p>

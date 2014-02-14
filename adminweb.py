@@ -25,11 +25,12 @@ app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == '
 postgres = Postgres()
 
 @app.route('/')
-def index():
+def index(**kwargs):
     with postgres:
         return flask.render_template('index.html', emails=postgres.select('EmailDetail'),
                                      outgoingServers=postgres.select('OutgoingServer'),
-                                     incomingServers=postgres.select('IncomingServer'))
+                                     incomingServers=postgres.select('IncomingServer'),
+                                     **kwargs)
 
 @app.route('/email')
 @app.route('/email/<int:id>')
@@ -77,6 +78,16 @@ def saveEmail(id=None):
                 message = 'Email could not found.'
 
         return email(id, saveMessage=message)
+
+@app.route('/email/<int:id>/remove', methods=['POST'])
+def removeEmail(id):
+    with postgres:
+        if postgres.delete('Email', {'id': id}):
+            message = 'Email removed.'
+        else:
+            message = 'Email could not be removed.'
+
+        return index(emailMessage=message)
 
 @app.route('/email/<int:id>/variation', methods=['POST'])
 @app.route('/email/<int:id>/variation/<int:rank>', methods=['POST'])

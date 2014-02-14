@@ -113,6 +113,13 @@
     </form>
 
     {% if email.id %}
+        <form method="POST" action="{{ url_for('removeEmail', id=email['id']) }}">
+            <p>
+                <input type="submit" value="Remove Email"
+                       {{ 'disabled' if not email['draft'] }} />
+            </p>
+        </form>
+
         {% for emailVariation in email['variations'] %}
             <h3>{{ emailVariation['rank'] }}. Variation</h3>
 
@@ -161,7 +168,7 @@
                 {% endif %}
 
                 <p>
-                    <input type="submit" value="Remove"
+                    <input type="submit" value="Remove Email Variation"
                            {{ 'disabled' if not emailVariation['draft'] }} />
                 </p>
             </form>
