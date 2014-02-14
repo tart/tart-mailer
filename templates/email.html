@@ -97,7 +97,7 @@
         <strong>{{ saveMessage }}</strong>
 
         <p>
-            <input type="submit" value="Save"/>
+            <input type="submit" value="Save Email"/>
         </p>
     </form>
 
@@ -138,7 +138,7 @@
                 {% endif %}
 
                 <p>
-                    <input type="submit" value="Save"
+                    <input type="submit" value="Save Email Variation"
                            {{ 'disabled' if emailVariation['status'] != 'draft' }} />
                 </p>
             </form>
@@ -159,7 +159,9 @@
 
             {% if emailVariation['htmlbody'] %}
                 <p>
-                    <a href="{{ previewURL }}">Preview HTML</a>
+                    <a href="{{ previewURL }}">
+                        <button>Preview HTML</button>
+                    </a>
                 </p>
 
                 <form method="POST" action="http://validator.w3.org/check">
@@ -218,7 +220,7 @@
             </table>
 
             <p>
-                <input type="submit" value="Save" />
+                <input type="submit" value="Add Email Variation" />
             </p>
         </form>
 
@@ -251,7 +253,7 @@
             <strong>{{ sendEmailMessage }}</strong>
 
             <p>
-                <input type="submit" value="Send" {{ 'disabled ' if email['subscribercount'] == 0 }}/>
+                <input type="submit" value="Send Email" {{ 'disabled ' if email['subscribercount'] == 0 }}/>
             </p>
         </form>
     {% endif %}
