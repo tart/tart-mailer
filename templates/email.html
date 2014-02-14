@@ -27,12 +27,19 @@
 {% block body %}
     <h1>{{ email.id ~ '.' if email.id else 'New' }} Email</h1>
 
+    {% if not email['draft'] %}
+        <p>
+            Fields for emails which have sent to the subscribers, are disabled. Add ?force=True parameter to to URL
+            to enable editing these fields, if you know what you are doing.
+        </p>
+    {% endif %}
+
     <form method="POST" action="{{ url_for('saveEmail', id=email.get('id')) }}">
         <table>
             <tr>
                 <td>Outgoing Server:</td>
                 <td>
-                    <select name="outgoingservername" required >
+                    <select name="outgoingservername" required {{ 'disabled ' if not email['draft'] }} >
                         <option value="">-- select --</option>
     {% for outgoingServer in email['outgoingservers'] %}
                         <option {{ 'selected' if outgoingServer['name'] == email['outgoingservername'] }}>{{ outgoingServer['name'] }}</option>
@@ -44,7 +51,7 @@
             <tr>
                 <td>Incoming Server:</td>
                 <td>
-                    <select name="incomingservername">
+                    <select name="incomingservername" {{ 'disabled ' if not email['draft'] }} >
                         <option value="">-- select --</option>
     {% for incomingServer in email['incomingservers'] %}
                         <option {{ 'selected' if incomingServer['name'] == email['incomingservername'] }}>{{ incomingServer['name'] }}</option>
@@ -56,28 +63,32 @@
             <tr>
                 <td>From Name:</td>
                 <td>
-                    <input type="text" name="fromname" size="100" maxlength="200" value="{{ email['fromname'] }}" required />
+                    <input type="text" name="fromname" size="100" maxlength="200" value="{{ email['fromname'] }}"
+                           required {{ 'disabled ' if not email['draft'] }} />
                 </td>
             </tr>
 
             <tr>
                 <td>From Address:</td>
                 <td>
-                    <input type="text" name="fromaddress" size="100" maxlength="200" value="{{ email['fromaddress'] }}" required />
+                    <input type="text" name="fromaddress" size="100" maxlength="200" value="{{ email['fromaddress'] }}"
+                           required {{ 'disabled ' if not email['draft'] }} />
                 </td>
             </tr>
 
             <tr>
                 <td>Return URL Root:</td>
                 <td>
-                    <input type="text" name="returnurlroot" size="100" maxlength="1000" value="{{ email['returnurlroot'] }}" {{ 'disabled ' if not email['draft'] }}/>
+                    <input type="text" name="returnurlroot" size="100" maxlength="1000" value="{{ email['returnurlroot'] }}"
+                           {{ 'disabled ' if not email['draft'] }} />
                 </td>
             </tr>
 
             <tr>
                 <td>Redirect URL:</td>
                 <td>
-                    <input type="text" name="redirecturl" size="100" maxlength="1000" value="{{ email['redirecturl'] or '' }}" {{ 'disabled ' if not email['draft'] }}/>
+                    <input type="text" name="redirecturl" size="100" maxlength="1000" value="{{ email['redirecturl'] or '' }}"
+                           {{ 'disabled ' if not email['draft'] }} />
                 </td>
             </tr>
 
@@ -97,7 +108,7 @@
         <strong>{{ saveMessage }}</strong>
 
         <p>
-            <input type="submit" value="Save Email"/>
+            <input type="submit" value="Save Email" {{ 'disabled ' if not email['draft'] }} />
         </p>
     </form>
 
@@ -112,7 +123,7 @@
                         <td>
                             <input type="text" name="subject" size="100" maxlength="1000"
                                    value="{{ emailVariation['subject'] }}" required
-                                   {{ 'disabled' if not emailVariation['status'] != 'draft' }} />
+                                   {{ 'disabled' if not emailVariation['draft'] }} />
                         </td>
                     </tr>
 
@@ -120,7 +131,7 @@
                         <td>Plain Text Body:</td>
                         <td>
                             <textarea name="plainbody" rows="10" cols="100"
-                                      {{ 'disabled' if emailVariation['status'] != 'draft' }} >{{ emailVariation['plainbody'] or '' }}</textarea>
+                                      {{ 'disabled' if not emailVariation['draft'] }} >{{ emailVariation['plainbody'] or '' }}</textarea>
                         </td>
                     </tr>
 
@@ -128,7 +139,7 @@
                         <td>HTML Body:</td>
                         <td>
                             <textarea name="htmlbody" rows="10" cols="100"
-                                      {{ 'disabled' if emailVariation['status'] != 'draft' }} >{{ emailVariation['htmlbody'] or '' }}</textarea>
+                                      {{ 'disabled' if not emailVariation['draft'] }} >{{ emailVariation['htmlbody'] or '' }}</textarea>
                         </td>
                     </tr>
                 </table>
@@ -139,7 +150,7 @@
 
                 <p>
                     <input type="submit" value="Save Email Variation"
-                           {{ 'disabled' if emailVariation['status'] != 'draft' }} />
+                           {{ 'disabled' if not emailVariation['draft'] }} />
                 </p>
             </form>
 
@@ -151,7 +162,7 @@
 
                 <p>
                     <input type="submit" value="Remove"
-                           {{ 'disabled' if emailVariation['status'] != 'draft' }} />
+                           {{ 'disabled' if not emailVariation['draft'] }} />
                 </p>
             </form>
 

@@ -39,6 +39,13 @@ def email(id=None, **kwargs):
             email = postgres.select('Email', {'id': id}, table=False)
             email['variations'] = postgres.select('EmailVariation', {'emailid': id})
 
+            if flask.request.args.get('force'):
+                email['draft'] = True
+                for variation in email['variations']:
+                    variation['draft'] = True
+            else:
+                email['draft'] = all(variation['draft'] for variation in email['variations'])
+
             subscriberLocaleStats = postgres.call('SubscriberLocaleStats', id, table=True)
             email['subscriberlocalestats'] = subscriberLocaleStats
             email['subscribercount'] = sum(s['total'] - s['send'] for s in subscriberLocaleStats)
@@ -82,7 +89,7 @@ def saveEmailVariation(id, rank=None):
             rank = postgres.insert('EmailVariation', form)['rank']
             message = 'Email variation created.'
         else:
-            if postgres.update('EmailVariation', form, {'emailid': id, 'rank': rank, 'draft': True}):
+            if postgres.update('EmailVariation', form, {'emailid': id, 'rank': rank}):
                 message = 'Email variation updated.'
             else:
                 message = 'Email variation could not found.'
@@ -92,7 +99,7 @@ def saveEmailVariation(id, rank=None):
 @app.route('/email/<int:id>/variation/<int:rank>/remove', methods=['POST'])
 def removeEmailVariation(id, rank):
     with postgres:
-        if postgres.delete('EmailVariation', {'emailid': id, 'rank': rank, 'draft': True}):
+        if postgres.delete('EmailVariation', {'emailid': id, 'rank': rank}):
             message = 'Email variation removed.'
         else:
             message = 'Email variation could not be removed.'
