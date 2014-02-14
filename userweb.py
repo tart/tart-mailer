@@ -61,10 +61,9 @@ def redirect(emailHash):
 def unsubscribe(emailHash):
     with Postgres() as postgres:
         if postgres.call('NewEmailSendFeedback', (emailHash, 'unsubscribe', flask.request.remote_addr)):
-            message = 'You are successfully unsubscribed.'
+            return 'You are successfully unsubscribed.'
         else:
-            message = 'You have already unsubscribed.'
-        return flask.render_template('unsubscribe.html', message=message)
+            return 'You have already unsubscribed.'
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000, debug=True)
