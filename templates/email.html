@@ -161,6 +161,14 @@
                 <p>
                     <a href="{{ previewURL }}">Preview HTML</a>
                 </p>
+
+                <form method="POST" action="http://validator.w3.org/check">
+                    <p>
+                        <input type="hidden" name="fragment" value="{{ emailVariation['htmlbody'] }}"/>
+
+                        <input type="submit" value="Validate HTML"/>
+                    </p>
+                </form>
             {% endif %}
 
             <form method="POST" action="{{ url_for('sendTestEmail', id=email['id'], rank=emailVariation['rank']) }}">
