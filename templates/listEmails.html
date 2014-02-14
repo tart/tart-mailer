@@ -1,4 +1,4 @@
-<!doctype html>
+{% extends "layout.html" %}
 
 {% macro table(tableData, linkTo=None, linkColumn=None) %}
     <table border="1" >
@@ -26,18 +26,21 @@
     </table>
 {% endmacro %}
 
-<h2>Emails</h2>
+{% block body %}
+    <h2>Emails</h2>
 
-{{ table(emails, 'email', 'id') if emails }}
+    {{ table(emails, 'email', 'id') if emails }}
 
-<p>
-    <a href="{{ url_for('email') }}" >New Email</a>
-</p>
+    <p>
+        <a href="{{ url_for('email') }}" >New Email</a>
+    </p>
 
-<h2>Outgoing Servers</h2>
+    <h2>Outgoing Servers</h2>
 
-{{ table(outgoingServers) if outgoingServers }}
+    {{ table(outgoingServers) if outgoingServers }}
 
-<h2>Incoming Servers</h2>
+    <h2>Incoming Servers</h2>
 
-{{ table(incomingServers) if incomingServers }}
+    {{ table(incomingServers) if incomingServers }}
+{% endblock %}
+
