@@ -70,12 +70,12 @@ def saveEmail(id=None):
 
         if not id:
             id = postgres.insert('Email', form)['id']
-            message = 'Email created.'
+            message = str(id) + '. Email created.'
         else:
             if postgres.update('Email', form, {'id': id}):
-                message = 'Email updated.'
+                message = str(id) + '. Email updated.'
             else:
-                message = 'Email could not found.'
+                message = str(id) + '. Email could not found.'
 
         return email(id, saveMessage=message)
 
@@ -83,9 +83,9 @@ def saveEmail(id=None):
 def removeEmail(id):
     with postgres:
         if postgres.delete('Email', {'id': id}):
-            message = 'Email removed.'
+            message = str(id) + '. Email removed.'
         else:
-            message = 'Email could not be removed.'
+            message = str(id) + '. Email could not be removed.'
 
         return index(emailMessage=message)
 
@@ -98,12 +98,12 @@ def saveEmailVariation(id, rank=None):
         if not rank:
             form['emailid'] = id
             rank = postgres.insert('EmailVariation', form)['rank']
-            message = 'Email variation created.'
+            message = str(rank) + '. Email Variation created.'
         else:
             if postgres.update('EmailVariation', form, {'emailid': id, 'rank': rank}):
-                message = 'Email variation updated.'
+                message = str(rank) + '. Email Variation updated.'
             else:
-                message = 'Email variation could not found.'
+                message = str(rank) + '. Email Variation could not found.'
 
         return email(id, saveEmailVariationMessage=message, variationRank=rank)
 
@@ -111,9 +111,9 @@ def saveEmailVariation(id, rank=None):
 def removeEmailVariation(id, rank):
     with postgres:
         if postgres.delete('EmailVariation', {'emailid': id, 'rank': rank}):
-            message = 'Email variation removed.'
+            message = str(rank) + '. Email Variation removed.'
         else:
-            message = 'Email variation could not be removed.'
+            message = str(rank) + '. Email Variation could not be removed.'
 
         return email(id, removeEmailVariationMessage=message, variationRank=rank)
 
@@ -142,7 +142,7 @@ def sendEmail(id):
                 form[key] = value
 
         subscriberCount = postgres.call('SendEmail', form)
-        message = str(subscriberCount) + ' email added to the queue.'
+        message = str(subscriberCount) + ' emails added to the queue.'
 
         return email(id, sendEmailMessage=message)
 
