@@ -25,9 +25,9 @@ app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == '
 postgres = Postgres()
 
 @app.route('/')
-def listEmails():
+def index():
     with postgres:
-        return flask.render_template('listEmails.html', emails=postgres.select('EmailDetail'),
+        return flask.render_template('index.html', emails=postgres.select('EmailDetail'),
                                      outgoingServers=postgres.select('OutgoingServer'),
                                      incomingServers=postgres.select('IncomingServer'))
 
