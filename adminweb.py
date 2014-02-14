@@ -22,7 +22,7 @@ from libtart.postgres import Postgres
 
 app = flask.Flask(__name__)
 app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == 'FLASK_'))
-postgres = Postgres()
+postgres = Postgres(debug=(__name__ == '__main__'))
 
 @app.route('/')
 def index(**kwargs):
@@ -164,7 +164,6 @@ def validateURL(input):
 
     return 'http://validator.w3.org/check?uri=' + quote(input)
 
-
 def parseURL(uRL):
     parts = {}
     parts['protocol'], address = uRL.split('//')
@@ -175,4 +174,3 @@ def parseURL(uRL):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=9000, debug=True)
-
