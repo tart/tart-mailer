@@ -236,9 +236,9 @@
             </p>
         </form>
 
-        <h3>Send</h3>
+        <h3>Send Bulk Email</h3>
 
-        <form method="POST" action="{{ url_for('sendEmail', id=email['id']) }}">
+        <form method="POST" action="{{ url_for('sendBulkEmail', id=email['id']) }}">
             {{ checkboxTable(email['subscriberlocalestats'], 'locale') if email['subscriberlocalestats'] }}
 
             <p>
@@ -262,10 +262,10 @@
                 to the queue can take few minutes.
             </p>
 
-            <strong>{{ sendEmailMessage }}</strong>
+            <strong>{{ sendBulkEmailMessage }}</strong>
 
             <p>
-                <input type="submit" value="Send Email" {{ 'disabled ' if email['subscribercount'] == 0 }}/>
+                <input type="submit" value="Send Bulk Email" {{ 'disabled ' if email['subscribercount'] == 0 }}/>
             </p>
         </form>
     {% endif %}

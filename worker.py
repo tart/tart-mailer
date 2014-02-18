@@ -81,7 +81,9 @@ def sendEmail(serverName, amount):
             message['From'] = formataddr((email['fromname'], email['fromaddress']))
             message['To'] = email['toaddress']
             message['List-Unsubscribe'] = '<' + email['unsubscribeurl'] + '>'
-            message['Precedence'] = 'bulk'
+
+            if email['bulk']:
+                message['Precedence'] = 'bulk'
 
             sMTP.sendmail(email['fromaddress'], email['toaddress'], message.as_string())
 

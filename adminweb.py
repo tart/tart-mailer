@@ -173,8 +173,8 @@ def sendTestEmail(id, rank):
 
         return email(id, sendTestEmailMessage=message, variationRank=rank)
 
-@app.route('/email/<int:id>/send', methods=['POST'])
-def sendEmail(id):
+@app.route('/email/<int:id>/sendBulk', methods=['POST'])
+def sendBulkEmail(id):
     with postgres:
         form = {'emailid': id}
         for key, value in flask.request.form.items():
@@ -183,10 +183,10 @@ def sendEmail(id):
             else:
                 form[key] = value
 
-        subscriberCount = postgres.call('SendEmail', form)
+        subscriberCount = postgres.call('SendBulkEmail', form)
         message = str(subscriberCount) + ' emails added to the queue.'
 
-        return email(id, sendEmailMessage=message)
+        return email(id, sendBulkEmailMessage=message)
 
 @app.route('/email/<int:emailid>/preview/<int:rank>')
 def preview(**kwargs):

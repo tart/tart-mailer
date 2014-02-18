@@ -67,44 +67,6 @@ Create or replace view ProjectDetail as
 
 Drop view if exists EmailDetail;
 
-Create or replace view EmailDetail as
-    with EmailSendFeedbackTypeStats as (select emailId, type, count(*) as count
-                    from EmailSendFeedback
-                    group by emailId, type
-                    order by emailId, type),
-        EmailSendFeedbackStats as (select emailId, string_agg(type::text || ': ' || count::text, ' ') as typeCounts
-                    from EmailSendFeedbackTypeStats
-                    group by emailId),
-        EmailSendStats as (select emailId, count(*) as totalCount, sum(sent::int) as sentCount
-                    from EmailSend
-                    group by emailId),
-        EmailSendResponseReportStats as (select emailId, count(*) as count
-                    from EmailSendResponseReport
-                    group by emailId),
-        EmailVariationRankStats as (select EmailVariation.*, count(*) as count
-                    from EmailVariation
-                        join EmailSend on EmailSend.emailId = EmailVariation.emailId
-                                and EmailSend.variationRank = EmailVariation.rank
-                    group by EmailVariation.emailId, EmailVariation.rank),
-        EmailVariationStats as (select emailId, string_agg(rank::text || ': ' || count::text, ' ') as rankCounts
-                    from EmailVariationRankStats
-                    group by emailId)
-        select Email.id, Email.createdAt,
-                Email.projectName as project,
-                Email.outgoingServerName as outgoingServer,
-                Email.incomingServerName as incomingServer,
-                coalesce(EmailSendStats.totalCount, 0) as total,
-                coalesce(EmailSendStats.sentCount, 0) as sent,
-                coalesce(EmailSendResponseReportStats.count, 0) as responseReports,
-                EmailSendFeedbackStats.typeCounts as feedbacks,
-                EmailVariationStats.rankCounts as variations
-            from Email
-                left join EmailSendStats on EmailSendStats.emailId = Email.id
-                left join EmailSendFeedbackStats on EmailSendFeedbackStats.emailId = Email.id
-                left join EmailSendResponseReportStats on EmailSendResponseReportStats.emailId = Email.id
-                left join EmailVariationStats on EmailVariationStats.emailId = Email.id
-                order by Email.id;
-
 Alter table Email
     alter column projectName set not null,
     drop column fromName,
@@ -113,46 +75,6 @@ Alter table Email
 
 Alter table Subscriber
     alter column projectName set not null;
-
-Create or replace function NextEmailToSend(varchar(200))
-    returns table (
-        fromName varchar(200),
-        fromAddress varchar(200),
-        toAddress varchar(200),
-        subject varchar(1000),
-        plainBody text,
-        hTMLBody text,
-        unsubscribeURL text
-    )
-    language sql strict
-    as $$
-With FirstWaitingEmail as (select EmailSend.*
-            from Email
-                join EmailSend on EmailSend.emailId = Email.id
-                        and not sent
-                where Email.outgoingServerName = $1
-                order by Email.id, EmailSend.subscriberId
-            limit 1
-            for update),
-    UpdatedEmailSend as (update EmailSend
-            set sent = true
-            from FirstWaitingEmail
-                where EmailSend = FirstWaitingEmail
-            returning EmailSend.*)
-    select Project.fromName,
-            Project.emailAddress,
-            Subscriber.emailAddress,
-            FormatEmailToSend(EmailVariation.subject, Subscriber.properties, Project.returnURLRoot, EmailHash(UpdatedEmailSend)),
-            FormatEmailToSend(EmailVariation.plainBody, Subscriber.properties, Project.returnURLRoot, EmailHash(UpdatedEmailSend)),
-            FormatEmailToSend(EmailVariation.hTMLBody, Subscriber.properties, Project.returnURLRoot, EmailHash(UpdatedEmailSend)),
-            Project.returnURLRoot || 'unsubscribe/' || EmailHash(UpdatedEmailSend)
-        from UpdatedEmailSend
-            join Email on UpdatedEmailSend.emailId = Email.id
-                join Project on Email.projectName = Project.name
-            join EmailVariation on UpdatedEmailSend.emailId = EmailVariation.emailId
-                    and UpdatedEmailSend.variationRank = EmailVariation.rank
-            join Subscriber on UpdatedEmailSend.subscriberId = Subscriber.id
-$$;
 
 Create or replace function ViewEmailBody(text)
     returns text
