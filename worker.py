@@ -51,7 +51,7 @@ def sendEmail(serverName, amount):
             raise Exception('Outgoing server could not find in the database.')
 
         for emailSend in postgres.call('RemoveNotAllowedEmailSend', serverName, table=True):
-            warning('Not allowed email removed from the queue:' **emailSend)
+            warning('Not allowed email removed from the queue:', emailSend)
 
     if amount > server['totalcount']:
         amount = server['totalcount']
@@ -87,6 +87,7 @@ def sendEmail(serverName, amount):
 
             sMTP.sendmail(email['fromaddress'], email['toaddress'], message.as_string())
 
+        print('Email sent to ' + email['toaddress'])
         amount -= 1
 
 def receiveEmail(serverName, amount):
@@ -120,6 +121,7 @@ def receiveEmail(serverName, amount):
             raise Exception('IMAP fetch problem: ' + status + ': ' + ' '.join(response))
 
         message = email.message_from_string(response[0][1])
+        processed = False
 
         # Sanity checks, see http://tools.ietf.org/html/rfc3464#page-7
         if (message.get_content_type() == 'multipart/report'
@@ -133,23 +135,27 @@ def receiveEmail(serverName, amount):
             with postgres:
                 try:
                     if postgres.call('NewEmailSendResponseReport', [serverName, dict(fields), dict(originalHeaders)]):
-                        iMAP.store(emailId, '+FLAGS', '\DELETED')
+                        processed = True
                     else:
-                        warning('Email could not found in the database:', **dict(fields))
+                        warning('Email could not found in the database:', dict(originalHeaders))
                 except psycopg2.IntegrityError as error:
-                    warning(str(error), **message)
+                    warning(str(error), dict(fields))
         else:
-            warning('Unexpected email:', **message)
+            warning('Unexpected email:', message)
+
+        if processed:
+            iMAP.store(emailId, '+FLAGS', '\DELETED')
+            print(emailId + '. email processed.')
 
         amount -= 1
 
 def recursiveEmailHeaders(message):
     return (item for part in message.walk() for item in part.items())
 
-def warning(message, **kwargs):
+def warning(message, details):
     print('WARNING: ' + str(message), file=sys.stderr)
 
-    for key, value in kwargs.items():
+    for key, value in details.items():
         print('\t' + key + ': ' + value, file=sys.stderr)
 
     print(file=sys.stderr)
