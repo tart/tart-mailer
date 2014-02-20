@@ -127,26 +127,24 @@ def receiveEmail(serverName, amount):
                 and len(message.get_payload()) >= 2
                 and message.get_payload(1).get_content_type() == 'message/delivery-status'):
 
-            fields = message.get_payload(1).items()
-            originalHeaders = message.get_payload(2).items() if len(message.get_payload()) > 2 else []
-
-            if message.get_payload(1).is_multipart():
-                # Merge the fields if the delivery-status is also multipart.
-                for part in message.get_payload(1).walk():
-                    fields += part.items()
+            fields = recursiveEmailHeaders(message.get_payload(1))
+            originalHeaders = recursiveEmailHeaders(message.get_payload(2)) if len(message.get_payload()) > 2 else []
 
             with postgres:
                 try:
                     if postgres.call('NewEmailSendResponseReport', [serverName, dict(fields), dict(originalHeaders)]):
                         iMAP.store(emailId, '+FLAGS', '\DELETED')
                     else:
-                        warning('Email could not found in the database:', **dict(fields + originalHeaders))
+                        warning('Email could not found in the database:', **dict(fields))
                 except psycopg2.IntegrityError as error:
                     warning(str(error), **message)
         else:
             warning('Unexpected email:', **message)
 
         amount -= 1
+
+def recursiveEmailHeaders(message):
+    return (item for part in message.walk() for item in part.items())
 
 def warning(message, **kwargs):
     print('WARNING: ' + str(message), file=sys.stderr)
