@@ -76,19 +76,4 @@ Alter table Email
 Alter table Subscriber
     alter column projectName set not null;
 
-Create or replace function ViewEmailBody(text)
-    returns text
-    language sql strict
-    as $$
-Select coalesce(FormatEmailToSend(EmailVariation.hTMLBody, Subscriber.properties, Project.returnURLRoot, $1),
-                FormatEmailToSend(EmailVariation.plainBody, Subscriber.properties, Project.returnURLRoot, $1))
-    from EmailSend
-        join Email on EmailSend.emailId = Email.id
-            join Project on Email.projectName = Project.name
-        join EmailVariation on EmailSend.emailId = EmailVariation.emailId
-                and EmailSend.variationRank = EmailVariation.rank
-        join Subscriber on EmailSend.subscriberId = Subscriber.id
-        where EmailHash(EmailSend) = $1
-$$;
-
 Commit;

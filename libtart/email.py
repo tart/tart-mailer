@@ -44,8 +44,8 @@ def parseMessage(string):
 class EmailMessage(email.message.Message):
     '''Extend the email.message.Message class on the standart library.'''
 
-    def submessage(self):
-        '''Search for messages inside the message body.'''
+    def submessageInsidePayload(self):
+        '''Search for messages inside the message payload.'''
 
         splitPayload = self.get_payload().split('\n')
 

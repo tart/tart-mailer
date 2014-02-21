@@ -27,7 +27,7 @@ echo
 
 echo "Running the web server for users..."
 ../userweb.py &
-sleep 2
+sleep 3
 echo
 
 emailHash=$(echo "Select EmailHash(EmailSend) from EmailSend limit 1" | psql -XAt $dbname)

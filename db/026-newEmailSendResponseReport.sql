@@ -14,7 +14,8 @@ With OriginalEmailSend as (select EmailSend.*
                 where EmailSend.sent
                         and Email.incomingServerName = NewEmailSendResponseReport.incomingServerName
                         and ((NewEmailSendResponseReport.originalHeaders -> 'Subject') is null
-                                or EmailVariation.subject = (NewEmailSendResponseReport.originalHeaders -> 'Subject'))
+                                or FormatEmailToSend(EmailVariation.subject, Subscriber.properties) =
+                                        (NewEmailSendResponseReport.originalHeaders -> 'Subject'))
                         and Subscriber.emailAddress in (NewEmailSendResponseReport.fields -> 'Original-Recipient',
                                 trim(split_part(NewEmailSendResponseReport.fields -> 'Original-Recipient', ';', 2)),
                                 NewEmailSendResponseReport.fields -> 'Final-Recipient',

@@ -128,10 +128,10 @@ def receiveEmail(serverName, amount):
         print(emailId + '. email will be processed as ' + message.get_content_type() + '.')
 
         if message.get_content_type() == 'multipart/report':
-            fields = message.recursiveItems()
+            fields = message.get_payload(1).recursiveItems()
 
             if len(message.get_payload()) > 2:
-                originalHeaders = message.items()
+                originalHeaders = message.get_payload(2).items()
 
         elif message.get_content_type() == 'text/plain':
             submessage = message.submessageInsidePayload()
