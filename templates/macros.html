@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+
+{% macro table(tableData, links={}) %}
+    <table border="1" >
+        <tr>
+            {% for header in tableData[0].keys() %}
+                <th>{{ header }}</th>
+            {% endfor %}
+        </tr>
+
+        {% for row in tableData %}
+            <tr>
+                {% for header, cell in row.items() %}
+                    <td>
+                        {% if cell %}
+                            {% if header in links %}
+                                <a href="{{ url_for(links[header], **row) }}">{{ cell }}</a>
+                            {% else %}
+                                {{ cell }}
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+{% endmacro %}
+
+{% macro checkboxTable(tableData, checkboxColumn) %}
+    <table border="1" >
+        <tr>
+            <th></th>
+
+            {% for header in tableData[0].keys() %}
+                <th>{{ header }}</th>
+            {% endfor %}
+        </tr>
+
+        {% for row in tableData %}
+            <tr>
+                <td>
+                    <input type="checkbox" name="{{ checkboxColumn }}[]" value="{{ row[checkboxColumn] }}" />
+                 </td>
+
+                {% for header, cell in row.items() %}
+                    <td>{{ cell }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+{% endmacro %}

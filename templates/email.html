@@ -1,28 +1,6 @@
-{% extends "layout.html" %}
+{% extends 'layout.html' %}
 
-{% macro checkboxTable(tableData, checkboxColumn) %}
-    <table border="1" >
-        <tr>
-            <th></th>
-
-            {% for header in tableData[0].keys() %}
-                <th>{{ header }}</th>
-            {% endfor %}
-        </tr>
-
-        {% for row in tableData %}
-            <tr>
-                <td>
-                    <input type="checkbox" name="{{ checkboxColumn }}[]" value="{{ row[checkboxColumn] }}" />
-                 </td>
-
-                {% for header, cell in row.items() %}
-                    <td>{{ cell }}</td>
-                {% endfor %}
-            </tr>
-        {% endfor %}
-    </table>
-{% endmacro %}
+{% from 'macros.html' import checkboxTable %}
 
 {% block body %}
     <h1>{{ email.id ~ '.' if email.id else 'New' }} Email</h1>

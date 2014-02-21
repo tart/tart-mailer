@@ -1,0 +1,27 @@
+{% extends 'layout.html' %}
+
+{% from 'macros.html' import table %}
+
+{% block body %}
+    {% if email %}
+        <h1>{{ email.id ~ '.' }} Email</h1>
+    {% else %}
+        <h2>Email Variations</h2>
+    {% endif %}
+
+    {{ table(emailVariations) }}
+
+    <p>
+        <a href="{{ url_for('index') }}" >Index</a>
+    </p>
+
+    {% if email %}
+        <p>
+            <a href="{{ url_for('emailVariations') }}" >All Email Variations</a>
+        </p>
+
+        <p>
+            <a href="{{ url_for('email', id=email.id) }}" >Email</a>
+        </p>
+    {% endif %}
+{% endblock %}
