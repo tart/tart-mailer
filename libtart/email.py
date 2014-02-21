@@ -29,7 +29,8 @@ def parseMessage(string):
     if message.get_content_type() == 'multipart/report':
         assert (message.is_multipart()
                 and len(message.get_payload()) >= 2
-                and message.get_payload(1).get_content_type() == 'message/delivery-status')
+                and message.get_payload(1).get_content_type() in ('message/delivery-status',
+                                                                  'message/feedback-report'))
 
     # Sanity checks plain text emails
     if message.get_content_type() == 'text/plain':
@@ -59,4 +60,4 @@ class EmailMessage(email.message.Message):
         '''Walk inside the message, merge found headers. Useful for multipart messages. Be careful that it can
         include the same header more than once.'''
 
-        return (item for part in self.walk() for item in part.items())
+        return [item for part in self.walk() for item in part.items()]

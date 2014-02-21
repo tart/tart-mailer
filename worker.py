@@ -132,7 +132,7 @@ def receiveEmail(serverName, amount):
             body = message.get_payload(0).get_payload()
             fields = message.get_payload(1).recursiveItems()
             if len(message.get_payload()) > 2:
-                originalHeaders = message.get_payload(2).items()
+                originalHeaders = message.get_payload(2).recursiveItems()
         elif message.get_content_type() == 'text/plain':
             splitMessage = message.splitSubmessage()
 
@@ -154,9 +154,9 @@ def receiveEmail(serverName, amount):
                     if postgres.call('NewEmailSendResponseReport', [serverName, dict(fields), dict(originalHeaders), body]):
                         processed = True
                     else:
-                        warning('Email could not found in the database:', originalHeaders)
+                        warning('Email could not found in the database:', fields + originalHeaders)
                 except psycopg2.IntegrityError as error:
-                    warning(str(error), originalHeaders)
+                    warning(str(error), fields + originalHeaders)
 
             if processed:
                 iMAP.store(emailId, '+FLAGS', '\DELETED')

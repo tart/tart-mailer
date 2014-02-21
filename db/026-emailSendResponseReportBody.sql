@@ -23,6 +23,7 @@ With OriginalEmailSend as (select EmailSend.*
                                         (NewEmailSendResponseReport.originalHeaders -> 'Subject'))
                         and (Subscriber.emailAddress in (NewEmailSendResponseReport.fields -> 'Original-Recipient',
                                 trim(split_part(NewEmailSendResponseReport.fields -> 'Original-Recipient', ';', 2)),
+                                NewEmailSendResponseReport.fields -> 'Original-Rcpt-to',
                                 NewEmailSendResponseReport.fields -> 'Final-Recipient',
                                 trim(split_part(NewEmailSendResponseReport.fields -> 'Final-Recipient', ';', 2)),
                                 NewEmailSendResponseReport.originalHeaders -> 'To')
