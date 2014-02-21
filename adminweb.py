@@ -197,15 +197,6 @@ def preview(**kwargs):
         return emailVariation['htmlbody']
     flask.abort(404)
 
-@app.template_filter('validateURL')
-def validateURL(input):
-    try:
-        from urllib.parse import quote # For Python 3
-    except ImportError:
-        from urllib import quote # For Python 2
-
-    return 'http://validator.w3.org/check?uri=' + quote(input)
-
 def parseURL(uRL):
     parts = {}
     parts['protocol'], address = uRL.split('//')
