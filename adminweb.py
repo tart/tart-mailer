@@ -99,6 +99,7 @@ def email(id=None, **kwargs):
             email = {'draft': True, 'returnurlroot': parts['protocol'] + '//' + parts['root'] + '/'}
 
         email['exampleproperties'] = postgres.call('SubscriberExampleProperties')
+        email['projects'] = postgres.select('Project')
         email['outgoingservers'] = postgres.select('OutgoingServer')
         email['incomingservers'] = postgres.select('IncomingServer')
 
