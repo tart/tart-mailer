@@ -130,21 +130,21 @@ def receiveEmail(serverName, amount):
 
         if message.get_content_type() == 'multipart/report':
             body = message.get_payload(0).get_payload()
-            fields = message.get_payload(1).recursiveItems()
+            fields = message.get_payload(1).recursiveHeaders()
             if len(message.get_payload()) > 2:
-                originalHeaders = message.get_payload(2).recursiveItems()
+                originalHeaders = message.get_payload(2).recursiveHeaders()
         elif message.get_content_type() == 'text/plain':
             splitMessage = message.splitSubmessage()
 
             if splitMessage:
                 body, submessage = splitMessage
-                originalHeaders = submessage.items()
-                warning('Subemail will be processed as the returned original:', submessage.items())
+                originalHeaders = submessage.headers()
+                warning('Subemail will be processed as the returned original:', submessage.headers())
             else:
                 body = message.get_payload()
-                warning('Unexpected plain text email will be processed:', message.items() + [('Body', body)])
+                warning('Unexpected plain text email will be processed:', message.headers() + [('Body', body)])
         else:
-            warning('Unexpected MIME type:', message.items())
+            warning('Unexpected MIME type:', message.headers())
 
         if body or fields or originalHeaders:
             processed = False

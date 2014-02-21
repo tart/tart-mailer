@@ -18,15 +18,15 @@ With OriginalEmailSend as (select EmailSend.*
                 join Subscriber on EmailSend.subscriberID = Subscriber.id
                 where EmailSend.sent
                         and Email.incomingServerName = NewEmailSendResponseReport.incomingServerName
-                        and ((NewEmailSendResponseReport.originalHeaders -> 'Subject') is null
+                        and ((NewEmailSendResponseReport.originalHeaders -> 'subject') is null
                                 or FormatEmailToSend(EmailVariation.subject, Subscriber.properties) =
-                                        (NewEmailSendResponseReport.originalHeaders -> 'Subject'))
-                        and (Subscriber.emailAddress in (NewEmailSendResponseReport.fields -> 'Original-Recipient',
-                                trim(split_part(NewEmailSendResponseReport.fields -> 'Original-Recipient', ';', 2)),
-                                NewEmailSendResponseReport.fields -> 'Original-Rcpt-to',
-                                NewEmailSendResponseReport.fields -> 'Final-Recipient',
-                                trim(split_part(NewEmailSendResponseReport.fields -> 'Final-Recipient', ';', 2)),
-                                NewEmailSendResponseReport.originalHeaders -> 'To')
+                                        (NewEmailSendResponseReport.originalHeaders -> 'subject'))
+                        and (Subscriber.emailAddress in (NewEmailSendResponseReport.fields -> 'original-recipient',
+                                trim(split_part(NewEmailSendResponseReport.fields -> 'original-recipient', ';', 2)),
+                                NewEmailSendResponseReport.fields -> 'original-rcpt-to',
+                                NewEmailSendResponseReport.fields -> 'rinal-recipient',
+                                trim(split_part(NewEmailSendResponseReport.fields -> 'final-recipient', ';', 2)),
+                                NewEmailSendResponseReport.originalHeaders -> 'to')
                                 or (NewEmailSendResponseReport.body like '%@%'
                                         and NewEmailSendResponseReport.body like '%' || Subscriber.emailAddress || '%')))
     insert into EmailSendResponseReport (emailId, subscriberId, fields, originalHeaders, body)

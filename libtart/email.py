@@ -22,7 +22,7 @@ def parseMessage(string):
     message = email.message_from_string(string, EmailMessage)
 
     # Messages without subject does not considered valid.
-    if 'Subject' not in message:
+    if 'subject' not in message:
         return None
 
     # Sanity checks for response reports, see http://tools.ietf.org/html/rfc3464#page-7
@@ -36,14 +36,24 @@ def parseMessage(string):
     if message.get_content_type() == 'text/plain':
         assert not message.is_multipart()
 
-    # New line does not allowed on the subject.
-    if '\n' in message['Subject']:
-        message.replace_header('Subject', ' '.join(line.strip() for line in message['subject'].split('\n')))
-
     return message
 
 class EmailMessage(email.message.Message):
     '''Extend the email.message.Message class on the standart library.'''
+
+    def headers(self):
+        '''Return headers with lower case names and without new lines.'''
+
+        def withoutNewLine(value):
+            return ' '.join(line.strip() for line in value.split('\n')) if '\n' in value else value
+
+        return ((key.lower(), withoutNewLine(value)) for key, value in self.items())
+
+    def recursiveHeaders(self):
+        '''Walk inside the message, merge found headers. Useful for multipart messages. Be careful that it can
+        include the same header more than once.'''
+
+        return [item for part in self.walk() for item in part.headers()]
 
     def splitSubmessage(self):
         '''Search for messages inside the message payload.'''
@@ -55,9 +65,3 @@ class EmailMessage(email.message.Message):
                 message = parseMessage('\n'.join(splitPayload[(num + 1):]))
                 if message:
                     return '\n'.join(splitPayload[:num]), message
-
-    def recursiveItems(self):
-        '''Walk inside the message, merge found headers. Useful for multipart messages. Be careful that it can
-        include the same header more than once.'''
-
-        return [item for part in self.walk() for item in part.items()]
