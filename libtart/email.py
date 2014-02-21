@@ -44,7 +44,7 @@ def parseMessage(string):
 class EmailMessage(email.message.Message):
     '''Extend the email.message.Message class on the standart library.'''
 
-    def submessageInsidePayload(self):
+    def splitSubmessage(self):
         '''Search for messages inside the message payload.'''
 
         splitPayload = self.get_payload().split('\n')
@@ -53,7 +53,7 @@ class EmailMessage(email.message.Message):
             if not line.strip():
                 message = parseMessage('\n'.join(splitPayload[(num + 1):]))
                 if message:
-                    return message
+                    return '\n'.join(splitPayload[:num]), message
 
     def recursiveItems(self):
         '''Walk inside the message, merge found headers. Useful for multipart messages. Be careful that it can

@@ -1,7 +1,12 @@
+Begin;
+
+Alter table EmailSendResponseReport add column body text;
+
 Create or replace function NewEmailSendResponseReport(
         incomingServerName varchar(200),
         fields hstore,
-        originalHeaders hstore
+        originalHeaders hstore,
+        body text default null
     ) returns boolean
     language sql
     as $$
@@ -16,13 +21,20 @@ With OriginalEmailSend as (select EmailSend.*
                         and ((NewEmailSendResponseReport.originalHeaders -> 'Subject') is null
                                 or FormatEmailToSend(EmailVariation.subject, Subscriber.properties) =
                                         (NewEmailSendResponseReport.originalHeaders -> 'Subject'))
-                        and Subscriber.emailAddress in (NewEmailSendResponseReport.fields -> 'Original-Recipient',
+                        and (Subscriber.emailAddress in (NewEmailSendResponseReport.fields -> 'Original-Recipient',
                                 trim(split_part(NewEmailSendResponseReport.fields -> 'Original-Recipient', ';', 2)),
                                 NewEmailSendResponseReport.fields -> 'Final-Recipient',
                                 trim(split_part(NewEmailSendResponseReport.fields -> 'Final-Recipient', ';', 2)),
-                                NewEmailSendResponseReport.originalHeaders -> 'To'))
-    insert into EmailSendResponseReport (emailId, subscriberId, fields, originalHeaders)
-        select emailId, subscriberId, NewEmailSendResponseReport.fields, NewEmailSendResponseReport.originalHeaders
+                                NewEmailSendResponseReport.originalHeaders -> 'To')
+                                or (NewEmailSendResponseReport.body like '%@%'
+                                        and NewEmailSendResponseReport.body like '%' || Subscriber.emailAddress || '%')))
+    insert into EmailSendResponseReport (emailId, subscriberId, fields, originalHeaders, body)
+        select emailId, subscriberId,
+                NewEmailSendResponseReport.fields,
+                NewEmailSendResponseReport.originalHeaders,
+                NewEmailSendResponseReport.body
             from OriginalEmailSend
         returning true
 $$;
+
+Commit;

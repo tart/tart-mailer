@@ -122,29 +122,36 @@ def receiveEmail(serverName, amount):
             raise Exception('IMAP fetch problem: ' + status + ': ' + ' '.join(response))
 
         message = parseMessage(response[0][1])
+        body = None
         fields = []
         originalHeaders = []
 
         print(emailId + '. email will be processed as ' + message.get_content_type() + '.')
 
         if message.get_content_type() == 'multipart/report':
+            body = message.get_payload(0).get_payload()
             fields = message.get_payload(1).recursiveItems()
-
             if len(message.get_payload()) > 2:
                 originalHeaders = message.get_payload(2).items()
-
         elif message.get_content_type() == 'text/plain':
-            submessage = message.submessageInsidePayload()
-            if submessage:
-                warning('Subemail will be processed as the returned original:', submessage.items())
-                originalHeaders = submessage.items()
+            splitMessage = message.splitSubmessage()
 
-        if fields or originalHeaders:
+            if splitMessage:
+                body, submessage = splitMessage
+                originalHeaders = submessage.items()
+                warning('Subemail will be processed as the returned original:', submessage.items())
+            else:
+                body = message.get_payload()
+                warning('Unexpected plain text email will be processed:', message.items() + [('Body', body)])
+        else:
+            warning('Unexpected MIME type:', message.items())
+
+        if body or fields or originalHeaders:
             processed = False
 
             with postgres:
                 try:
-                    if postgres.call('NewEmailSendResponseReport', [serverName, dict(fields), dict(originalHeaders)]):
+                    if postgres.call('NewEmailSendResponseReport', [serverName, dict(fields), dict(originalHeaders), body]):
                         processed = True
                     else:
                         warning('Email could not found in the database:', originalHeaders)
@@ -154,9 +161,6 @@ def receiveEmail(serverName, amount):
             if processed:
                 iMAP.store(emailId, '+FLAGS', '\DELETED')
                 print(emailId + '. email processed and deleted.')
-
-        else:
-            warning('Unexpected email:', message.items() + [('Payload', message.get_payload())])
 
         amount -= 1
 
