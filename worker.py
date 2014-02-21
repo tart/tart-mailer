@@ -15,10 +15,9 @@
 # performance of this software.
 ##
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import sys
-import email
 import smtplib
 import imaplib
 import signal
@@ -28,7 +27,9 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formataddr
+
 from libtart.postgres import Postgres
+from libtart.email import parseMessage
 
 def parseArguments():
     '''Create ArgumentParser instance. Return parsed arguments.'''
@@ -120,43 +121,57 @@ def receiveEmail(serverName, amount):
         if status != 'OK':
             raise Exception('IMAP fetch problem: ' + status + ': ' + ' '.join(response))
 
-        message = email.message_from_string(response[0][1])
-        processed = False
+        message = parseMessage(response[0][1])
+        fields = []
+        originalHeaders = []
 
-        # Sanity checks, see http://tools.ietf.org/html/rfc3464#page-7
-        if (message.get_content_type() == 'multipart/report'
-                and message.is_multipart()
-                and len(message.get_payload()) >= 2
-                and message.get_payload(1).get_content_type() == 'message/delivery-status'):
+        print(emailId + '. email will be processed as ' + message.get_content_type() + '.')
 
-            fields = recursiveEmailHeaders(message.get_payload(1))
-            originalHeaders = recursiveEmailHeaders(message.get_payload(2)) if len(message.get_payload()) > 2 else []
+        if message.get_content_type() == 'multipart/report':
+            fields = message.recursiveItems()
+
+            if len(message.get_payload()) > 2:
+                originalHeaders = message.items()
+
+        elif message.get_content_type() == 'text/plain':
+            submessage = message.submessageInsidePayload()
+            if submessage:
+                warning('Subemail will be processed as the returned original:', submessage.items())
+                originalHeaders = submessage.items()
+
+        if fields or originalHeaders:
+            processed = False
 
             with postgres:
                 try:
                     if postgres.call('NewEmailSendResponseReport', [serverName, dict(fields), dict(originalHeaders)]):
                         processed = True
                     else:
-                        warning('Email could not found in the database:', dict(originalHeaders))
+                        warning('Email could not found in the database:', originalHeaders)
                 except psycopg2.IntegrityError as error:
-                    warning(str(error), dict(fields))
-        else:
-            warning('Unexpected email:', message)
+                    warning(str(error), originalHeaders)
 
-        if processed:
-            iMAP.store(emailId, '+FLAGS', '\DELETED')
-            print(emailId + '. email processed.')
+            if processed:
+                iMAP.store(emailId, '+FLAGS', '\DELETED')
+                print(emailId + '. email processed and deleted.')
+
+        else:
+            warning('Unexpected email:', message.items() + [('Payload', message.get_payload())])
 
         amount -= 1
-
-def recursiveEmailHeaders(message):
-    return (item for part in message.walk() for item in part.items())
 
 def warning(message, details):
     print('WARNING: ' + str(message), file=sys.stderr)
 
-    for key, value in details.items():
-        print('\t' + key + ': ' + value, file=sys.stderr)
+    for key, value in details:
+        if '\n' in value:
+            print('\t' + key + ':', file=sys.stderr)
+
+            for line in value.split('\n'):
+                print('\t\t' + line, file=sys.stderr)
+
+        else:
+            print('\t' + key + ': ' + value, file=sys.stderr)
 
     print(file=sys.stderr)
 
