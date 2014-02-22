@@ -78,6 +78,7 @@ class Postgres(psycopg2.extensions.connection):
         query = 'Select * from ' + tableName
         if whereCondition:
             query += ' where ' + ' and '.join(k + ' = %s' for k in whereCondition.keys())
+        query += ' order by ' + tableName
 
         return self.__execute(query, whereCondition.values(), table)
 
