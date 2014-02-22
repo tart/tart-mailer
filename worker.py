@@ -155,15 +155,21 @@ def receiveEmail(serverName, amount):
                 try:
                     if postgres.call('NewEmailSendResponseReport', [serverName, dict(fields), dict(originalHeaders),
                                                                     body]):
+                        print(emailId + '. email processed and will be deleted.')
                         processed = True
                     else:
                         warning('Email could not found in the database:', fields + originalHeaders)
+
                 except psycopg2.IntegrityError as error:
                     warning(str(error), fields + originalHeaders)
 
+                    if int(error.pgcode) == 23505:
+                        # PostgreSQL UNIQUE VIOLATION error code.
+                        print(emailId + '. email processed before and will be deleted.')
+                        processed = True
+
             if processed:
                 iMAP.store(emailId, '+FLAGS', '\DELETED')
-                print(emailId + '. email processed and deleted.')
 
         amount -= 1
 
