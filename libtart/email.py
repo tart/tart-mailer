@@ -25,14 +25,14 @@ def parseMessage(string):
     if 'subject' not in message:
         return None
 
-    # Sanity checks for response reports, see http://tools.ietf.org/html/rfc3464#page-7
+    # Sanity checks for response reports, according to RFC 2464 page 7.
     if message.get_content_type() == 'multipart/report':
         assert (message.is_multipart()
                 and len(message.get_payload()) >= 2
                 and message.get_payload(1).get_content_type() in ('message/delivery-status',
                                                                   'message/feedback-report'))
 
-    # Sanity checks plain text emails
+    # Sanity checks plain text emails.
     if message.get_content_type() == 'text/plain':
         assert not message.is_multipart()
 
@@ -40,6 +40,15 @@ def parseMessage(string):
 
 class EmailMessage(email.message.Message):
     '''Extend the email.message.Message class on the standart library.'''
+
+    def plainText(self):
+        '''Return the text/plain payload or first payload inside multipart/alternative message which should
+        be the plainest according to RFC 2046 page 24.'''
+
+        if self.get_content_type() == 'text/plain':
+            return self.get_payload()
+        if self.get_content_type() == 'multipart/alternative':
+            return self.get_payload(0).get_payload()
 
     def headers(self):
         '''Return headers with lower case names and without new lines.'''

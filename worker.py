@@ -73,6 +73,8 @@ def sendEmail(serverName, amount):
                 message = MIMEMultipart('alternative')
                 message.attach(MIMEText(email['plainbody'], 'plain', 'utf-8'))
                 message.attach(MIMEText(email['htmlbody'], 'html', 'utf-8'))
+                # According to RFC 2046, the last part of a multipart message, in this case the HTML message,
+                # is best and should be preferred. See the note for implementors on RFC 2046 page 25.
             elif email['htmlbody']:
                 message = MIMEText(email['htmlbody'], 'html', 'utf-8')
             else:
@@ -129,11 +131,11 @@ def receiveEmail(serverName, amount):
         print(emailId + '. email will be processed as ' + message.get_content_type() + '.')
 
         if message.get_content_type() == 'multipart/report':
-            body = message.get_payload(0).get_payload()
+            body = message.get_payload(0).plainText()
             fields = message.get_payload(1).recursiveHeaders()
             if len(message.get_payload()) > 2:
                 originalHeaders = message.get_payload(2).recursiveHeaders()
-        elif message.get_content_type() == 'text/plain':
+        elif message.get_content_type() in ('text/plain', 'multipart/alternative'):
             splitMessage = message.splitSubmessage()
 
             if splitMessage:
@@ -151,7 +153,8 @@ def receiveEmail(serverName, amount):
 
             with postgres:
                 try:
-                    if postgres.call('NewEmailSendResponseReport', [serverName, dict(fields), dict(originalHeaders), body]):
+                    if postgres.call('NewEmailSendResponseReport', [serverName, dict(fields), dict(originalHeaders),
+                                                                    body]):
                         processed = True
                     else:
                         warning('Email could not found in the database:', fields + originalHeaders)
