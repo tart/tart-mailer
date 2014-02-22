@@ -7,7 +7,7 @@ Create table EmailVariation (
     plainBody text,
     hTMLBody text,
     draft boolean not null default true,
-    revisedAt timestamp with time zone not null default now(),
+    revisedAt timestamptz not null default now(),
     constraint EmailVariationPK primary key (emailId, rank),
     constraint EmailVariationRankC check (rank >= 0),
     constraint EmailVariationBodyC check (((plainBody is not null) or (hTMLBody is not null)))

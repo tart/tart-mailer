@@ -7,7 +7,7 @@ Create table IncomingServer (
     username varchar(200),
     password varchar(200),
     mailbox varchar(200),
-    createdAt timestamp with time zone default now() not null,
+    createdAt timestamptz default now() not null,
     constraint IncomingServerPK primary key (name),
     constraint IncomingServerPasswordC check ((password is null) = (password is null))
 );

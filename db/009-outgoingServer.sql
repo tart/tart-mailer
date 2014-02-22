@@ -7,7 +7,7 @@ Create table OutgoingServer (
     useTLS boolean not null default false,
     username varchar(200),
     password varchar(200),
-    createdAt timestamp with time zone default now() not null,
+    createdAt timestamptz default now() not null,
     constraint OutgoingServerPK primary key (name),
     constraint OutgoingServerPasswordC check ((password is null) = (password is null))
 );

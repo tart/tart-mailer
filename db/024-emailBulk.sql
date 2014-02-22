@@ -47,46 +47,4 @@ Create or replace view EmailDetail as
 
 Drop function if exists SendEmail(integer, integer, text[], text[]);
 
-Create or replace function SendBulkEmail(
-        emailId integer,
-        subscriberCount integer,
-        locale text[],
-        variation text[]
-    ) returns bigint
-    language sql
-    as $$
-With RevisedEmail as (update Email
-        set bulk = true
-            where id = SendBulkEmail.emailId
-        returning *),
-    RevisedEmailVariation as (update EmailVariation
-        set revisedAt = now(), draft = false
-        from Email
-            where EmailVariation.emailId = Email.id
-                    and EmailVariation.rank = any(SendBulkEmail.variation::smallint[])
-        returning *),
-    SubscriberWithRowNumber as (select *, row_number() over (order by id) as rowNumber
-        from Subscriber
-            where exists (select 1 from unnest(SendBulkEmail.locale) as locale
-                            where locale is not distinct from Subscriber.locale)
-                    and not exists (select 1 from EmailSend
-                                where EmailSend.emailId = SendBulkEmail.emailId
-                                        and EmailSend.subscriberId = Subscriber.id)
-                    and not exists (select 1 from EmailSendFeedback as Feedback
-                                where Feedback.subscriberId = Subscriber.id
-                                        and Feedback.type = 'unsubscribe')
-                    and not exists (select 1 from EmailSendResponseReport as ResponseReport
-                                where ResponseReport.subscriberId = Subscriber.id)
-        limit SendBulkEmail.subscriberCount),
-    RevisedEmailVariationWithRowNumber as (select *, row_number() over (order by rank) as rowNumber,
-            count(*) over () as count
-        from RevisedEmailVariation),
-    NewEmailSend as (insert into EmailSend (emailId, subscriberId, variationRank)
-        select SendBulkEmail.emailId, S.id, E.rank
-            from SubscriberWithRowNumber as S
-                join RevisedEmailVariationWithRowNumber as E on (S.rowNumber - 1) % E.count = E.rowNumber - 1
-        returning *)
-    select count(*) from NewEmailSend
-$$;
-
 Commit;
