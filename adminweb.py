@@ -89,11 +89,11 @@ def email(id=None, **kwargs):
             else:
                 email['draft'] = all(variation['draft'] for variation in email['variations'])
 
-            subscriberLocaleStats = postgres.call('SubscriberLocaleStats', id, table=True)
-            email['subscriberlocalestats'] = subscriberLocaleStats
-            email['subscribercount'] = sum(s['total'] - s['send'] for s in subscriberLocaleStats)
-
-            email['variationstats'] = postgres.call('EmailVariationStats', id, table=True)
+            if email['bulk']:
+                subscriberLocaleStats = postgres.call('SubscriberLocaleStats', id, table=True)
+                email['subscriberlocalestats'] = subscriberLocaleStats
+                email['subscribercount'] = sum(s['total'] - s['send'] for s in subscriberLocaleStats)
+                email['variationstats'] = postgres.call('EmailVariationStats', id, table=True)
         else:
             parts = parseURL(flask.request.url_root)
             email = {'draft': True, 'returnurlroot': parts['protocol'] + '//' + parts['root'] + '/'}
@@ -110,6 +110,7 @@ def email(id=None, **kwargs):
 def saveEmail(id=None):
     with postgres:
         form = dict([(k, v) for k, v in flask.request.form.items() if v != ''])
+        print(flask.request.form.items())
 
         if not id:
             id = postgres.insert('Email', form)['id']

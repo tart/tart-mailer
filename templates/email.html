@@ -65,6 +65,16 @@
             </tr>
 
             <tr>
+                <td>Bulk:</td>
+                <td>
+                    <input type="checkbox" name="bulk" value="True" {{ 'checked' if email['bulk'] }}
+                           {{ 'disabled ' if not email['draft'] }} />
+
+                    <input type="hidden" name="bulk" value="False" /> <!-- The default value -->
+                </td>
+            </tr>
+
+            <tr>
                 <td>Example Properies:</td>
                 <td>{{ email['exampleproperties'] }}</td>
             </tr>
@@ -214,38 +224,40 @@
             </p>
         </form>
 
-        <h3>Send Bulk Email</h3>
+        {% if email['bulk'] %}
+            <h3>Send Bulk Email</h3>
 
-        <form method="POST" action="{{ url_for('sendBulkEmail', id=email['id']) }}">
-            {{ checkboxTable(email['subscriberlocalestats'], 'locale') if email['subscriberlocalestats'] }}
+            <form method="POST" action="{{ url_for('sendBulkEmail', id=email['id']) }}">
+                {{ checkboxTable(email['subscriberlocalestats'], 'locale') if email['subscriberlocalestats'] }}
 
-            <p>
-                Counts does not include unsubscribed or response report sent subscribers but emails may have been sent
-                to them, before.
-            </p>
+                <p>
+                    Counts does not include unsubscribed or response report sent subscribers but emails may have been sent
+                    to them, before.
+                </p>
 
-            {{ checkboxTable(email['variationstats'], 'variation') if email['variationstats'] }}
+                {{ checkboxTable(email['variationstats'], 'variation') if email['variationstats'] }}
 
-            <table>
-                <tr>
-                    <td>Maximum Subscriber Count:</td>
-                    <td>
-                        <input type="text" name="subscribercount" maxlength="20" value="{{ email['subscribercount'] }}" required {{ 'disabled ' if email['subscribercount'] == 0 }}/>
-                    </td>
-                </tr>
-            </table>
+                <table>
+                    <tr>
+                        <td>Maximum Subscriber Count:</td>
+                        <td>
+                            <input type="text" name="subscribercount" maxlength="20" value="{{ email['subscribercount'] }}" required {{ 'disabled ' if email['subscribercount'] == 0 }}/>
+                        </td>
+                    </tr>
+                </table>
 
-            <p>
-                The current subscribers will be added to the queue. Emails will be send asynchronously. Adding many emails
-                to the queue can take few minutes.
-            </p>
+                <p>
+                    The current subscribers will be added to the queue. Emails will be send asynchronously. Adding many emails
+                    to the queue can take few minutes.
+                </p>
 
-            <strong>{{ sendBulkEmailMessage }}</strong>
+                <strong>{{ sendBulkEmailMessage }}</strong>
 
-            <p>
-                <input type="submit" value="Send Bulk Email" {{ 'disabled ' if email['subscribercount'] == 0 }}/>
-            </p>
-        </form>
+                <p>
+                    <input type="submit" value="Send Bulk Email" {{ 'disabled ' if email['subscribercount'] == 0 }}/>
+                </p>
+            </form>
+        {% endif %}
     {% endif %}
 
     <p>
