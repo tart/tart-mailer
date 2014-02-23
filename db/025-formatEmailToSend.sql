@@ -33,50 +33,6 @@ With Formatter as (select * from each(subscriberProperties)
         from Formatter
 $$;
 
-Drop function if exists NextEmailToSend(varchar(200));
-
-Create or replace function NextEmailToSend(varchar(200))
-    returns table (
-        fromName varchar(200),
-        fromAddress varchar(200),
-        toAddress varchar(200),
-        subject varchar(1000),
-        plainBody text,
-        hTMLBody text,
-        unsubscribeURL text,
-        bulk boolean
-    )
-    language sql strict
-    as $$
-With FirstWaitingEmail as (select EmailSend.*
-            from Email
-                join EmailSend on EmailSend.emailId = Email.id
-                        and not sent
-                where Email.outgoingServerName = $1
-                order by Email.id, EmailSend.subscriberId
-            limit 1
-            for update),
-    UpdatedEmailSend as (update EmailSend
-            set sent = true
-            from FirstWaitingEmail
-                where EmailSend = FirstWaitingEmail
-            returning EmailSend.*)
-    select Project.fromName,
-            Project.emailAddress,
-            Subscriber.emailAddress,
-            FormatEmailToSend(EmailVariation.subject, Subscriber.properties),
-            FormatEmailToSend(EmailVariation.plainBody, Subscriber.properties, Project.returnURLRoot, EmailHash(UpdatedEmailSend)),
-            FormatEmailToSend(EmailVariation.hTMLBody, Subscriber.properties, Project.returnURLRoot, EmailHash(UpdatedEmailSend)),
-            Project.returnURLRoot || 'unsubscribe/' || EmailHash(UpdatedEmailSend),
-            Email.bulk
-        from UpdatedEmailSend
-            join Email on UpdatedEmailSend.emailId = Email.id
-                join Project on Email.projectName = Project.name
-            join EmailVariation on UpdatedEmailSend.emailId = EmailVariation.emailId
-                    and UpdatedEmailSend.variationRank = EmailVariation.rank
-            join Subscriber on UpdatedEmailSend.subscriberId = Subscriber.id
-$$;
-
 Create or replace function ViewEmailBody(text)
     returns text
     language sql strict

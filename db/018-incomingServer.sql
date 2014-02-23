@@ -16,4 +16,3 @@ Alter table Email add column incomingServerName varchar(200),
         add constraint EmailIncomingServerNameFK foreign key (incomingServerName) references IncomingServer (name);
 
 Commit;
-

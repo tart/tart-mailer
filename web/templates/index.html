@@ -22,12 +22,4 @@
     <p>
         <a href="{{ url_for('email') }}" >New Email</a>
     </p>
-
-    <h2>Outgoing Servers</h2>
-
-    {{ table(outgoingServers) if outgoingServers }}
-
-    <h2>Incoming Servers</h2>
-
-    {{ table(incomingServers) if incomingServers }}
 {% endblock %}

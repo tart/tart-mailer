@@ -7,6 +7,7 @@ Create table EmailSendResponseReport (
     subscriberId integer not null,
     fields hstore default ''::hstore not null,
     originalHeaders hstore default ''::hstore not null,
+    body text,
     createdAt timestamptz not null default now(),
     constraint EmailSendResponseReportPK primary key (emailId, subscriberId),
     constraint EmailSendResponseReportFK foreign key (emailId, subscriberId) references EmailSend (emailId, subscriberId)

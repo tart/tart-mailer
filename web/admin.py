@@ -15,9 +15,10 @@
 # performance of this software.
 ##
 
-import flask
 import os
+import flask
 
+os.sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 from libtart.postgres import Postgres
 
 app = flask.Flask(__name__)
@@ -28,10 +29,7 @@ postgres = Postgres(debug=(__name__ == '__main__'))
 def index(**kwargs):
     with postgres:
         return flask.render_template('index.html', projects=postgres.select('ProjectDetail'),
-                                    emails=postgres.select('EmailDetail'),
-                                    outgoingServers=postgres.select('OutgoingServer'),
-                                    incomingServers=postgres.select('IncomingServer'),
-                                    **kwargs)
+                                    emails=postgres.select('EmailDetail'), **kwargs)
 
 @app.route('/project')
 @app.route('/project/<string:name>')
@@ -100,8 +98,6 @@ def email(id=None, **kwargs):
 
         email['exampleproperties'] = postgres.call('SubscriberExampleProperties')
         email['projects'] = postgres.select('Project')
-        email['outgoingservers'] = postgres.select('OutgoingServer')
-        email['incomingservers'] = postgres.select('IncomingServer')
 
     return flask.render_template('email.html', email=email, **kwargs)
 

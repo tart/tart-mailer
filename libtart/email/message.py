@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 ##
-# Tart Library - Email Classes
+# Tart Library - Email Message Functions
 #
 # Copyright (c) 2013, Tart İnternet Teknolojileri Ticaret AŞ
 #
@@ -14,9 +14,9 @@
 # performance of this software.
 ##
 
-from __future__ import absolute_import
-
 import email
+
+from email.message import Message
 
 def parseMessage(string):
     message = email.message_from_string(string, EmailMessage)
@@ -38,8 +38,8 @@ def parseMessage(string):
 
     return message
 
-class EmailMessage(email.message.Message):
-    '''Extend the email.message.Message class on the standart library.'''
+class EmailMessage(Message):
+    '''Extend the Message class on the standart library.'''
 
     def plainText(self):
         '''Return the text/plain payload or first payload inside multipart/alternative message which should

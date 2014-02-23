@@ -15,10 +15,11 @@
 # performance of this software.
 ##
 
-import flask
 import os
 import io
+import flask
 
+os.sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 from libtart.postgres import Postgres
 
 app = flask.Flask(__name__)

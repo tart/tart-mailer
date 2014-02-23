@@ -12,7 +12,7 @@
             <tr>
                 {% for header, cell in row.items() %}
                     <td>
-                        {% if cell %}
+                        {% if cell != '' %}
                             {% if header in links %}
                                 <a href="{{ url_for(links[header], **row) }}">{{ cell }}</a>
                             {% else %}

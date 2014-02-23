@@ -21,19 +21,24 @@ http://flask.pocoo.org/docs/config/ for the default ones.
 
 A seperate PostgreSQL database is required. The scripts under the db/ directory should be executed in order.
 db/003-emailHash.sql includes the hash function for user URL's. Is is better to change the secrets in it, before.
-Executing only the new scripts should be sufficient for upgrading.
+Executing only the new scripts should be sufficient for upgrading. All of the scripts can be executed in order like
+this::
+
+    cat db/* | psql
 
 There are two seperate web servers. One of them is for users to redirect, unsubscribe... Other one is for
 administratiors to list emails, send new ones... They both can be run directly::
 
-    ./userweb.py
+    web/user.py
 
-    ./adminweb.py
+    web/admin.py
 
-Emailes are send asynchronously. worker.py should be run periodically with outgoing mail server name. Command
+Emailes are send and received asynchronously. Executables under worker/ directory should be run periodically. Command
 line arguments will be listed by::
 
-    ./worker.py --help
+    worker/send.py --help
+
+    worker/receive.py --help
 
 See deployment page of the Flask documentation [1] to run the web servers with Nginx and uWSGI. There are
 example configurations under the conf/ directory. Also, there is a test script under the test/ directory.
@@ -58,3 +63,7 @@ rule should be kept even the dictionary is not return from the database, for con
 also mapped to dictionaries. Input names on the forms should also be lower-case as they will be the keys
 of the dictionaries.
 
+Known Issues
+------------
+
+Duplicate headers of the response reports are not saved to the database.

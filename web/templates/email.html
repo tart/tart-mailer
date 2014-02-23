@@ -29,34 +29,6 @@
             </tr>
 
             <tr>
-                <td>Outgoing Server:</td>
-                <td>
-                    <select name="outgoingservername" required {{ 'disabled ' if not email['draft'] }} >
-                        <option value="">-- select --</option>
-
-                        {% for outgoingServer in email['outgoingservers'] %}
-                            <option {{ 'selected' if outgoingServer['name'] == email['outgoingservername'] }}
-                                    >{{ outgoingServer['name'] }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-            </tr>
-
-            <tr>
-                <td>Incoming Server:</td>
-                <td>
-                    <select name="incomingservername" {{ 'disabled ' if not email['draft'] }} >
-                        <option value="">-- select --</option>
-
-                        {% for incomingServer in email['incomingservers'] %}
-                            <option {{ 'selected' if incomingServer['name'] == email['incomingservername'] }}
-                                    >{{ incomingServer['name'] }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-            </tr>
-
-            <tr>
                 <td>Redirect URL:</td>
                 <td>
                     <input type="text" name="redirecturl" size="100" maxlength="1000" value="{{ email['redirecturl'] or '' }}"

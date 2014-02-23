@@ -22,32 +22,4 @@ Update Email set outgoingServerName = 'localhost';
 
 Alter table Email alter column outgoingServerName set not null;
 
-Create index EmailOutgoingServerNameFKI on Email (outgoingServerName);
-
-Create or replace function OutgoingServerToSend(varchar(200))
-    returns table (
-        hostname varchar(200),
-        port smallint,
-        useTLS boolean,
-        username varchar(200),
-        password varchar(200),
-        totalCount bigint
-    )
-    language sql
-    as $$
-Select OutgoingServer.hostname,
-        OutgoingServer.port,
-        OutgoingServer.useTLS,
-        OutgoingServer.username,
-        OutgoingServer.password,
-        count(EmailSend) as totalCount
-    from OutgoingServer
-        join Email on Email.outgoingServerName = OutgoingServer.name
-            left join EmailSend on EmailSend.emailId = Email.id
-                    and not EmailSend.sent
-        where OutgoingServer.name = $1
-    group by OutgoingServer.name
-$$;
-
 Commit;
-
