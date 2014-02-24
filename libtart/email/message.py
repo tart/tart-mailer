@@ -25,15 +25,16 @@ def parseMessage(string):
     if 'subject' not in message:
         return None
 
-    # Sanity checks for response reports, according to RFC 2464 page 7.
     if message.get_content_type() == 'multipart/report':
-        assert (message.is_multipart()
-                and len(message.get_payload()) >= 2
-                and message.get_payload(1).get_content_type() in ('message/delivery-status',
-                                                                  'message/feedback-report'))
+        # Sanity checks for response reports, according to RFC 2464 page 7.
+        assert message.is_multipart()
+        assert len(message.get_payload()) >= 2
+        assert message.get_payload(1).get_content_type() in ('message/delivery-status',
+                                                             'message/feedback-report',
+                                                             'text/plain')
 
-    # Sanity checks plain text emails.
     if message.get_content_type() == 'text/plain':
+        # Sanity checks plain text emails.
         assert not message.is_multipart()
 
     return message

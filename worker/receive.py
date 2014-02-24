@@ -48,16 +48,16 @@ def main(arguments):
         message = parseMessage(server.execute('fetch', messageId, '(RFC822)')[0][1])
         report = {}
 
-        print(messageId + '. email will be processed as ' + message.get_content_type() + '.')
-
         if message.get_content_type() == 'multipart/report':
             report['body'] = message.get_payload(0).plainText()
-            report['fields'] = dict(message.get_payload(1).recursiveHeaders())
             if len(message.get_payload()) > 2:
+                report['fields'] = dict(message.get_payload(1).recursiveHeaders())
                 report['originalHeaders'] = dict(message.get_payload(2).recursiveHeaders())
+            else:
+                report['originalHeaders'] = dict(message.get_payload(1).recursiveHeaders())
+
         elif message.get_content_type() in ('text/plain', 'multipart/alternative'):
             splitMessage = message.splitSubmessage()
-
             if splitMessage:
                 report['body'], submessage = splitMessage
                 report['originalHeaders'] = dict(submessage.headers())
@@ -65,6 +65,7 @@ def main(arguments):
             else:
                 report['body'] = message.plainTextWithoutQuote()
                 warning('Unexpected plain text email will be processed:', report)
+
         else:
             warning('Unexpected MIME type:', message)
 
