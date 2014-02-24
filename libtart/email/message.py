@@ -67,7 +67,7 @@ class EmailMessage(Message):
     def splitSubmessage(self):
         '''Search for messages inside the message payload.'''
 
-        splitPayload = self.get_payload().split('\n')
+        splitPayload = self.plainText().split('\n')
 
         for num, line in enumerate(splitPayload):
             if not line.strip():
