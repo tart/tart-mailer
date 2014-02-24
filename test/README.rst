@@ -17,7 +17,10 @@ Tab seperated files emails.data and subscribers.data will be loaded to the datab
 and feedback functionality will be tested for this one. The email and the subscriber will be the ones on top of
 the list.
 
-Run the script inside this directory::
+Run the scripts inside this directory in order::
 
-    ./test.sh
+    ./000-db.sh
 
+    ./001-send.sh
+
+    ./002-user.sh
