@@ -75,7 +75,7 @@ def main(server):
                 report['originalHeaders'] = dict(submessage.headers())
                 warning('Subemail will be processed as the returned original:', submessage)
             else:
-                report['body'] = message.get_payload()
+                report['body'] = message.plainTextWithoutQuote()
                 warning('Unexpected plain text email will be processed:', report)
         else:
             warning('Unexpected MIME type:', message)

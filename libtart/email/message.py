@@ -74,3 +74,8 @@ class EmailMessage(Message):
                 message = parseMessage('\n'.join(splitPayload[(num + 1):]))
                 if message:
                     return '\n'.join(splitPayload[:num]), message
+
+    def plainTextWithoutQuote(self):
+        '''Return the plainText() without the lines start with ">".'''
+
+        return '\n'.join(line for line in self.plainText().split('\n') if not line.startswith('>'))
