@@ -31,33 +31,33 @@ from libtart.postgres import Postgres
 from libtart.email.server import parseArguments
 from libtart.helpers import warning
 
-def main(server):
+def main(arguments):
     postgres = Postgres()
 
     with postgres:
-        if 'project' in server:
-            if not postgres.select('Project', {'name': server['project']}):
+        if 'project' in arguments:
+            if not postgres.select('Project', {'name': arguments['project']}):
                 raise Exception('Project could not find in the database.')
 
-        for emailSend in postgres.call('RemoveNotAllowedEmailSend', server['project'], table=True):
+        for emailSend in postgres.call('RemoveNotAllowedEmailSend', arguments['project'], table=True):
             warning('Not allowed email removed from the queue:', emailSend)
 
-        count = postgres.call('EmailToSendCount', server['project'])
+        count = postgres.call('EmailToSendCount', arguments['project'])
 
     print(str(count) + ' emails to send.')
-    if count > server['amount']:
-        count = server['amount']
+    if count > arguments['amount']:
+        count = arguments['amount']
 
-    sMTP = smtplib.SMTP(server['hostname'], server['port'])
-    if server['usetls']:
+    sMTP = smtplib.SMTP(arguments['hostname'], arguments['port'])
+    if arguments['usetls']:
         sMTP.starttls()
-    if server['username']:
-        sMTP.login(server['username'], server['password'])
+    if arguments['username']:
+        sMTP.login(arguments['username'], arguments['password'])
     print('SMTP connection successful.')
 
     for messageId in range(count):
         with postgres:
-            email = postgres.call('NextEmailToSend', server['project'])
+            email = postgres.call('NextEmailToSend', arguments['project'])
 
             if email['plainbody'] and email['htmlbody']:
                 message = MIMEMultipart('alternative')

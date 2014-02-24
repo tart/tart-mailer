@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 ##
-# Tart Mailer
+# Tart Library - Email Server Functions
 #
 # Copyright (c) 2013, Tart İnternet Teknolojileri Ticaret AŞ
 #
@@ -15,6 +15,8 @@
 ##
 
 from __future__ import absolute_import
+
+import imaplib
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
@@ -37,3 +39,18 @@ def parseArguments(defaultProtocol='SMTP'):
     parser.add_argument('--mailbox', default='INBOX', help='mailbox to receive emails')
 
     return parser.parse_args()
+
+class IMAP4(imaplib.IMAP4):
+    '''Extend IMAP4 class on the standart library.'''
+
+    def execute(self, method, *args):
+        status, response = getattr(self, method)(*args)
+
+        print('IMAP4 ' + method + ' method returned ' + status + '.')
+        if status != 'OK':
+            raise IMAP4Exception('IMAP4 ' + method + ' method returned ' + status + ': ' + str(response))
+
+        return response
+
+class IMAP4Exception(Exception):
+    pass

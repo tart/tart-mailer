@@ -19,45 +19,33 @@ from __future__ import absolute_import
 
 import os
 import signal
-import imaplib
 import psycopg2
 
 os.sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 from libtart.postgres import Postgres
-from libtart.email.server import parseArguments
+from libtart.email.server import parseArguments, IMAP4
 from libtart.email.message import parseMessage
 from libtart.helpers import warning
 
-def main(server):
+def main(arguments):
     postgres = Postgres()
 
-    if 'project' in server:
+    if 'project' in arguments:
         with postgres:
-            if not postgres.select('Project', {'name': server['project']}):
+            if not postgres.select('Project', {'name': arguments['project']}):
                 raise Exception('Project could not find in the database.')
 
-    iMAP = imaplib.IMAP4(server['hostname'], server['port'])
-    if server['username']:
-        iMAP.login(server['username'], server['password'])
+    server = IMAP4(arguments['hostname'], arguments['port'])
+    if arguments['username']:
+        server.execute('login', arguments['username'], arguments['password'])
     print('IMAP connection successful.')
 
-    status, response = iMAP.select(server['mailbox']) if server['mailbox'] else iMAP.select()
-    if status != 'OK':
-        raise Exception('IMAP mailbox problem: ' + status + ': ' + ' '.join(response))
-
-    status, response = iMAP.search('utf-8', 'UNDELETED')
-    if status != 'OK':
-        raise Exception('IMAP search problem: ' + status + ': ' + ' '.join(response))
-
-    messageIds = response[0].split()
+    server.execute('select', arguments['mailbox']) if arguments['mailbox'] else server.select()
+    messageIds = server.execute('search', 'utf-8', 'UNDELETED')[0].split()
     print(str(len(messageIds)) + ' emails to process.')
 
-    for messageId in messageIds[:server['amount']]:
-        status, response = iMAP.fetch(messageId, '(RFC822)')
-        if status != 'OK':
-            raise Exception('IMAP fetch problem: ' + status + ': ' + ' '.join(response))
-
-        message = parseMessage(response[0][1])
+    for messageId in messageIds[:arguments['amount']]:
+        message = parseMessage(server.execute('fetch', messageId, '(RFC822)')[0][1])
         report = {}
 
         print(messageId + '. email will be processed as ' + message.get_content_type() + '.')
@@ -81,14 +69,13 @@ def main(server):
             warning('Unexpected MIME type:', message)
 
         if report:
-            processed = False
-            report['projectName'] = server['project']
+            report['projectName'] = arguments['project']
 
             with postgres:
                 try:
                     if postgres.call('NewEmailSendResponseReport', report):
                         print(messageId + '. email processed and will be deleted.')
-                        processed = True
+                        server.execute('store', messageId, '+FLAGS', '\Deleted')
                     else:
                         warning('Email could not found in the database:', report)
 
@@ -98,10 +85,9 @@ def main(server):
                     if int(error.pgcode) == 23505:
                         # PostgreSQL UNIQUE VIOLATION error code.
                         print(messageId + '. email processed before and will be deleted.')
-                        processed = True
+                        server.execute('store', messageId, '+FLAGS', '\Deleted')
 
-            if processed:
-                iMAP.store(messageId, '+FLAGS', '\DELETED')
+        server.execute('expunge')
 
 if __name__ == '__main__':
     arguments = parseArguments(defaultProtocol='IMAP')
