@@ -19,33 +19,43 @@ from __future__ import absolute_import
 
 import os
 import signal
+import argparse
 import email
 import psycopg2
 
 os.sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 from libtart.postgres import Postgres
-from libtart.email.server import parseArguments, IMAP4
+from libtart.email.server import IMAP4
 from libtart.email.message import Message
 from libtart.helpers import warning
 
-def main(arguments):
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--project', help='project name to receive email messages for')
+    parser.add_argument('--amount', type=int, default=1, help='maximum email message amount to receive')
+    parser.add_argument('--timeout', type=int, help='seconds to kill the process')
+    IMAP4.addArguments(parser)
+
+    arguments = vars(parser.parse_args())
+    project = arguments.pop('project')
+    amount = arguments.pop('amount')
+    timeout = arguments.pop('timeout')
+
+    if timeout:
+        signal.alarm(timeout)
+
     postgres = Postgres()
 
-    if 'project' in arguments:
+    if project:
         with postgres:
-            if not postgres.select('Project', {'name': arguments['project']}):
+            if not postgres.select('Project', {'name': project}):
                 raise Exception('Project could not find in the database.')
 
-    server = IMAP4(arguments['hostname'], arguments['port'])
-    if arguments['username']:
-        server.execute('login', arguments['username'], arguments['password'])
-    print('IMAP connection successful.')
-
-    server.execute('select', arguments['mailbox']) if arguments['mailbox'] else server.select()
+    server = IMAP4(**arguments)
     messageIds = server.execute('search', 'utf-8', 'UNDELETED')[0].split()
     print(str(len(messageIds)) + ' email messages to process.')
 
-    for messageId in messageIds[:arguments['amount']]:
+    for messageId in messageIds[:amount]:
         message = email.message_from_string(server.execute('fetch', messageId, '(RFC822)')[0][1], Message)
         report = {}
 
@@ -71,7 +81,7 @@ def main(arguments):
             warning('Unexpected MIME type:', message)
 
         if report:
-            report['projectName'] = arguments['project']
+            report['projectName'] = project
 
             with postgres:
                 try:
@@ -92,9 +102,4 @@ def main(arguments):
         server.execute('expunge')
 
 if __name__ == '__main__':
-    arguments = parseArguments(defaultProtocol='IMAP')
-
-    if arguments.timeout:
-        signal.alarm(arguments.timeout)
-
-    main(vars(arguments))
+    main()

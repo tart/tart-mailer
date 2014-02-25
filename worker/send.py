@@ -19,7 +19,7 @@ from __future__ import absolute_import
 
 import os
 import signal
-import smtplib
+import argparse
 import psycopg2
 
 from email.mime.multipart import MIMEMultipart
@@ -28,36 +28,46 @@ from email.utils import formataddr
 
 os.sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 from libtart.postgres import Postgres
-from libtart.email.server import parseArguments
+from libtart.email.server import SMTP
 from libtart.helpers import warning
 
-def main(arguments):
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--project', help='project name send to email messages for')
+    parser.add_argument('--amount', type=int, default=1, help='maximum email message amount to send')
+    parser.add_argument('--timeout', type=int, help='seconds to kill the process')
+    SMTP.addArguments(parser)
+
+    arguments = vars(parser.parse_args())
+    project = arguments.pop('project')
+    amount = arguments.pop('amount')
+    timeout = arguments.pop('timeout')
+
+    if timeout:
+        signal.alarm(timeout)
+
     postgres = Postgres()
 
     with postgres:
-        if 'project' in arguments:
-            if not postgres.select('Project', {'name': arguments['project']}):
+        if project:
+            if not postgres.select('Project', {'name': project}):
                 raise Exception('Project could not find in the database.')
 
-        for emailSend in postgres.call('RemoveNotAllowedEmailSend', arguments['project'], table=True):
+        for emailSend in postgres.call('RemoveNotAllowedEmailSend', project, table=True):
             warning('Not allowed email messages removed from the queue:', emailSend)
 
-        count = postgres.call('EmailToSendCount', arguments['project'])
+        count = postgres.call('EmailToSendCount', project)
 
-    print(str(count) + ' email messages to send.')
-    if count > arguments['amount']:
-        count = arguments['amount']
+    print(str(count) + ' waiting email messages to send.')
+    if count < amount:
+        amount = count
 
-    sMTP = smtplib.SMTP(arguments['hostname'], arguments['port'])
-    if arguments['usetls']:
-        sMTP.starttls()
-    if arguments['username']:
-        sMTP.login(arguments['username'], arguments['password'])
+    sMTP = SMTP(**arguments)
     print('SMTP connection successful.')
 
-    for messageId in range(count):
+    for messageId in range(amount):
         with postgres:
-            email = postgres.call('NextEmailToSend', arguments['project'])
+            email = postgres.call('NextEmailToSend', project)
 
             if email['plainbody'] and email['htmlbody']:
                 message = MIMEMultipart('alternative')
@@ -83,9 +93,4 @@ def main(arguments):
         print(str(messageId) + '. email message sent to ' + email['toaddress'])
 
 if __name__ == '__main__':
-    arguments = parseArguments()
-
-    if arguments.timeout:
-        signal.alarm(arguments.timeout)
-
-    main(vars(arguments))
+    main()

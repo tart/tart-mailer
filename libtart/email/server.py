@@ -16,32 +16,62 @@
 
 from __future__ import absolute_import
 
+import smtplib
 import imaplib
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
-# Default ports for currently supported protocols.
-defaultPorts = {'SMTP': 25, 'IMAP': 143}
+def addArgumentGroup(parser):
+    '''Return ArgumentParser instance with the common arguments required to connect to an email server.'''
 
-def parseArguments(defaultProtocol='SMTP'):
-    '''Create ArgumentParser instance. Return parsed arguments.'''
+    group = parser.add_argument_group(description='Mail Server Arguments')
+    group.add_argument('--hostname', default='localhost', help='hostname of the mail server')
+    group.add_argument('--port', type=int, help='port for the mail server')
+    group.add_argument('--username', help='username for the mail server')
+    group.add_argument('--password', help='password for the incoming mail server')
+    return group
 
-    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, description=__doc__)
-    parser.add_argument('--project', help='project name to send or receive emails')
-    parser.add_argument('--amount', type=int, default=1, help='maximum email amount')
-    parser.add_argument('--timeout', type=int, help='seconds to kill the process')
-    parser.add_argument('--protocol', default=defaultProtocol, help='protocol of the mail server')
-    parser.add_argument('--hostname', default='localhost', help='hostname of the mail server')
-    parser.add_argument('--port', type=int, default=defaultPorts[defaultProtocol], help='port for the mail server')
-    parser.add_argument('--username', help='username for the mail server')
-    parser.add_argument('--password', help='password for the incoming mail server')
-    parser.add_argument('--usetls', action='store_true', help='use TLS to connect to the mail server')
-    parser.add_argument('--mailbox', default='INBOX', help='mailbox to receive emails')
+class SMTP(smtplib.SMTP):
+    '''Extend IMAP4 class on the standart library.'''
 
-    return parser.parse_args()
+    defaultPort = 25
+
+    @staticmethod
+    def addArguments(parser):
+        group = addArgumentGroup(parser)
+        group.set_defaults(port=SMTP.defaultPort)
+        group.add_argument('--usetls', action='store_true', help='use TLS to connect to the mail server')
+
+    def __init__(self, hostname, port=defaultPort, usetls=False, username=None, password=None):
+        smtplib.SMTP.__init__(self, hostname, port)
+
+        if usetls:
+            self.starttls()
+
+        if username:
+            self.login(username, password)
 
 class IMAP4(imaplib.IMAP4):
     '''Extend IMAP4 class on the standart library.'''
+
+    defaultPort = 143
+
+    @staticmethod
+    def addArguments(parser):
+        group = addArgumentGroup(parser)
+        group.set_defaults(port=IMAP4.defaultPort)
+        group.add_argument('--mailbox', default='INBOX', help='mailbox to receive emails, default INBOX')
+
+    def __init__(self, hostname, port=defaultPort, username=None, password=None, mailbox=None):
+        imaplib.IMAP4.__init__(self, hostname, port)
+
+        if username:
+            self.execute('login', username, password)
+
+        if mailbox:
+            self.execute('select', mailbox)
+        else:
+            self.execute('select')
 
     def execute(self, method, *args):
         status, response = getattr(self, method)(*args)
