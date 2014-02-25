@@ -43,7 +43,7 @@ def main(arguments):
 
     server.execute('select', arguments['mailbox']) if arguments['mailbox'] else server.select()
     messageIds = server.execute('search', 'utf-8', 'UNDELETED')[0].split()
-    print(str(len(messageIds)) + ' emails to process.')
+    print(str(len(messageIds)) + ' email messages to process.')
 
     for messageId in messageIds[:arguments['amount']]:
         message = email.message_from_string(server.execute('fetch', messageId, '(RFC822)')[0][1], Message)
@@ -62,10 +62,10 @@ def main(arguments):
             if splitMessage:
                 report['body'], submessage = splitMessage
                 report['originalHeaders'] = dict(submessage.headers())
-                warning('Subemail will be processed as the returned original:', submessage)
+                warning('Sub-message will be processed as the returned original:', submessage)
             else:
                 report['body'] = message.plainTextWithoutQuote()
-                warning('Unexpected plain text email will be processed:', report)
+                warning('Unexpected plain text email message will be processed:', report)
 
         else:
             warning('Unexpected MIME type:', message)
@@ -76,7 +76,7 @@ def main(arguments):
             with postgres:
                 try:
                     if postgres.call('NewEmailSendResponseReport', report):
-                        print(messageId + '. email processed and will be deleted.')
+                        print(messageId + '. email message processed and will be deleted.')
                         server.execute('store', messageId, '+FLAGS', '\Deleted')
                     else:
                         warning('Email could not found in the database:', report)
@@ -86,7 +86,7 @@ def main(arguments):
 
                     if int(error.pgcode) == 23505:
                         # PostgreSQL UNIQUE VIOLATION error code.
-                        print(messageId + '. email processed before and will be deleted.')
+                        print(messageId + '. email message processed before and will be deleted.')
                         server.execute('store', messageId, '+FLAGS', '\Deleted')
 
         server.execute('expunge')

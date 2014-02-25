@@ -40,11 +40,11 @@ def main(arguments):
                 raise Exception('Project could not find in the database.')
 
         for emailSend in postgres.call('RemoveNotAllowedEmailSend', arguments['project'], table=True):
-            warning('Not allowed email removed from the queue:', emailSend)
+            warning('Not allowed email messages removed from the queue:', emailSend)
 
         count = postgres.call('EmailToSendCount', arguments['project'])
 
-    print(str(count) + ' emails to send.')
+    print(str(count) + ' email messages to send.')
     if count > arguments['amount']:
         count = arguments['amount']
 

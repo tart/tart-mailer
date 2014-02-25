@@ -165,9 +165,9 @@ def sendTestEmail(id, rank):
         form['variationrank'] = rank
 
         if postgres.call('SendTestEmail', form):
-            message = 'Test email added to the queue.'
+            message = 'Test email message added to the queue.'
         else:
-            message = 'Test email could not send. Subscriber may not be in the database.'
+            message = 'Test email message could not send. Subscriber may not be in the database.'
 
         return email(id, sendTestEmailMessage=message, variationRank=rank)
 
@@ -182,7 +182,7 @@ def sendBulkEmail(id):
                 form[key] = value
 
         subscriberCount = postgres.call('SendBulkEmail', form)
-        message = str(subscriberCount) + ' emails added to the queue.'
+        message = str(subscriberCount) + ' email messages added to the queue.'
 
         return email(id, sendBulkEmailMessage=message)
 
