@@ -19,12 +19,13 @@ from __future__ import absolute_import
 
 import os
 import signal
+import email
 import psycopg2
 
 os.sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 from libtart.postgres import Postgres
 from libtart.email.server import parseArguments, IMAP4
-from libtart.email.message import parseMessage
+from libtart.email.message import Message
 from libtart.helpers import warning
 
 def main(arguments):
@@ -45,7 +46,7 @@ def main(arguments):
     print(str(len(messageIds)) + ' emails to process.')
 
     for messageId in messageIds[:arguments['amount']]:
-        message = parseMessage(server.execute('fetch', messageId, '(RFC822)')[0][1])
+        message = email.message_from_string(server.execute('fetch', messageId, '(RFC822)')[0][1], Message)
         report = {}
 
         if message.get_content_type() == 'multipart/report':

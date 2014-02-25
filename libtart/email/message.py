@@ -14,33 +14,28 @@
 # performance of this software.
 ##
 
+from __future__ import absolute_import
+
 import email
+import email.message
 
-from email.message import Message
-
-def parseMessage(string):
-    message = email.message_from_string(string, EmailMessage)
-
-    # Messages without subject does not considered valid.
-    if 'subject' not in message:
-        return None
-
-    if message.get_content_type() == 'multipart/report':
-        # Sanity checks for response reports, according to RFC 2464 page 7.
-        assert message.is_multipart()
-        assert len(message.get_payload()) >= 2
-        assert message.get_payload(1).get_content_type() in ('message/delivery-status',
-                                                             'message/feedback-report',
-                                                             'text/plain')
-
-    if message.get_content_type() == 'text/plain':
-        # Sanity checks plain text emails.
-        assert not message.is_multipart()
-
-    return message
-
-class EmailMessage(Message):
+class Message(email.message.Message):
     '''Extend the Message class on the standart library.'''
+
+    def __init__(self):
+        email.message.Message.__init__(self)
+
+        if self.get_content_type() == 'multipart/report':
+            # Sanity checks for response reports, according to RFC 2464 page 7.
+            assert self.is_multipart()
+            assert len(self.get_payload()) >= 2
+            assert self.get_payload(1).get_content_type() in ('self/delivery-status',
+                                                                 'self/feedback-report',
+                                                                 'text/plain')
+
+        if self.get_content_type() == 'text/plain':
+            # Sanity checks plain text emails.
+            assert not self.is_multipart()
 
     def plainText(self):
         '''Return the text/plain payload or first payload inside multipart/alternative message which should
@@ -72,9 +67,10 @@ class EmailMessage(Message):
 
         for num, line in enumerate(splitPayload):
             if not line.strip():
-                message = parseMessage('\n'.join(splitPayload[(num + 1):]))
-                if message:
-                    return '\n'.join(splitPayload[:num]), message
+                submessage = email.message_from_string('\n'.join(splitPayload[(num + 1):]))
+                if len(submessage.items()) > 2:
+                    # Consider it a valid submessage if there are more than 2 headers.
+                    return '\n'.join(splitPayload[:num]), submessage
 
     def plainTextWithoutQuote(self):
         '''Return the plainText() without the lines start with ">".'''
