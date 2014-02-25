@@ -54,6 +54,7 @@ class SMTP(smtplib.SMTP):
 class IMAP4(imaplib.IMAP4):
     '''Extend IMAP4 class on the standart library.'''
 
+    debug = False
     defaultPort = 143
 
     @staticmethod
@@ -76,7 +77,8 @@ class IMAP4(imaplib.IMAP4):
     def execute(self, method, *args):
         status, response = getattr(self, method)(*args)
 
-        print('IMAP4 ' + method + ' method returned ' + status + '.')
+        if IMAP4.debug:
+            print('IMAP4 ' + method + ' method returned ' + status + '.')
         if status != 'OK':
             raise IMAP4Exception('IMAP4 ' + method + ' method returned ' + status + ': ' + str(response))
 

@@ -23,7 +23,7 @@ from libtart.postgres import Postgres
 
 app = flask.Flask(__name__)
 app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == 'FLASK_'))
-postgres = Postgres(debug=(__name__ == '__main__'))
+postgres = Postgres()
 
 @app.route('/')
 def index(**kwargs):
@@ -213,4 +213,5 @@ def parseURL(uRL):
     return parts
 
 if __name__ == '__main__':
+    Postgres.debug = True
     app.run(host='0.0.0.0', port=9000, debug=True)

@@ -23,17 +23,17 @@ psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 
 class Postgres(psycopg2.extensions.connection):
 
-    def __init__(self, dsn='', debug=False):
+    debug = False
+
+    def __init__(self, dsn=''):
         psycopg2.extensions.connection.__init__(self, dsn)
         psycopg2.extras.register_hstore(self)
-
-        self.__debug = debug
 
     def __execute(self, query, parameters, table):
         '''Execute a query on the database; return None, the value of the cell, the values in the row in
         a dictionary or the values of the rows in a list of dictionary.'''
 
-        if self.__debug:
+        if Postgres.debug:
             print('QUERY: ' + query)
 
         with self.cursor() as cursor:

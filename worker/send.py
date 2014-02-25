@@ -36,15 +36,20 @@ def main():
     parser.add_argument('--project', help='project name send to email messages for')
     parser.add_argument('--amount', type=int, default=1, help='maximum email message amount to send')
     parser.add_argument('--timeout', type=int, help='seconds to kill the process')
+    parser.add_argument('--debug', action='store_true', help='debug mode')
     SMTP.addArguments(parser)
 
     arguments = vars(parser.parse_args())
     project = arguments.pop('project')
     amount = arguments.pop('amount')
     timeout = arguments.pop('timeout')
+    debug = arguments.pop('debug')
 
     if timeout:
         signal.alarm(timeout)
+
+    if debug:
+        Postgres.debug = True
 
     postgres = Postgres()
 

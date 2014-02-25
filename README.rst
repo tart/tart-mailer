@@ -33,15 +33,16 @@ administratiors to list emails, send new ones... They both can be run directly::
 
     web/admin.py
 
-Emailes are send and received asynchronously. Executables under worker/ directory should be run periodically. Command
-line arguments will be listed by::
+Email messages are send and received asynchronously. Executables under worker/ directory should be run periodically,
+to process the messages waiting to be sent or received. Command line arguments of the executables will be listed by::
 
     worker/send.py --help
 
     worker/receive.py --help
 
-See deployment page of the Flask documentation [1] to run the web servers with Nginx and uWSGI. There are
-example configurations under the conf/ directory. Also, there is a test script under the test/ directory.
+Running standalone web servers is intended for debugging only. See deployment page of the Flask documentation [1]
+to run them in production. There are example configurations under the conf/ directory for Nginx and uWSGI. Also,
+there is a test script under the test/ directory.
 
 [1] http://flask.pocoo.org/docs/deploying/uwsgi/
 
