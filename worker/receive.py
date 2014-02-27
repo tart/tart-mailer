@@ -139,8 +139,11 @@ def main():
                         print(messageId + '. email message processed before and will be deleted.')
                         server.execute('store', messageId, '+FLAGS', '\Deleted')
         else:
-            warning('Email could not found in the database:', report)
+            warning('Email could not found in the database:', message)
 
+    if debug:
+        print('Deleted emails will be left on the server in debug mode.')
+    else:
         server.execute('expunge')
 
 if __name__ == '__main__':
