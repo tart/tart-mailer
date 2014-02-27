@@ -65,6 +65,7 @@ def main():
     for messageId in messageIds[:amount]:
         message = email.message_from_string(server.execute('fetch', messageId, '(RFC822)')[0][1], Message)
         report = {}
+        emailSend = None
 
         if message.get_content_type() in ('multipart/report', 'multipart/mixed'):
             if len(message.get_payload()) == 1:
@@ -90,30 +91,35 @@ def main():
         else:
             warning('Unexpected MIME type:', message)
 
-        emailSend = None
-        emailAddresses = []
-
-        if 'fields' in report:
-            def addressInHeader(value): value.split(';')[1] if ';' in value else value
-
-            if 'original-recipient' in report['fields']:
-                emailAddresses.append(addressInHeader(report['fields']['original-recipient']).lower())
-
-            if 'final-recipient' in report['fields']:
-                emailAddresses.append(addressInHeader(report['fields']['final-recipient']).lower())
-
-        if 'originalHeaders' in report and 'to' in report['originalHeaders']:
-            emailAddresses.append(reports['originalHeaders']['to'].lower())
-
-        if not emailAddresses and 'body' in report:
-            emailAddresses = [e.lower() for e in re.findall('[A-Za-z0-9._\-+!'']+@[A-Za-z0-9.\-]+\.[A-Za-z0-9]+',
-                                                            report['body'])]
-
-        if emailAddresses:
+        if 'originalHeaders' in report and 'list-unsubscribe' in report['originalHeaders']:
+            unsubscribeURL = report['originalHeaders']['list-unsubscribe'][1:-1]
             with postgres:
-                try:
-                    emailSend = postgres.call('LastEmailSendToEmailAddresses', [project, emailAddresses])
-                except PostgresNoRow: pass
+                emailSend = postgres.call('EmailSendFromUnsubscribeURL', [project, unsubscribeURL])
+
+        else:
+            emailAddresses = []
+
+            if 'fields' in report:
+                def addressInHeader(value): value.split(';')[1] if ';' in value else value
+
+                if 'original-recipient' in report['fields']:
+                    emailAddresses.append(addressInHeader(report['fields']['original-recipient']).lower())
+
+                if 'final-recipient' in report['fields']:
+                    emailAddresses.append(addressInHeader(report['fields']['final-recipient']).lower())
+
+            if 'originalHeaders' in report and 'to' in report['originalHeaders']:
+                emailAddresses.append(reports['originalHeaders']['to'].lower())
+
+            if not emailAddresses and 'body' in report:
+                emailAddresses = [e.lower() for e in re.findall('[A-Za-z0-9._\-+!'']+@[A-Za-z0-9.\-]+\.[A-Za-z0-9]+',
+                                                                report['body'])]
+
+            if emailAddresses:
+                with postgres:
+                    try:
+                        emailSend = postgres.call('LastEmailSendToEmailAddresses', [project, emailAddresses])
+                    except PostgresNoRow: pass
 
         if emailSend:
             report['emailId'] = emailSend['emailid']
