@@ -67,11 +67,11 @@ def main():
 
         if message.get_content_type() == 'multipart/report':
             report['body'] = message.get_payload(0).plainText()
-            if len(message.get_payload()) > 2:
-                report['fields'] = dict(message.get_payload(1).recursiveHeaders())
-                report['originalHeaders'] = dict(message.get_payload(2).recursiveHeaders())
+            if len(message.get_payload()) == 2:
+                report['originalHeaders'] = dict(message.get_payload(1).get_payload(0).headers())
             else:
-                report['originalHeaders'] = dict(message.get_payload(1).recursiveHeaders())
+                report['fields'] = dict(message.get_payload(1).get_payload(0).headers())
+                report['originalHeaders'] = dict(message.get_payload(2).get_payload(0).headers())
 
         elif message.get_content_type() in ('text/plain', 'multipart/alternative'):
             splitMessage = message.splitSubmessage()

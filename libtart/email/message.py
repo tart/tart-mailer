@@ -25,16 +25,27 @@ class Message(email.message.Message):
     def __init__(self):
         email.message.Message.__init__(self)
 
-        if self.get_content_type() == 'multipart/report':
-            # Sanity checks for response reports, according to RFC 2464 page 7.
-            assert self.is_multipart()
-            assert len(self.get_payload()) >= 2
-            assert self.get_payload(1).get_content_type() in ('self/delivery-status',
-                                                                 'self/feedback-report',
-                                                                 'text/plain')
+        splitType = self.get_content_type().split('/')
 
-        if self.get_content_type() == 'text/plain':
-            # Sanity checks plain text emails.
+        if splitType[0] == 'multipart':
+            assert self.is_multipart()
+
+            if splitType[1] == 'report':
+                # Sanity checks for response reports, according to RFC 2464 page 7.
+                assert len(self.get_payload()) >= 2
+
+                if len(self.get_payload()) == 2:
+                    assert self.get_payload(1).get_content_type() == 'message/rfc822'
+                else:
+                    assert self.get_payload(1).get_content_type() in ('message/delivery-status',
+                                                                      'message/feedback-report')
+                    assert self.get_payload(2).get_content_type() == 'message/rfc822'
+
+        elif splitType[0] == 'message':
+            assert self.is_multipart()
+            assert len(self.get_payload()) == 1
+
+        else:
             assert not self.is_multipart()
 
     def plainText(self):
@@ -53,12 +64,6 @@ class Message(email.message.Message):
             return ' '.join(line.strip() for line in value.split('\n')) if '\n' in value else value
 
         return ((key.lower(), withoutNewLine(value)) for key, value in self.items())
-
-    def recursiveHeaders(self):
-        '''Walk inside the message, merge found headers. Useful for multipart messages. Be careful that it can
-        include the same header more than once.'''
-
-        return [item for part in self.walk() for item in part.headers()]
 
     def splitSubmessage(self):
         '''Search for messages inside the message payload.'''
