@@ -41,6 +41,18 @@ class Message(email.message.Message):
                                                                       'message/feedback-report')
                     assert self.get_payload(2).get_content_type() == 'message/rfc822'
 
+            elif splitType[1] == 'mixed':
+                # Sanity checks for multipart emails supposed to include the returned original.
+
+                if len(self.get_payload()) == 1:
+                    # Includes only the returned original.
+                    assert self.get_payload(0).get_content_type() == 'message/rfc822'
+
+                else:
+                    # Includes an explanation and the returned original.
+                    assert self.get_payload(0).get_content_type() == 'text/plain'
+                    assert self.get_payload(1).get_content_type() == 'message/rfc822'
+
         elif splitType[0] == 'message':
             assert self.is_multipart()
             assert len(self.get_payload()) == 1
