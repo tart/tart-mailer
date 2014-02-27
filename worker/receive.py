@@ -126,18 +126,9 @@ def main():
             report['subscriberId'] = emailSend['subscriberid']
 
             with postgres:
-                try:
-                    postgres.insert('EmailSendResponseReport', report)
-                    print(messageId + '. email message processed and will be deleted.')
-                    server.execute('store', messageId, '+FLAGS', '\Deleted')
-
-                except psycopg2.IntegrityError as error:
-                    warning(str(error), report)
-
-                    if int(error.pgcode) == 23505:
-                        # PostgreSQL UNIQUE VIOLATION error code.
-                        print(messageId + '. email message processed before and will be deleted.')
-                        server.execute('store', messageId, '+FLAGS', '\Deleted')
+                postgres.insert('EmailSendResponseReport', report)
+                print(messageId + '. email message processed and will be deleted.')
+                server.execute('store', messageId, '+FLAGS', '\Deleted')
         else:
             warning('Email could not found in the database:', message)
 
