@@ -26,10 +26,12 @@ this::
 
     cat db/* | psql
 
-There are two seperate web servers. One of them is for users to redirect, unsubscribe... Other one is for
-administratiors to list emails, send new ones... They both can be run directly::
+There are seperate web servers. One of them is for users to redirect, unsubscribe... One is a RESTful API for
+other applications. Other one is for administrators to list emails, send new ones... They both can be run directly::
 
     web/user.py
+
+    web/api.py
 
     web/admin.py
 

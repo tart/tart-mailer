@@ -37,7 +37,11 @@ class Postgres(psycopg2.extensions.connection):
             print('QUERY: ' + query)
 
         with self.cursor() as cursor:
-            cursor.execute(query, parameters)
+            try:
+                cursor.execute(query, parameters)
+            except psycopg2.Error as error:
+                raise PostgresError(error)
+
             rows = cursor.fetchall()
             columnNames = [desc[0] for desc in cursor.description]
 
@@ -121,3 +125,15 @@ class PostgresNoRow(PostgresException): pass
 
 class PostgresMoreThanOneRow(PostgresException): pass
 
+class PostgresError(PostgresException):
+    def __init__(self, psycopgError):
+        PostgresException.__init__(self, psycopgError.diag.message_primary.replace('"', ''))
+        self.__psycopgError = psycopgError
+
+    def typeName(self):
+        return type(self.__psycopgError).__name__
+
+    def details(self):
+        return dict((attr, getattr(self.__psycopgError.diag, attr))
+                    for attr in dir(self.__psycopgError.diag)
+                    if not attr.startswith('__') and getattr(self.__psycopgError.diag, attr) is not None)
