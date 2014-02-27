@@ -1,7 +1,7 @@
 Begin;
 
 Create domain EmailAddress varchar(200) collate "C" not null
-    constraint EmailAddressC check (value ~ '^[^@]+@[^@]+\.[^@]+$');
+    constraint EmailAddressC check (value ~ '^[a-z0-9._\-+!'']+@[a-z0-9.\-]+\.[a-z0-9]+$');
 
 Create table Project (
     name varchar(200) not null,

@@ -20,11 +20,12 @@ from __future__ import absolute_import
 import os
 import signal
 import argparse
+import re
 import email
 import psycopg2
 
 os.sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
-from libtart.postgres import Postgres
+from libtart.postgres import Postgres, PostgresNoRow
 from libtart.email.server import IMAP4
 from libtart.email.message import Message
 from libtart.helpers import warning
@@ -89,16 +90,40 @@ def main():
         else:
             warning('Unexpected MIME type:', message)
 
-        if report:
-            report['projectName'] = project
+        emailSend = None
+        emailAddresses = []
+
+        if 'fields' in report:
+            def addressInHeader(value): value.split(';')[1] if ';' in value else value
+
+            if 'original-recipient' in report['fields']:
+                emailAddresses.append(addressInHeader(report['fields']['original-recipient']).lower())
+
+            if 'final-recipient' in report['fields']:
+                emailAddresses.append(addressInHeader(report['fields']['final-recipient']).lower())
+
+        if 'originalHeaders' in report and 'to' in report['originalHeaders']:
+            emailAddresses.append(reports['originalHeaders']['to'].lower())
+
+        if not emailAddresses and 'body' in report:
+            emailAddresses = [e.lower() for e in re.findall('[A-Za-z0-9._\-+!'']+@[A-Za-z0-9.\-]+\.[A-Za-z0-9]+',
+                                                            report['body'])]
+
+        if emailAddresses:
+            with postgres:
+                try:
+                    emailSend = postgres.call('LastEmailSendToEmailAddresses', [project, emailAddresses])
+                except PostgresNoRow: pass
+
+        if emailSend:
+            report['emailId'] = emailSend['emailid']
+            report['subscriberId'] = emailSend['subscriberid']
 
             with postgres:
                 try:
-                    if postgres.call('NewEmailSendResponseReport', report):
-                        print(messageId + '. email message processed and will be deleted.')
-                        server.execute('store', messageId, '+FLAGS', '\Deleted')
-                    else:
-                        warning('Email could not found in the database:', report)
+                    postgres.insert('EmailSendResponseReport', report)
+                    print(messageId + '. email message processed and will be deleted.')
+                    server.execute('store', messageId, '+FLAGS', '\Deleted')
 
                 except psycopg2.IntegrityError as error:
                     warning(str(error), report)
@@ -107,6 +132,8 @@ def main():
                         # PostgreSQL UNIQUE VIOLATION error code.
                         print(messageId + '. email message processed before and will be deleted.')
                         server.execute('store', messageId, '+FLAGS', '\Deleted')
+        else:
+            warning('Email could not found in the database:', report)
 
         server.execute('expunge')
 

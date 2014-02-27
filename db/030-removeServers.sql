@@ -45,45 +45,6 @@ Alter table Email
 Drop table IncomingServer;
 Drop table OutgoingServer;
 
-Drop function if exists NewEmailSendResponseReport(varchar, hstore, hstore, text);
-
-Create or replace function NewEmailSendResponseReport(
-        projectName varchar(200) default null,
-        fields hstore default ''::hstore,
-        originalHeaders hstore default ''::hstore,
-        body text default null
-    ) returns boolean
-    language sql
-    as $$
-With OriginalEmailSend as (select EmailSend.*
-            from EmailSend
-                join Email on EmailSend.emailId = Email.id
-                join EmailVariation on EmailSend.emailId = EmailVariation.emailId
-                        and EmailSend.variationRank = EmailVariation.rank
-                join Subscriber on EmailSend.subscriberID = Subscriber.id
-                where EmailSend.sent
-                        and (Email.projectName is null
-                                or Email.projectName = NewEmailSendResponseReport.projectName)
-                        and ((NewEmailSendResponseReport.originalHeaders -> 'subject') is null
-                                or FormatEmailToSend(EmailVariation.subject, Subscriber.properties) =
-                                        (NewEmailSendResponseReport.originalHeaders -> 'subject'))
-                        and (Subscriber.emailAddress in (NewEmailSendResponseReport.fields -> 'original-recipient',
-                                trim(split_part(NewEmailSendResponseReport.fields -> 'original-recipient', ';', 2)),
-                                NewEmailSendResponseReport.fields -> 'original-rcpt-to',
-                                NewEmailSendResponseReport.fields -> 'rinal-recipient',
-                                trim(split_part(NewEmailSendResponseReport.fields -> 'final-recipient', ';', 2)),
-                                NewEmailSendResponseReport.originalHeaders -> 'to')
-                                or (NewEmailSendResponseReport.body like '%@%'
-                                        and NewEmailSendResponseReport.body like '%' || Subscriber.emailAddress || '%')))
-    insert into EmailSendResponseReport (emailId, subscriberId, fields, originalHeaders, body)
-        select emailId, subscriberId,
-                NewEmailSendResponseReport.fields,
-                NewEmailSendResponseReport.originalHeaders,
-                NewEmailSendResponseReport.body
-            from OriginalEmailSend
-        returning true
-$$;
-
 Drop function if exists RemoveNotAllowedEmailSend(varchar);
 
 Create or replace function RemoveNotAllowedEmailSend(projectName varchar(200) default null)
