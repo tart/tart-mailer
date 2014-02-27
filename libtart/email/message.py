@@ -67,7 +67,7 @@ class Message(email.message.Message):
 
         for num, line in enumerate(splitPayload):
             if not line.strip():
-                submessage = email.message_from_string('\n'.join(splitPayload[(num + 1):]))
+                submessage = email.message_from_string('\n'.join(splitPayload[(num + 1):]), Message)
                 if len(submessage.items()) > 2:
                     # Consider it a valid submessage if there are more than 2 headers.
                     return '\n'.join(splitPayload[:num]), submessage
