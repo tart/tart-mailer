@@ -5,9 +5,14 @@
 {% block body %}
     {% if email %}
         <h1>{{ email.id ~ '.' }} Email</h1>
-    {% else %}
-        <h2>Email Variations</h2>
     {% endif %}
+
+    <h2>Email Sent Dates</h2>
+
+    {{ table(emailSentDates) }}
+
+
+    <h2>Email Variations</h2>
 
     {{ table(emailVariations) }}
 
@@ -17,7 +22,7 @@
 
     {% if email %}
         <p>
-            <a href="{{ url_for('emailVariations') }}" >All Email Variations</a>
+            <a href="{{ url_for('emailStatistics') }}" >All Email Statistics</a>
         </p>
 
         <p>

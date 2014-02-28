@@ -17,7 +17,7 @@
 
     <strong>{{ emailMessage }}</strong>
 
-    {{ table(emails, links={'id': 'email', 'variations': 'emailVariations'}) if emails }}
+    {{ table(emails, links={'id': 'email', 'sent': 'emailStatistics'}) if emails }}
 
     <p>
         <a href="{{ url_for('email') }}" >New Email</a>

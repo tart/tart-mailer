@@ -195,14 +195,13 @@ def preview(**kwargs):
         return emailVariation['htmlbody']
     flask.abort(404)
 
-@app.route('/email/variations')
-@app.route('/email/<int:id>/variations')
-def emailVariations(id=None):
+@app.route('/email/statistics')
+@app.route('/email/<int:id>/statistics')
+def emailStatistics(**kwargs):
     with postgres:
-        if id:
-            return flask.render_template('emailvariations.html', email={'id': id},
-                                         emailVariations=postgres.select('EmailVariationDetail', {'emailid': id}))
-        return flask.render_template('emailvariations.html', emailVariations=postgres.select('EmailVariationDetail'))
+        return flask.render_template('emailstatistics.html', email=kwargs,
+                                     emailSentDates=postgres.select('EmailSentDateStatistics', kwargs),
+                                     emailVariations=postgres.select('EmailVariationStatistics', kwargs))
 
 def parseURL(uRL):
     parts = {}
