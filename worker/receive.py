@@ -105,6 +105,9 @@ def main():
                 if 'original-recipient' in report['fields']:
                     emailAddresses.append(addressInHeader(report['fields']['original-recipient']).lower())
 
+                if 'original-rcpt-to' in report['fields']:
+                    emailAddresses.append(report['fields']['original-rcpt-to'].lower())
+
                 if 'final-recipient' in report['fields']:
                     emailAddresses.append(addressInHeader(report['fields']['final-recipient']).lower())
 
