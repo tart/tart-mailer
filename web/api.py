@@ -38,8 +38,13 @@ def databaseOperationViaAPI(operation):
     def wrapped(*args, **kwargs):
         try:
             return flask.jsonify(operation(*args, **kwargs))
-        except PostgresError as error:
-            return flask.jsonify({'error': str(error), 'type': error.typeName(), 'details': error.details()}), 400
+        except StandartError as error:
+            response = {'error': str(error), 'type': type(error).__name__}
+            if isinstance(error, PostgresError):
+                response['details'] = error.details()
+
+            return flask.jsonify(response), 400
+
     return wrapped
 
 @app.route('/subscriber', methods=['PUT'])
