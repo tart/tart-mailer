@@ -43,13 +43,11 @@ class Message(email.message.Message):
                         assert self.get_payload()[-2].get_content_type() in ('message/delivery-status',
                                                                              'message/feedback-report')
 
-            elif splitType[0] == 'message':
-                assert len(self.get_payload()) == 1
-
             for payload in self.get_payload():
                 payload.check()
 
-        else:
+        if self.get_content_type() == 'text/plain':
+            # Sanity checks plain text emails.
             assert not self.is_multipart()
 
     def plainText(self):
@@ -68,6 +66,12 @@ class Message(email.message.Message):
             return ' '.join(line.strip() for line in value.split('\n')) if '\n' in value else value
 
         return ((key.lower(), withoutNewLine(value)) for key, value in self.items())
+
+    def recursiveHeaders(self):
+        '''Walk inside the message, merge found headers. Useful for multipart messages. Be careful that it can
+        include the same header more than once.'''
+
+        return [item for part in self.walk() for item in part.headers()]
 
     def splitSubmessage(self):
         '''Search for messages inside the message payload.'''
