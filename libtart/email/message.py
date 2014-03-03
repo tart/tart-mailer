@@ -29,6 +29,8 @@ class Message(email.message.Message):
             assert self.is_multipart()
 
             if splitType[0] == 'multipart':
+                assert len(self.get_payload()) > 1
+
                 if splitType[1] in ('report', 'mixed'):
                     # Sanity checks for response reports and multipart emails supposed to include the returned
                     # original according to RFC 2464 page 7.
