@@ -64,6 +64,7 @@ def main():
 
     for messageId in messageIds[:amount]:
         message = email.message_from_string(server.execute('fetch', messageId, '(RFC822)')[0][1], Message)
+        message.check()
         report = {}
         emailSend = None
 

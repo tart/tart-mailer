@@ -22,9 +22,7 @@ import email.message
 class Message(email.message.Message):
     '''Extend the Message class on the standart library.'''
 
-    def __init__(self):
-        email.message.Message.__init__(self)
-
+    def check(self):
         splitType = self.get_content_type().split('/')
 
         if splitType[0] == 'multipart':
