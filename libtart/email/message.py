@@ -25,35 +25,29 @@ class Message(email.message.Message):
     def check(self):
         splitType = self.get_content_type().split('/')
 
-        if splitType[0] == 'multipart':
+        if splitType[0] in ('multipart', 'message'):
             assert self.is_multipart()
 
-            if splitType[1] == 'report':
-                # Sanity checks for response reports, according to RFC 2464 page 7.
-                assert len(self.get_payload()) >= 2
+            if splitType[0] == 'multipart':
+                if splitType[1] in ('report', 'mixed'):
+                    # Sanity checks for response reports and multipart emails supposed to include the returned
+                    # original according to RFC 2464 page 7.
 
-                if len(self.get_payload()) == 2:
-                    assert self.get_payload(1).get_content_type() == 'message/rfc822'
-                else:
-                    assert self.get_payload(1).get_content_type() in ('message/delivery-status',
-                                                                      'message/feedback-report')
-                    assert self.get_payload(2).get_content_type() == 'message/rfc822'
+                    assert len(self.get_payload()) <= 3
 
-            elif splitType[1] == 'mixed':
-                # Sanity checks for multipart emails supposed to include the returned original.
+                    # The last content type must be the returned original.
+                    assert self.get_payload()[-1].get_content_type() == 'message/rfc822'
 
-                if len(self.get_payload()) == 1:
-                    # Includes only the returned original.
-                    assert self.get_payload(0).get_content_type() == 'message/rfc822'
+                    if len(self.get_payload()) > 2:
+                        # The one before the returned original must be one of the standart responses.
+                        assert self.get_payload()[-2].get_content_type() in ('message/delivery-status',
+                                                                             'message/feedback-report')
 
-                else:
-                    # Includes an explanation and the returned original.
-                    assert self.get_payload(0).get_content_type() == 'text/plain'
-                    assert self.get_payload(1).get_content_type() == 'message/rfc822'
+            elif splitType[0] == 'message':
+                assert len(self.get_payload()) == 1
 
-        elif splitType[0] == 'message':
-            assert self.is_multipart()
-            assert len(self.get_payload()) == 1
+            for payload in self.get_payload():
+                payload.check()
 
         else:
             assert not self.is_multipart()
