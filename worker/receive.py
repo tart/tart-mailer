@@ -69,24 +69,30 @@ def main():
         emailSend = None
 
         if message.get_content_type() in ('multipart/report', 'multipart/mixed'):
-            report['originalHeaders'] = dict(message.get_payload()[-1].get_payload(0).headers())
-            if len(message.get_payload()) > 1:
-                report['body'] = message.get_payload(0).plainText()
-                if len(message.get_payload()) > 2:
-                    report['fields'] = dict(message.get_payload()[-2].recursiveHeaders())
-
+            # The last payload must be the returned original.
+            returnedOriginal = message.get_payload()[-1]
         elif message.get_content_type() in ('text/plain', 'multipart/alternative'):
-            splitMessage = message.splitSubmessage()
+            returnedOriginal = message
+            warning('Unexpected plain text email message will be processed:', report)
+        else:
+            warning('Unexpected MIME type:', message)
+
+        if returnedOriginal.is_multipart():
+            report['originalHeaders'] = dict(returnedOriginal.get_payload(0).headers())
+        else:
+            splitMessage = returnedOriginal.splitSubmessage()
             if splitMessage:
                 report['body'], submessage = splitMessage
                 report['originalHeaders'] = dict(submessage.headers())
-                warning('Sub-message will be processed as the returned original:', submessage)
             else:
-                report['body'] = message.plainTextWithoutQuote()
-                warning('Unexpected plain text email message will be processed:', report)
+                report['body'] = returnedOriginal.plainestWithoutQuote()
 
-        else:
-            warning('Unexpected MIME type:', message)
+        if message.get_content_type() in ('multipart/report', 'multipart/mixed'):
+            # Aditional fields for the standart response reports.
+            if len(message.get_payload()) > 1:
+                report['body'] = message.get_payload(0).plainest()
+                if len(message.get_payload()) > 2:
+                    report['fields'] = dict(message.get_payload()[-2].recursiveHeaders())
 
         if 'originalHeaders' in report and 'list-unsubscribe' in report['originalHeaders']:
             unsubscribeURL = report['originalHeaders']['list-unsubscribe'][1:-1]
@@ -97,7 +103,8 @@ def main():
             emailAddresses = []
 
             if 'fields' in report:
-                def addressInHeader(value): value.split(';')[1] if ';' in value else value
+                def addressInHeader(value):
+                    return value.split(';')[1] if ';' in value else value
 
                 if 'original-recipient' in report['fields']:
                     emailAddresses.append(addressInHeader(report['fields']['original-recipient']).lower())

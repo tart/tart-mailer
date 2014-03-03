@@ -36,7 +36,7 @@ class Message(email.message.Message):
                     assert len(self.get_payload()) <= 3
 
                     # The last content type must be the returned original.
-                    assert self.get_payload()[-1].get_content_type() == 'message/rfc822'
+                    assert self.get_payload()[-1].get_content_type() in ('message/rfc822', 'text/rfc822-headers')
 
                     if len(self.get_payload()) > 2:
                         # The one before the returned original must be one of the standart responses.
@@ -46,18 +46,17 @@ class Message(email.message.Message):
             for payload in self.get_payload():
                 payload.check()
 
-        if self.get_content_type() == 'text/plain':
+        elif splitType[0] == 'text':
             # Sanity checks plain text emails.
             assert not self.is_multipart()
 
-    def plainText(self):
+    def plainest(self):
         '''Return the text/plain payload or first payload inside multipart/alternative message which should
         be the plainest according to RFC 2046 page 24.'''
 
-        if self.get_content_type() == 'text/plain':
-            return self.get_payload()
-        if self.get_content_type() == 'multipart/alternative':
-            return self.get_payload(0).get_payload()
+        if self.is_multipart():
+            return self.get_payload(0).plainest()
+        return self.get_payload()
 
     def headers(self):
         '''Return headers with lower case names and without new lines.'''
@@ -76,7 +75,7 @@ class Message(email.message.Message):
     def splitSubmessage(self):
         '''Search for messages inside the message payload.'''
 
-        splitPayload = self.plainText().split('\n')
+        splitPayload = self.plainest().split('\n')
 
         for num, line in enumerate(splitPayload):
             if not line.strip():
@@ -85,7 +84,7 @@ class Message(email.message.Message):
                     # Consider it a valid submessage if there are more than 2 headers.
                     return '\n'.join(splitPayload[:num]), submessage
 
-    def plainTextWithoutQuote(self):
-        '''Return the plainText() without the lines start with ">".'''
+    def plainestWithoutQuote(self):
+        '''Return the plainest() without the lines start with ">".'''
 
-        return '\n'.join(line for line in self.plainText().split('\n') if not line.startswith('>'))
+        return '\n'.join(line for line in self.plainest().split('\n') if not line.startswith('>'))
