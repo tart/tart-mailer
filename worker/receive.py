@@ -59,7 +59,7 @@ def main():
                 raise Exception('Project could not find in the database.')
 
     server = IMAP4(**arguments)
-    messageIds = server.execute('search', 'utf-8', 'UNDELETED')[0].split()
+    messageIds = server.execute('search', 'utf-8', 'UNSEEN')[0].split()
     print(str(len(messageIds)) + ' email messages to process.')
 
     for messageId in messageIds[:amount]:

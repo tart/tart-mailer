@@ -64,7 +64,7 @@ class Message(email.message.Message):
         '''Return headers with lower case names and without new lines.'''
 
         def withoutNewLine(value):
-            return ' '.join(line.strip() for line in value.split('\n')) if '\n' in value else value
+            return ' '.join(line.strip() for line in value.split('\n'))
 
         return ((key.lower(), withoutNewLine(value)) for key, value in self.items())
 
