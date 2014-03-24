@@ -28,165 +28,179 @@ postgres = Postgres()
 @app.route('/')
 def index(**kwargs):
     with postgres:
-        return flask.render_template('index.html', projects=postgres.select('ProjectDetail'),
-                                    emails=postgres.select('EmailDetail'), **kwargs)
+        return flask.render_template('index.html', senders=postgres.select('SenderDetail'),
+                                     emails=postgres.select('EmailDetail'), **kwargs)
 
-@app.route('/project')
-@app.route('/project/<string:name>')
-def project(name=None, **kwargs):
+@app.route('/sender/new')
+def newSender(**kwargs):
     with postgres:
-        if name:
-            project = postgres.select('Project', {'name': name}, table=False)
-        else:
-            parts = parseURL(flask.request.url_root)
-            project = {'returnurlroot': parts['protocol'] + '//' + parts['root'] + '/'}
+        parts = parseURL(flask.request.url_root)
+        root = parts['protocol'] + '//' + parts['root'] + '/'
 
-    return flask.render_template('project.html', project=project, **kwargs)
+        return flask.render_template('sender.html', returnurlroot=root, **kwargs)
 
-@app.route('/project', methods=['POST'])
-@app.route('/project/<string:name>', methods=['POST'])
-def saveProject(name=None):
+@app.route('/sender/new', methods=['POST'])
+def addSender():
+    with postgres:
+        form = dict([(k, v) for k, v in flask.request.form.items() if v != ''])
+        postgres.insert('Sender', form)
+
+        return index(senderMessage='Sender created.')
+
+@app.route('/sender/<string:fromaddress>')
+def sender(**kwargs):
+    with postgres:
+        parameters = {'fromaddress': kwargs['fromaddress']}
+
+        kwargs.update(postgres.select('Sender', parameters, table=False))
+
+        return flask.render_template('sender.html', **kwargs)
+
+@app.route('/sender/<string:fromaddress>', methods=['POST'])
+def saveSender(**kwargs):
     with postgres:
         form = dict([(k, v) for k, v in flask.request.form.items() if v != ''])
 
-        if not name:
-            name = postgres.insert('Project', form)['name']
-            message = 'Project "' + name + '" created.'
+        if postgres.update('Sender', form, kwargs, table=False):
+            kwargs['saveMessage'] = 'Sender updated.'
         else:
-            newProject = postgres.update('Project', form, {'name': name}, table=False)
-            if newProject:
-                name = newProject['name']
-                message = 'Project "' + name + '" updated.'
-            else:
-                message = 'Project "' + name + '" could not found.'
+            kwargs['saveMessage'] = 'Sender could not found.'
 
-        return project(name, saveMessage=message)
+        return sender(**kwargs)
 
-@app.route('/project/<string:name>/remove', methods=['POST'])
-def removeProject(name):
+@app.route('/sender/<string:fromaddress>/remove', methods=['POST'])
+def removeSender(**kwargs):
     with postgres:
-        if postgres.delete('Project', {'name': name}):
-            message = 'Project "' + name + '" removed.'
+        if postgres.delete('Sender', kwargs):
+            kwargs['senderMessage'] = 'Sender removed.'
         else:
-            message = 'Project "' + name + '" could not be removed.'
+            kwargs['senderMessage'] = 'Sender could not be removed.'
 
-        return index(projectMessage=message)
+        return index(**kwargs)
 
-@app.route('/email')
-@app.route('/email/<int:id>')
-def email(id=None, **kwargs):
+@app.route('/sender/<string:fromaddress>/email/new')
+def newEmail(**kwargs):
+    return flask.render_template('email.html', draft=True, **kwargs)
+
+@app.route('/sender/<string:fromaddress>/email/new', methods=['POST'])
+def addEmail(**kwargs):
     with postgres:
-        if id:
-            email = postgres.select('Email', {'id': id}, table=False)
-            email['variations'] = postgres.select('EmailVariation', {'emailid': id})
+        form = dict([(k, v) for k, v in flask.request.form.items() if v != ''] +
+                    kwargs.items())
 
-            if flask.request.args.get('force'):
-                email['draft'] = True
-                for variation in email['variations']:
-                    variation['draft'] = True
-            else:
-                email['draft'] = all(variation['draft'] for variation in email['variations'])
+        postgres.insert('Email', form)
+        kwargs['saveMessage'] = 'Email created.'
 
-            if email['bulk']:
-                subscriberLocaleStats = postgres.call('SubscriberLocaleStats', id, table=True)
-                email['subscriberlocalestats'] = subscriberLocaleStats
-                email['subscribercount'] = sum(s['total'] - s['send'] for s in subscriberLocaleStats)
-                email['variationstats'] = postgres.call('EmailVariationStats', id, table=True)
-        else:
-            parts = parseURL(flask.request.url_root)
-            email = {'draft': True, 'returnurlroot': parts['protocol'] + '//' + parts['root'] + '/'}
+        return index(**kwargs)
 
-        email['exampleproperties'] = postgres.call('SubscriberExampleProperties')
-        email['projects'] = postgres.select('Project')
-
-    return flask.render_template('email.html', email=email, **kwargs)
-
-@app.route('/email', methods=['POST'])
-@app.route('/email/<int:id>', methods=['POST'])
-def saveEmail(id=None):
+@app.route('/sender/<string:fromaddress>/email/<int:emailid>')
+def email(**kwargs):
     with postgres:
-        form = dict([(k, v) for k, v in flask.request.form.items() if v != ''])
-        print(flask.request.form.items())
+        parameters = dict((k, v) for k, v in kwargs.items() if k in ('fromaddress', 'emailid'))
 
-        if not id:
-            id = postgres.insert('Email', form)['id']
-            message = str(id) + '. Email created.'
+        kwargs.update(postgres.select('Email', parameters, table=False))
+
+        kwargs['variations'] = postgres.select('EmailVariation', parameters)
+        if flask.request.args.get('force'):
+            kwargs['draft'] = True
+            for variation in kwargs['variations']:
+                variation['draft'] = True
         else:
-            if postgres.update('Email', form, {'id': id}):
-                message = str(id) + '. Email updated.'
-            else:
-                message = str(id) + '. Email could not found.'
+            kwargs['draft'] = all(variation['draft'] for variation in kwargs['variations'])
 
-        return email(id, saveMessage=message)
+        if kwargs['bulk']:
+            subscriberLocaleStats = postgres.call('SubscriberLocaleStats', parameters, table=True)
+            kwargs['subscriberlocalestats'] = subscriberLocaleStats
+            kwargs['subscribercount'] = sum(s['total'] - s['send'] for s in subscriberLocaleStats)
+            kwargs['variationstats'] = postgres.call('EmailVariationStats', parameters, table=True)
 
-@app.route('/email/<int:id>/remove', methods=['POST'])
-def removeEmail(id):
-    with postgres:
-        if postgres.delete('Email', {'id': id}):
-            message = str(id) + '. Email removed.'
-        else:
-            message = str(id) + '. Email could not be removed.'
+        kwargs['exampleproperties'] = postgres.call('SubscriberExampleProperties', kwargs['fromaddress'])
 
-        return index(emailMessage=message)
+    return flask.render_template('email.html', **kwargs)
 
-@app.route('/email/<int:id>/variation', methods=['POST'])
-@app.route('/email/<int:id>/variation/<int:rank>', methods=['POST'])
-def saveEmailVariation(id, rank=None):
+@app.route('/sender/<string:fromaddress>/email/<int:emailid>', methods=['POST'])
+def saveEmail(**kwargs):
     with postgres:
         form = dict([(k, v) for k, v in flask.request.form.items() if v != ''])
 
-        if not rank:
-            form['emailid'] = id
-            rank = postgres.insert('EmailVariation', form)['rank']
-            message = str(rank) + '. Email Variation created.'
+        if postgres.update('Email', form, kwargs):
+            kwargs['saveMessage'] = 'Email updated.'
         else:
-            if postgres.update('EmailVariation', form, {'emailid': id, 'rank': rank}):
-                message = str(rank) + '. Email Variation updated.'
-            else:
-                message = str(rank) + '. Email Variation could not found.'
+            kwargs['saveMessage'] = 'Email could not found.'
 
-        return email(id, saveEmailVariationMessage=message, variationRank=rank)
+        return email(**kwargs)
 
-@app.route('/email/<int:id>/variation/<int:rank>/remove', methods=['POST'])
-def removeEmailVariation(id, rank):
+@app.route('/sender/<string:fromaddress>/email/<int:emailid>/remove', methods=['POST'])
+def removeEmail(**kwargs):
     with postgres:
-        if postgres.delete('EmailVariation', {'emailid': id, 'rank': rank}):
-            message = str(rank) + '. Email Variation removed.'
+        if postgres.delete('Email', **kwargs):
+            kwargs['emailMessage'] = 'Email removed.'
         else:
-            message = str(rank) + '. Email Variation could not be removed.'
+            kwargs['emailMessage'] = 'Email could not be removed.'
 
-        return email(id, removeEmailVariationMessage=message, variationRank=rank)
+        return index(**kwargs)
 
-@app.route('/email/<int:id>/variation/<int:rank>/sendTest', methods=['POST'])
-def sendTestEmail(id, rank):
+@app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/new', methods=['POST'])
+def addEmailVariation(**kwargs):
     with postgres:
-        form = dict(flask.request.form.items())
-        form['emailid'] = id
-        form['variationrank'] = rank
+        form = dict([(k, v) for k, v in flask.request.form.items() if v != ''] +
+                    kwargs.items())
+
+        postgres.insert('EmailVariation', form)
+        kwargs['saveEmailVariationMessage'] = 'Email Variation created.'
+
+        return email(**kwargs)
+
+@app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>', methods=['POST'])
+def saveEmailVariation(**kwargs):
+    with postgres:
+        form = dict([(k, v) for k, v in flask.request.form.items() if v != ''])
+
+        if postgres.update('EmailVariation', form, kwargs):
+            kwargs['saveEmailVariationMessage'] = 'Email Variation updated.'
+        else:
+            kwargs['saveEmailVariationMessage'] = 'Email Variation could not found.'
+
+        return email(**kwargs)
+
+@app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>/remove', methods=['POST'])
+def removeEmailVariation(**kwargs):
+    with postgres:
+        if postgres.delete('EmailVariation', **kwargs):
+            kwargs['removeEmailVariationMessage'] = 'Email Variation removed.'
+        else:
+            kwargs['removeEmailVariationMessage'] = 'Email Variation could not be removed.'
+
+        return email(**kwargs)
+
+@app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>/sendTest', methods=['POST'])
+def sendTestEmail(**kwargs):
+    with postgres:
+        form = dict([(k, v) for k, v in flask.request.form.items() if v != ''] +
+                    kwargs.items())
 
         if postgres.call('SendTestEmail', form):
-            message = 'Test email message added to the queue.'
+            kwargs['sendTestEmailMessage'] = 'Test email message added to the queue.'
         else:
-            message = 'Test email message could not send. Subscriber may not be in the database.'
+            kwargs['sendTestEmailMessage'] = 'Test email message could not send. Subscriber may not be in the database.'
 
-        return email(id, sendTestEmailMessage=message, variationRank=rank)
+        return email(**kwargs)
 
-@app.route('/email/<int:id>/sendBulk', methods=['POST'])
-def sendBulkEmail(id):
+@app.route('/sender/<string:fromaddress>/email/<int:emailid>/sendBulk', methods=['POST'])
+def sendBulkEmail(**kwargs):
     with postgres:
-        form = {'emailid': id}
         for key, value in flask.request.form.items():
             if key[-2:] == '[]':
-                form[key[:-2]] = [None if v == 'None' else v for v in flask.request.form.getlist(key)]
+                kwargs[key[:-2]] = [None if v == 'None' else v for v in flask.request.form.getlist(key)]
             else:
-                form[key] = value
+                kwargs[key] = value
 
-        subscriberCount = postgres.call('SendBulkEmail', form)
-        message = str(subscriberCount) + ' email messages added to the queue.'
+        subscriberCount = postgres.call('SendBulkEmail', kwargs)
+        kwargs['sendBulkEmailMessage'] = str(subscriberCount) + ' email messages added to the queue.'
 
-        return email(id, sendBulkEmailMessage=message)
+        return email(**kwargs)
 
-@app.route('/email/<int:emailid>/preview/<int:rank>')
+@app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>/preview')
 def preview(**kwargs):
     with postgres:
         emailVariation = postgres.select('EmailVariation', kwargs, table=False)
@@ -195,13 +209,14 @@ def preview(**kwargs):
         return emailVariation['htmlbody']
     flask.abort(404)
 
-@app.route('/email/statistics')
-@app.route('/email/<int:id>/statistics')
+@app.route('/sender/<string:fromaddress>/statistics')
+@app.route('/sender/<string:fromaddress>/email/<int:emailid>/statistics')
 def emailStatistics(**kwargs):
     with postgres:
-        return flask.render_template('emailstatistics.html', email=kwargs,
+        return flask.render_template('emailstatistics.html',
                                      emailSentDates=postgres.select('EmailSentDateStatistics', kwargs),
-                                     emailVariations=postgres.select('EmailVariationStatistics', kwargs))
+                                     emailVariations=postgres.select('EmailVariationStatistics', kwargs),
+                                     **kwargs)
 
 def parseURL(uRL):
     parts = {}

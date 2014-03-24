@@ -1,36 +1,53 @@
 Begin;
 
-Drop function if exists NewEmailSendResponseReport(varchar, hstore, hstore, text);
-
-Create or replace function LastEmailSendToEmailAddresses(projectName varchar(200), emailAddresses varchar(200)[])
+Create or replace function LastEmailSendToEmailAddresses(toAddresses varchar(200)[])
     returns setof EmailSend
-    language sql
+    language sql strict
     as $$
-Select EmailSend.*
-    from Email
-        join EmailSend on EmailSend.emailId = Email.id
-                and EmailSend.sent
-            join Subscriber on EmailSend.subscriberId = Subscriber.id
-                    and Subscriber.emailAddress = any(LastEmailSendToEmailAddresses.emailAddresses)
-        where LastEmailSendToEmailAddresses.projectName is null
-                or Email.projectName = LastEmailSendToEmailAddresses.projectName
-        order by EmailSend.revisedAt desc
+Select *
+    from EmailSend
+        where sent
+                and toAddress = any(toAddresses)
+        order by revisedAt desc
             limit 1
 $$;
 
-Create or replace function EmailSendFromUnsubscribeURL(projectName varchar(200), unsubscribeURL text)
+Create or replace function LastEmailSendToEmailAddresses(fromAddress varchar(200), toAddresses varchar(200)[])
     returns setof EmailSend
-    language sql
+    language sql strict
+    as $$
+Select *
+    from EmailSend
+        where sent
+                and fromAddress = LastEmailSendToEmailAddresses.fromAddress
+                and toAddress = any(toAddresses)
+        order by revisedAt desc
+            limit 1
+$$;
+
+Create or replace function EmailSendFromUnsubscribeURL(unsubscribeURL text)
+    returns setof EmailSend
+    language sql strict
     as $$
 select EmailSend.*
-    from Email
-        join Project on Email.projectName = Project.name
-        join EmailSend on EmailSend.emailId = Email.id
-                and EmailSend.sent
+    from EmailSend
+        join Sender using (fromAddress)
+        where EmailSend.sent
                 and EmailHash(EmailSend) = regexp_replace(EmailSendFromUnsubscribeURL.unsubscribeURL,
-                                                          '^' || Project.returnURLRoot || 'unsubscribe/', '')
-        where EmailSendFromUnsubscribeURL.projectName is null
-                or Email.projectName = EmailSendFromUnsubscribeURL.projectName
+                                                          '^' || Sender.returnURLRoot || 'unsubscribe/', '')
+$$;
+
+Create or replace function EmailSendFromUnsubscribeURL(fromAddress varchar(200), unsubscribeURL text)
+    returns setof EmailSend
+    language sql strict
+    as $$
+select EmailSend.*
+    from EmailSend
+        join Sender using (fromAddress)
+        where EmailSend.sent
+                and EmailSend.fromAddress = EmailSendFromUnsubscribeURL.fromAddress
+                and EmailHash(EmailSend) = regexp_replace(EmailSendFromUnsubscribeURL.unsubscribeURL,
+                                                          '^' || Sender.returnURLRoot || 'unsubscribe/', '')
 $$;
 
 Commit;

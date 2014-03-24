@@ -3,44 +3,31 @@
 {% from 'macros.html' import checkboxTable %}
 
 {% block body %}
-    <h1>{{ email.id ~ '.' if email.id else 'New' }} Email</h1>
+    <h1>{{ emailid ~ '.' if emailid else 'New' }} Email from {{ fromaddress }}</h1>
 
-    {% if not email['draft'] %}
+    {% if not draft %}
         <p>
             Fields for emails which have sent to the subscribers, are disabled. Add ?force=True parameter to to URL
             to enable editing these fields, if you know what you are doing.
         </p>
     {% endif %}
 
-    <form method="POST" action="{{ url_for('saveEmail', id=email.get('id')) }}">
+    <form method="POST" action="{{ url_for('saveEmail', fromaddress=fromaddress, emailid=emailid)
+                                   if emailid else url_for('addEmail', fromaddress=fromaddress) }}">
         <table>
-            <tr>
-                <td>Project:</td>
-                <td>
-                    <select name="projectname" required {{ 'disabled ' if not email['draft'] }} >
-                        <option value="">-- select --</option>
-
-                        {% for project in email['projects'] %}
-                            <option {{ 'selected' if project['name'] == email['projectname'] }}
-                                    >{{ project['name'] }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-            </tr>
-
             <tr>
                 <td>Redirect URL:</td>
                 <td>
-                    <input type="text" name="redirecturl" size="100" maxlength="1000" value="{{ email['redirecturl'] or '' }}"
-                           {{ 'disabled ' if not email['draft'] }} />
+                    <input type="text" name="redirecturl" size="100" maxlength="1000" value="{{ redirecturl or '' }}"
+                           {{ 'disabled ' if not draft }} />
                 </td>
             </tr>
 
             <tr>
                 <td>Bulk:</td>
                 <td>
-                    <input type="checkbox" name="bulk" value="True" {{ 'checked' if email['bulk'] }}
-                           {{ 'disabled ' if not email['draft'] }} />
+                    <input type="checkbox" name="bulk" value="True" {{ 'checked' if bulk }}
+                           {{ 'disabled ' if not draft }} />
 
                     <input type="hidden" name="bulk" value="False" /> <!-- The default value -->
                 </td>
@@ -48,7 +35,7 @@
 
             <tr>
                 <td>Example Properies:</td>
-                <td>{{ email['exampleproperties'] }}</td>
+                <td>{{ exampleproperties }}</td>
             </tr>
         </table>
 
@@ -62,22 +49,22 @@
         <strong>{{ saveMessage }}</strong>
 
         <p>
-            <input type="submit" value="Save Email" {{ 'disabled ' if not email['draft'] }} />
+            <input type="submit" value="Save Email" {{ 'disabled ' if not draft }} />
         </p>
     </form>
 
-    {% if email.id %}
-        <form method="POST" action="{{ url_for('removeEmail', id=email['id']) }}">
+    {% if emailid %}
+        <form method="POST" action="{{ url_for('removeEmail', fromaddress=fromaddress, emailid=emailid) }}">
             <p>
                 <input type="submit" value="Remove Email"
-                       {{ 'disabled' if not email['draft'] }} />
+                       {{ 'disabled' if not draft }} />
             </p>
         </form>
 
-        {% for emailVariation in email['variations'] %}
-            <h3>{{ emailVariation['rank'] }}. Variation</h3>
+        {% for emailVariation in variations %}
+            <h3>{{ emailVariation['variationid'] }}. Variation</h3>
 
-            <form method="POST" action="{{ url_for('saveEmailVariation', id=email['id'], rank=emailVariation['rank']) }}">
+            <form method="POST" action="{{ url_for('saveEmailVariation', fromaddress=fromaddress, emailid=emailid, variationid=emailVariation['variationid']) }}">
                 <table>
                     <tr>
                         <td>Subject:</td>
@@ -115,9 +102,9 @@
                 </p>
             </form>
 
-            <form method="POST" action="{{ url_for('removeEmailVariation', id=email['id'], rank=emailVariation['rank']) }}">
+            <form method="POST" action="{{ url_for('removeEmailVariation', fromaddress=fromaddress, emailid=emailid, variationid=emailVariation['variationid']) }}">
 
-                {% if emailVariation['rank'] == variationRank %}
+                {% if emailVariation['variationid'] == variationid %}
                     <strong>{{ removeEmailVariationMessage }}</strong>
                 {% endif %}
 
@@ -127,11 +114,9 @@
                 </p>
             </form>
 
-            {% set previewURL = url_for('preview', emailid=email['id'], rank=emailVariation['rank']) %}
-
             {% if emailVariation['htmlbody'] %}
                 <p>
-                    <a href="{{ previewURL }}">
+                    <a href="{{ url_for('preview', fromaddress=fromaddress, emailid=emailid, variationid=emailVariation['variationid']) }}">
                         <button>Preview HTML</button>
                     </a>
                 </p>
@@ -145,7 +130,7 @@
                 </form>
             {% endif %}
 
-            <form method="POST" action="{{ url_for('sendTestEmail', id=email['id'], rank=emailVariation['rank']) }}">
+            <form method="POST" action="{{ url_for('sendTestEmail', fromaddress=fromaddress, emailid=emailid, variationid=emailVariation['variationid']) }}">
                 <table>
                     <tr>
                         <td>Email Address:</td>
@@ -155,7 +140,7 @@
                     </tr>
                 </table>
 
-                {% if emailVariation['rank'] == variationRank %}
+                {% if emailVariation['variationid'] == variationid %}
                     <strong>{{ sendTestEmailMessage }}</strong>
                 {% endif %}
 
@@ -167,7 +152,7 @@
 
         <h3>New Variation</h3>
 
-        <form method="POST" action="{{ url_for('saveEmailVariation', id=email['id']) }}">
+        <form method="POST" action="{{ url_for('addEmailVariation', fromaddress=fromaddress, emailid=emailid) }}">
             <table>
                 <tr>
                     <td>Subject:</td>
@@ -196,24 +181,24 @@
             </p>
         </form>
 
-        {% if email['bulk'] %}
+        {% if bulk %}
             <h3>Send Bulk Email</h3>
 
-            <form method="POST" action="{{ url_for('sendBulkEmail', id=email['id']) }}">
-                {{ checkboxTable(email['subscriberlocalestats'], 'locale') if email['subscriberlocalestats'] }}
+            <form method="POST" action="{{ url_for('sendBulkEmail', fromaddress=fromaddress, emailid=emailid) }}">
+                {{ checkboxTable(subscriberlocalestats, 'locale') }}
 
                 <p>
                     Counts does not include unsubscribed or response report sent subscribers but emails may have been sent
                     to them, before.
                 </p>
 
-                {{ checkboxTable(email['variationstats'], 'variation') if email['variationstats'] }}
+                {{ checkboxTable(variationstats, 'variationid') }}
 
                 <table>
                     <tr>
                         <td>Maximum Subscriber Count:</td>
                         <td>
-                            <input type="text" name="subscribercount" maxlength="20" value="{{ email['subscribercount'] }}" required {{ 'disabled ' if email['subscribercount'] == 0 }}/>
+                            <input type="text" name="subscribercount" maxlength="20" value="{{ subscribercount }}" required {{ 'disabled ' if subscribercount == 0 }}/>
                         </td>
                     </tr>
                 </table>
@@ -226,7 +211,7 @@
                 <strong>{{ sendBulkEmailMessage }}</strong>
 
                 <p>
-                    <input type="submit" value="Send Bulk Email" {{ 'disabled ' if email['subscribercount'] == 0 }}/>
+                    <input type="submit" value="Send Bulk Email" {{ 'disabled ' if subscribercount == 0 }}/>
                 </p>
             </form>
         {% endif %}
@@ -237,6 +222,6 @@
     </p>
 
     <p>
-        <a href="{{ url_for('email') }}" >New Email</a>
+        <a href="{{ url_for('newEmail', fromaddress=fromaddress) }}" >New Email</a>
     </p>
 {% endblock %}

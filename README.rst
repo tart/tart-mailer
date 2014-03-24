@@ -70,3 +70,10 @@ Known Issues
 ------------
 
 Duplicate headers of the response reports are not saved to the database.
+
+Changelog
+---------
+
+Version 1.0.1
+
+* Improve database schema using more composite keys

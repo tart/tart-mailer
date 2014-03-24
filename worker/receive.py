@@ -32,17 +32,18 @@ from libtart.helpers import warning
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--project', help='project name to receive email messages for')
+    parser.add_argument('--sender', help='email address to receive email messages for')
     parser.add_argument('--amount', type=int, default=1, help='maximum email message amount to receive')
     parser.add_argument('--timeout', type=int, help='seconds to kill the process')
     parser.add_argument('--debug', action='store_true', help='debug mode')
     IMAP4.addArguments(parser)
 
     arguments = vars(parser.parse_args())
-    project = arguments.pop('project')
+    sender = arguments.pop('sender')
     amount = arguments.pop('amount')
     timeout = arguments.pop('timeout')
     debug = arguments.pop('debug')
+    # Remaining arguments are for IMAP4.
 
     if timeout:
         signal.alarm(timeout)
@@ -53,10 +54,10 @@ def main():
 
     postgres = Postgres()
 
-    if project:
+    if sender:
         with postgres:
-            if not postgres.select('Project', {'name': project}):
-                raise Exception('Project could not find in the database.')
+            if not postgres.select('Sender', {'fromAddress': sender}):
+                raise Exception('Sender does not exists.')
 
     server = IMAP4(**arguments)
     messageIds = server.execute('search', 'utf-8', 'UNSEEN')[0].split()
@@ -97,7 +98,8 @@ def main():
         if 'originalHeaders' in report and 'list-unsubscribe' in report['originalHeaders']:
             unsubscribeURL = report['originalHeaders']['list-unsubscribe'][1:-1]
             with postgres:
-                emailSend = postgres.call('EmailSendFromUnsubscribeURL', [project, unsubscribeURL])
+                emailSend = postgres.call('EmailSendFromUnsubscribeURL',
+                                          [sender, unsubscribeURL] if sender else unsubscribeURL)
 
         else:
             emailAddresses = []
@@ -125,7 +127,8 @@ def main():
             if emailAddresses:
                 with postgres:
                     try:
-                        emailSend = postgres.call('LastEmailSendToEmailAddresses', [project, emailAddresses])
+                        emailSend = postgres.call('LastEmailSendToEmailAddresses',
+                                                  [sender, emailAddresses] if sender else emailAddresses)
                     except PostgresNoRow: pass
 
         if emailSend:

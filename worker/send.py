@@ -33,17 +33,18 @@ from libtart.helpers import warning
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--project', help='project name send to email messages for')
+    parser.add_argument('--sender', help='email address to send email messages')
     parser.add_argument('--amount', type=int, default=1, help='maximum email message amount to send')
     parser.add_argument('--timeout', type=int, help='seconds to kill the process')
     parser.add_argument('--debug', action='store_true', help='debug mode')
     SMTP.addArguments(parser)
 
     arguments = vars(parser.parse_args())
-    project = arguments.pop('project')
+    sender = arguments.pop('sender')
     amount = arguments.pop('amount')
     timeout = arguments.pop('timeout')
     debug = arguments.pop('debug')
+    # Remaining arguments are for SMTP.
 
     if timeout:
         signal.alarm(timeout)
@@ -54,14 +55,14 @@ def main():
     postgres = Postgres()
 
     with postgres:
-        if project:
-            if not postgres.select('Project', {'name': project}):
-                raise Exception('Project could not find in the database.')
+        if sender:
+            if not postgres.select('Sender', {'fromAddress': sender}):
+                raise Exception('Sender does not exists.')
 
-        for emailSend in postgres.call('RemoveNotAllowedEmailSend', project, table=True):
+        for emailSend in postgres.call('RemoveNotAllowedEmailSend', sender, table=True):
             warning('Not allowed email messages removed from the queue:', emailSend)
 
-        count = postgres.call('EmailToSendCount', project)
+        count = postgres.call('EmailToSendCount', sender)
 
     print(str(count) + ' waiting email messages to send.')
     if count < amount:
@@ -72,7 +73,7 @@ def main():
 
     for messageId in range(amount):
         with postgres:
-            email = postgres.call('NextEmailToSend', project)
+            email = postgres.call('NextEmailToSend', sender)
 
             if email['plainbody'] and email['htmlbody']:
                 message = MIMEMultipart('alternative')

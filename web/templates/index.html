@@ -3,23 +3,19 @@
 {% from 'macros.html' import table %}
 
 {% block body %}
-    <h2>Projects</h2>
+    <h2>Senders</h2>
 
-    <strong>{{ projectMessage }}</strong>
+    <strong>{{ senderMessage }}</strong>
 
-    {{ table(projects, links={'name': 'project'}) if projects }}
-
-    <p>
-        <a href="{{ url_for('project') }}" >New Project</a>
-    </p>
+    {{ table(senders, links={'fromaddress': 'sender', 'totalemails': 'newEmail'}) }}
 
     <h2>Emails</h2>
 
     <strong>{{ emailMessage }}</strong>
 
-    {{ table(emails, links={'id': 'email', 'sent': 'emailStatistics'}) if emails }}
+    {{ table(emails, links={'emailid': 'email', 'sentmessages': 'emailStatistics'}) }}
 
     <p>
-        <a href="{{ url_for('email') }}" >New Email</a>
+        <a href="{{ url_for('newSender') }}" >New Sender</a>
     </p>
 {% endblock %}

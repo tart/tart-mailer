@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    <form method="POST" action="{{ url_for('saveSender', fromaddress=fromaddress)
+                                   if fromaddress else url_for('addSender') }}">
+        <table>
+            <tr>
+                <td>From Address:</td>
+                <td>
+                    <input type="text" name="fromaddress" size="100" maxlength="200" value="{{ fromaddress }}"
+                            {{ 'disabled' if fromaddress }} />
+                </td>
+            </tr>
+
+            <tr>
+                <td>From Name:</td>
+                <td>
+                    <input type="text" name="fromname" size="100" maxlength="200" value="{{ fromname }}" />
+                </td>
+            </tr>
+
+            <tr>
+                <td>Return URL Root:</td>
+                <td>
+                    <input type="text" name="returnurlroot" size="100" maxlength="1000" value="{{ returnurlroot }}" />
+                </td>
+            </tr>
+        </table>
+
+        <strong>{{ saveMessage }}</strong>
+
+        <p>
+            <input type="submit" value="Save" />
+        </p>
+    </form>
+
+    {% if fromaddress %}
+        <form method="POST" action="{{ url_for('removeSender', fromaddress=fromaddress) }}">
+            <p>
+                <input type="submit" value="Remove" />
+            </p>
+        </form>
+    {% endif %}
+
+    <p>
+        <a href="{{ url_for('index') }}" >Index</a>
+    </p>
+
+    <p>
+        <a href="{{ url_for('newSender') }}" >New Sender</a>
+    </p>
+{% endblock %}

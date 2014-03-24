@@ -9,8 +9,8 @@ echo
 
 echo "Trying to add a subscriber..."
 curl -H "Content-type: application/json" -X PUT -d '{
-                                                        "projectName": "test",
-                                                        "emailAddress": "osman@spam.bo",
+                                                        "fromAddress": "tart-mailer@github.com",
+                                                        "toAddress": "osman@spam.bo",
                                                         "properties": {
                                                             "eyeColor": "brown",
                                                             "gender": "male"
@@ -21,8 +21,8 @@ echo
 
 echo "Trying to add a subscriber with invalid fields..."
 curl -H "Content-type: application/json" -X PUT -d '{
-                                                        "projectName": "test",
-                                                        "emailAddress": "osman@spam.bo",
+                                                        "fromAddress": "tart-mailer@github.com",
+                                                        "toAddress": "osman@spam.bo",
                                                         "gender": "male"
                                                     }' http://localhost:8080/subscriber
 echo

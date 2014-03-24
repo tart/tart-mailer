@@ -71,6 +71,8 @@ class Postgres(psycopg2.extensions.connection):
             parameters = parameters.values()
         elif hasattr(parameters, '__iter__'):
             query += ', '.join(['%s'] * len(parameters))
+        elif parameters is None:
+            parameters = []
         else:
             query += '%s'
             parameters = [parameters]
@@ -127,9 +129,9 @@ class PostgresNoRow(PostgresException): pass
 
 class PostgresMoreThanOneRow(PostgresException): pass
 
-class PostgresError(PostgresException):
+class PostgresError(PostgresException, StandardError):
     def __init__(self, psycopgError):
-        PostgresException.__init__(self, psycopgError.diag.message_primary.replace('"', ''))
+        PostgresException.__init__(self, psycopgError.diag.message_primary)
         self.__psycopgError = psycopgError
 
     def details(self):

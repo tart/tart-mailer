@@ -1,39 +1,33 @@
 Begin;
 
 Create or replace view EmailSentDateStatistics as
-    select EmailSend.emailId as id, EmailSend.revisedAt::date as sentDate, 
+    select EmailSend.fromAddress, EmailSend.emailId, EmailSend.revisedAt::date as sentDate,
             count(*) as total,
-            count(EmailSendResponseReport) as responseReport,
-            sum((EmailSendFeedback.type = 'trackerImage')::int) as trackerImage,
-            sum((EmailSendFeedback.type = 'view')::int) as view,
-            sum((EmailSendFeedback.type = 'redirect')::int) as redirect,
-            sum((EmailSendFeedback.type = 'unsubscribe')::int) as unsubscribe
+            count(EmailSendResponseReport) as responseReports,
+            sum((EmailSendFeedback.feedbackType = 'trackerImage')::int) as trackerImages,
+            sum((EmailSendFeedback.feedbackType = 'view')::int) as views,
+            sum((EmailSendFeedback.feedbackType = 'redirect')::int) as redirects,
+            sum((EmailSendFeedback.feedbackType = 'unsubscribe')::int) as unsubscribes
         from EmailSend
-            left join EmailSendResponseReport on EmailSendResponseReport.emailId = EmailSend.emailId
-                    and EmailSend.subscriberId = EmailSendResponseReport.subscriberId
-            left join EmailSendFeedback on EmailSendFeedback.emailId = EmailSend.emailId
-                    and EmailSend.subscriberId = EmailSendFeedback.subscriberId
+            left join EmailSendResponseReport using (fromAddress, toAddress, emailId)
+            left join EmailSendFeedback using (fromAddress, toAddress, emailId)
             where EmailSend.sent
-            group by EmailSend.emailId, EmailSend.revisedAt::date
-            order by EmailSend.emailId, EmailSend.revisedAt::date;
-
-Drop view if exists EmailVariationDetail;
+            group by EmailSend.fromAddress, EmailSend.emailId, EmailSend.revisedAt::date
+            order by EmailSend.fromAddress, EmailSend.emailId, EmailSend.revisedAt::date;
 
 Create or replace view EmailVariationStatistics as
-    select EmailSend.emailId as id, EmailSend.variationRank as rank,
+    select EmailSend.fromAddress, EmailSend.emailId, EmailSend.variationId,
             count(*) as total,
-            count(EmailSendResponseReport) as responseReport,
-            sum((EmailSendFeedback.type = 'trackerImage')::int) as trackerImage,
-            sum((EmailSendFeedback.type = 'view')::int) as view,
-            sum((EmailSendFeedback.type = 'redirect')::int) as redirect,
-            sum((EmailSendFeedback.type = 'unsubscribe')::int) as unsubscribe
+            count(EmailSendResponseReport) as responseReports,
+            sum((EmailSendFeedback.feedbackType = 'trackerImage')::int) as trackerImages,
+            sum((EmailSendFeedback.feedbackType = 'view')::int) as views,
+            sum((EmailSendFeedback.feedbackType = 'redirect')::int) as redirects,
+            sum((EmailSendFeedback.feedbackType = 'unsubscribe')::int) as unsubscribes
         from EmailSend
-            left join EmailSendResponseReport on EmailSendResponseReport.emailId = EmailSend.emailId
-                    and EmailSend.subscriberId = EmailSendResponseReport.subscriberId
-            left join EmailSendFeedback on EmailSendFeedback.emailId = EmailSend.emailId
-                    and EmailSend.subscriberId = EmailSendFeedback.subscriberId
+            left join EmailSendResponseReport using (fromAddress, toAddress, emailId)
+            left join EmailSendFeedback using (fromAddress, toAddress, emailId)
             where EmailSend.sent
-            group by EmailSend.emailId, EmailSend.variationRank
-            order by EmailSend.emailId, EmailSend.variationRank;
+            group by EmailSend.fromAddress, EmailSend.emailId, EmailSend.variationId
+            order by EmailSend.fromAddress, EmailSend.emailId, EmailSend.variationId;
 
 Commit;

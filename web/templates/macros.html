@@ -2,11 +2,13 @@
 
 {% macro table(tableData, links={}) %}
     <table border="1" >
-        <tr>
-            {% for header in tableData[0].keys() %}
-                <th>{{ header }}</th>
-            {% endfor %}
-        </tr>
+        {% if tableData %}
+            <tr>
+                {% for header in tableData[0].keys() %}
+                    <th>{{ header }}</th>
+                {% endfor %}
+            </tr>
+        {% endif %}
 
         {% for row in tableData %}
             <tr>
@@ -28,13 +30,15 @@
 
 {% macro checkboxTable(tableData, checkboxColumn) %}
     <table border="1" >
-        <tr>
-            <th></th>
+        {% if tableData %}
+            <tr>
+                <th></th>
 
-            {% for header in tableData[0].keys() %}
-                <th>{{ header }}</th>
-            {% endfor %}
-        </tr>
+                {% for header in tableData[0].keys() %}
+                    <th>{{ header }}</th>
+                {% endfor %}
+            </tr>
+        {% endif %}
 
         {% for row in tableData %}
             <tr>

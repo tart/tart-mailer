@@ -12,11 +12,14 @@ cat ../db/* | psql
 echo
 
 echo "Adding data..."
-echo "\Copy Project (name, fromName, emailAddress, returnURLRoot) from 'project.data';
-\Copy Subscriber (projectName, emailAddress, properties) from 'subscriber.data';
-\Copy Email (projectName, redirectURL) from 'email.data';
+echo "\Copy Sender (fromAddress, fromName, returnURLRoot) from 'sender.data';
+\Copy Subscriber (fromAddress, toAddress, properties) from 'subscriber.data';
+\Copy Email (fromAddress, redirectURL) from 'email.data';
 Create temp table TempEmailVariation (subject varchar(1000), plainBody text, hTMLBody text);
 \Copy TempEmailVariation from 'emailvariation.data';
-Insert into EmailVariation (emailId, subject, plainBody, hTMLBody) select Email.id, TempEmailVariation.* from Email, TempEmailVariation;
-Insert into EmailSend (emailId, subscriberId, variationRank) select EmailVariation.emailId, Subscriber.id, EmailVariation.rank from EmailVariation, Subscriber;" | psql
+Insert into EmailVariation (fromAddress, emailId, subject, plainBody, hTMLBody)
+    select Email.fromAddress, Email.emailId, TempEmailVariation.*
+        from Email, TempEmailVariation;
+Select SendTestEmail(Subscriber.fromAddress, Subscriber.toAddress, EmailVariation.emailId, EmailVariation.variationId)
+    from Subscriber, EmailVariation;" | psql
 echo

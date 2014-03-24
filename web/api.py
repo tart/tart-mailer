@@ -38,7 +38,7 @@ def databaseOperationViaAPI(operation):
     def wrapped(*args, **kwargs):
         try:
             return flask.jsonify(operation(*args, **kwargs))
-        except StandartError as error:
+        except StandardError as error:
             response = {'error': str(error), 'type': type(error).__name__}
             if isinstance(error, PostgresError):
                 response['details'] = error.details()

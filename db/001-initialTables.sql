@@ -2,54 +2,84 @@ Begin;
 
 Create extension if not exists hstore;
 
-Create table Email (
-    id integer not null,
+Create domain EmailAddress varchar(200) collate "C"
+    constraint EmailAddressC check (value ~ '^[a-z0-9._\-+!'']+@[a-z0-9.\-]+\.[a-z0-9]+$');
+
+Create domain HTTPURL varchar(1000) collate "C"
+    constraint HTTPURLC check (value ~ '^(http|https)://');
+
+Create domain LocaleCode char(5) collate "C"
+    constraint LocaleCodeC check (value ~ '^[a-z]{2}_[A-Z]{2}$');
+
+Create domain Identifier smallint
+    constraint IdentifierC check (value > 0);
+
+Create table Sender (
+    fromAddress EmailAddress not null,
     fromName varchar(200) not null,
-    fromAddress varchar(200) not null,
+    createdAt timestamptz not null default now(),
+    returnURLRoot HTTPURL not null,
+    constraint SenderPK primary key (fromAddress)
+);
+
+Create table Subscriber (
+    fromAddress EmailAddress not null,
+    toAddress EmailAddress not null,
+    createdAt timestamptz not null default now(),
+    revisedAt timestamptz not null default now(),
+    locale LocaleCode,
+    properties hstore default ''::hstore not null,
+    constraint SubscriberPK primary key (fromAddress, toAddress),
+    constraint SubscriberFK foreign key (fromAddress)
+            references Sender on update cascade,
+    constraint SubscriberRevisedAtC check (revisedAt >= createdAt)
+);
+
+Create index SubscriberLocaleI on Subscriber (fromAddress, locale);
+
+Create table Email (
+    fromAddress EmailAddress not null,
+    emailId Identifier not null,
+    createdAt timestamptz not null default now(),
+    bulk boolean not null default false,
+    redirectURL HTTPURL,
+    constraint EmailPK primary key (fromAddress, emailId),
+    constraint EmailFK foreign key (fromAddress)
+            references Sender on update cascade
+);
+
+Create table EmailVariation (
+    fromAddress EmailAddress not null,
+    emailId Identifier not null,
+    variationId smallint not null,
+    createdAt timestamptz not null default now(),
+    revisedAt timestamptz not null default now(),
     subject varchar(1000) not null,
     plainBody text,
     hTMLBody text,
-    returnURLRoot varchar(1000) not null,
-    redirectURL varchar(1000),
-    createdAt timestamptz not null default now(),
-    revisedAt timestamptz not null default now(),
-    constraint EmailPK primary key (id),
-    constraint EmailBodyC check (((plainBody is not null) or (hTMLBody is not null))),
-    constraint EmailRevisedAtC check (revisedAt >= createdAt),
-    constraint EmailReturnURLRootC check (returnURLRoot ~ '^(http|https)://' and returnURLRoot ~ '/$'),
-    constraint EmailRedirectURLC check (redirectURL~ '^(http|https)://')
+    draft boolean not null default false,
+    constraint EmailVariationPK primary key (fromAddress, emailId, variationId),
+    constraint EmailVariationFK foreign key (fromAddress, emailId)
+            references Email on delete cascade on update cascade,
+    constraint EmailVariationRevisedAtC check (revisedAt >= createdAt),
+    constraint EmailVariationBodyC check (((plainBody is not null) or (hTMLBody is not null)))
 );
-
-Create sequence EmailId owned by Email.id;
-Alter table Email alter id set default nextval('EmailId'::regclass);
-
-Create table Subscriber (
-    id integer not null,
-    emailAddress varchar(200) not null,
-    createdAt timestamptz not null default now(),
-    revisedAt timestamptz not null default now(),
-    locale char(5),
-    properties hstore default ''::hstore not null,
-    constraint SubscriberPK primary key (id),
-    constraint SubscriberEmailAddressUK unique (emailAddress),
-    constraint SubscriberEmailAddressC check (emailAddress ~ '^[^@]+@[^@]+\.[^@]+$'),
-    constraint SubscriberRevisedAtC check (revisedAt >= createdAt),
-    constraint SubscriberLocaleC check (locale ~ '^[a-z]{2}_[A-Z]{2}$')
-);
-
-Create sequence SubscriberId owned by Subscriber.id;
-Alter table Subscriber alter id set default nextval('SubscriberId'::regclass);
 
 Create table EmailSend (
-    emailId integer not null,
-    subscriberId integer not null,
+    fromAddress EmailAddress not null,
+    toAddress EmailAddress not null,
+    emailId Identifier not null,
+    variationId Identifier not null,
+    revisedAt timestamptz not null default now(),
     sent boolean not null default false,
-    constraint EmailSendPK primary key (emailId, subscriberId),
-    constraint EmailSendFK foreign key (emailId) references Email (id) on delete cascade,
-    constraint EmailSendSubscriberIdFK foreign key (subscriberId) references Subscriber (id)
+    constraint EmailSendPK primary key (fromAddress, toAddress, emailId),
+    constraint EmailSendSubscriberFK foreign key (fromAddress, toAddress)
+            references Subscriber on update cascade,
+    constraint EmailSendEmailVariationFK foreign key (fromAddress, emailId, variationId)
+            references EmailVariation
 );
 
-Create index EmailSendSubscriberIdFKI on EmailSend (subscriberId, sent);
+Create index EmailSendEmailVariationFKI on EmailSend (fromAddress, emailId, variationId);
 
 Create type EmailSendFeedbackType as enum (
     'trackerImage',
@@ -59,17 +89,32 @@ Create type EmailSendFeedbackType as enum (
 );
 
 Create table EmailSendFeedback (
-    emailId integer not null,
-    subscriberId integer not null,
+    fromAddress EmailAddress not null,
+    toAddress EmailAddress not null,
+    emailId Identifier not null,
+    feedbackType EmailSendFeedbackType not null,
     createdAt timestamptz not null default now(),
-    type EmailSendFeedbackType not null,
     iPAddress inet not null,
-    constraint EmailSendFeedbackPK primary key (emailId, subscriberId, type),
-    constraint EmailSendFeedbackFK foreign key (emailId, subscriberId) references EmailSend (emailId, subscriberId) on delete cascade,
-    constraint EmailSendCreatedAtC check (createdAt >= now()) not valid
+    constraint EmailSendFeedbackPK primary key (fromAddress, toAddress, emailId, feedbackType),
+    constraint EmailSendFeedbackFK foreign key (fromAddress, toAddress, emailId)
+            references EmailSend on delete cascade on update cascade
 );
 
-Create index EmailSendFeedbackSubscriberIdFKI on EmailSendFeedback (subscriberId, type);
+Create index EmailSendFeedbackEmailFKI on EmailSendFeedback (fromAddress, emailId, feedbackType);
+
+Create table EmailSendResponseReport (
+    fromAddress EmailAddress not null,
+    toAddress EmailAddress not null,
+    emailId Identifier not null,
+    createdAt timestamptz not null default now(),
+    fields hstore default ''::hstore not null,
+    originalHeaders hstore default ''::hstore not null,
+    body text,
+    constraint EmailSendResponseReportPK primary key (fromAddress, toAddress, emailId),
+    constraint EmailSendResponseReportFK foreign key (fromAddress, toAddress, emailId)
+            references EmailSend on delete cascade on update cascade
+);
+
+Create index EmailSendResponseReportEmailFKI on EmailSendResponseReport (fromAddress, emailId);
 
 Commit;
-
