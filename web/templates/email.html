@@ -32,7 +32,17 @@
                     <input type="hidden" name="bulk" value="False" /> <!-- The default value -->
                 </td>
             </tr>
+        </table>
 
+        <strong>{{ saveMessage }}</strong>
+
+        <p>
+            <input type="submit" value="Save Email" {{ 'disabled ' if not draft }} />
+        </p>
+    </form>
+
+    {% if emailid %}
+        <table>
             <tr>
                 <td>Example Properies:</td>
                 <td>{{ exampleproperties }}</td>
@@ -46,14 +56,6 @@
             a brace character in the literal text, it can be escaped by doubling: {{ '{{ and }}' }}.
         </p>
 
-        <strong>{{ saveMessage }}</strong>
-
-        <p>
-            <input type="submit" value="Save Email" {{ 'disabled ' if not draft }} />
-        </p>
-    </form>
-
-    {% if emailid %}
         <form method="POST" action="{{ url_for('removeEmail', fromaddress=fromaddress, emailid=emailid) }}">
             <p>
                 <input type="submit" value="Remove Email"
