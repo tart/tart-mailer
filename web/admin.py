@@ -29,7 +29,7 @@ postgres = Postgres()
 def index(**kwargs):
     with postgres:
         return flask.render_template('index.html', senders=postgres.select('SenderDetail'),
-                                     emails=postgres.select('EmailDetail'), **kwargs)
+                                     bulkEmails=postgres.select('BulkEmailDetail'), **kwargs)
 
 @app.route('/sender/new')
 def newSender(**kwargs):

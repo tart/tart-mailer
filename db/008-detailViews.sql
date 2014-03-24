@@ -16,7 +16,7 @@ Create or replace view SenderDetail as
                 left join EmailStats using (fromAddress)
             order by Sender.fromAddress;
 
-Create or replace view EmailDetail as
+Create or replace view BulkEmailDetail as
     with EmailSendStats as (select fromAddress, emailId, count(*) as totalCount, sum(sent::int) as sentCount
             from EmailSend
             group by fromAddress, emailId),
@@ -38,7 +38,7 @@ Create or replace view EmailDetail as
                 string_agg(variationId::text || ': ' || count::text, ' ') as counts
             from EmailVariationIdStats
             group by fromAddress, emailId)
-        select Email.fromAddress, Email.emailId, Email.createdAt, Email.bulk,
+        select Email.fromAddress, Email.emailId, Email.createdAt,
                 coalesce(EmailSendStats.totalCount, 0) as totalMessages,
                 coalesce(EmailSendStats.sentCount, 0) as sentMessages,
                 coalesce(EmailResponseReportStats.count, 0) as responseReports,
@@ -49,6 +49,7 @@ Create or replace view EmailDetail as
                 left join EmailFeedbackStats using (fromAddress, emailId)
                 left join EmailResponseReportStats using (fromAddress, emailId)
                 left join EmailVariationStats using (fromAddress, emailId)
+                where Email.bulk
                 order by Email.fromAddress, Email.emailId;
 
 Commit;
