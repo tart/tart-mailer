@@ -47,7 +47,7 @@ def databaseOperationViaAPI(operation):
 
     return wrapped
 
-@app.route('/subscriber', methods=['PUT'])
+@app.route('/subscriber', methods=['POST'])
 @databaseOperationViaAPI
 def addSubscriber():
     with Postgres() as postgres:
