@@ -19,9 +19,10 @@ import os
 import flask
 import json
 import datetime
+import functools
 
 os.sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
-from libtart.postgres import Postgres, PostgresError
+from libtart.postgres import Postgres, PostgresNoRow, PostgresError
 
 app = flask.Flask(__name__)
 app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == 'FLASK_'))
@@ -41,6 +42,7 @@ def databaseOperationViaAPI(operation):
     Send a 401 response to enable basic HTTP authentication if required. Update kwargs with JSON POST data.
     Return proper errors."""
 
+    @functools.wraps(operation)
     def wrapped(*args, **kwargs):
         try:
             with postgres:
@@ -71,6 +73,17 @@ def databaseOperationViaAPI(operation):
 @databaseOperationViaAPI
 def addSubscriber(**kwargs):
     return postgres.insert('Subscriber', kwargs)
+
+@app.route('/subscriber/<string:toaddress>', methods=['PUT'])
+@databaseOperationViaAPI
+def upsertSubscriber(**kwargs):
+    try:
+        whereConditions = dict((k, v) for k, v in kwargs.items() if k.lower() in ('fromaddress', 'toaddress'))
+        setColumns = dict((k, v) for k, v in kwargs.items() if k not in whereConditions)
+
+        return postgres.update('Subscriber', setColumns, whereConditions, table=False)
+    except PostgresNoRow:
+        return postgres.insert('Subscriber', kwargs)
 
 @app.errorhandler(404)
 def notFound(error):

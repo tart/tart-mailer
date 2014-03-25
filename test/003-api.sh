@@ -28,6 +28,14 @@ curl -H "Content-type: application/json" -u tart-mailer@github.com: -X POST -d '
 echo
 echo
 
+echo "Trying to update the subscriber..."
+curl -H "Content-type: application/json" -u tart-mailer@github.com: -X PUT -d '
+    {
+        "locale": "tr_TR"
+    }' http://localhost:8080/subscriber/osman@spam.bo
+echo
+echo
+
 echo "Trying an address that does not exists..."
 curl -H "Content-type: application/json" -u tart-mailer@github.com: http://localhost:8080/doesNotExists
 echo
