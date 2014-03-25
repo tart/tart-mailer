@@ -100,14 +100,14 @@ class Postgres(psycopg2.extensions.connection):
 
         return self.__execute(query, whereCondition.values(), False)
 
-    def insert(self, tableName, setColumns, table=False):
+    def insert(self, tableName, setColumns):
         '''Execute an insert one row to a single table.'''
 
         query = 'Insert into ' + tableName + ' (' + ', '.join(setColumns.keys()) + ')'
         query += ' values (' + ', '.join(['%s'] * len(setColumns)) + ')'
         query += ' returning *'
 
-        return self.__execute(query, setColumns.values(), table)
+        return self.__execute(query, setColumns.values(), False)
 
     def update(self, tableName, setColumns, whereCondition={}, table=True):
         '''Execute an update for a single table.'''
