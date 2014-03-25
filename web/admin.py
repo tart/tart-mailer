@@ -25,13 +25,24 @@ app = flask.Flask(__name__)
 app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == 'FLASK_'))
 postgres = Postgres()
 
+##
+# Routes
+#
+# Only POST and GET used on the routes because HTML forms does not accept other methods. A GET route added for all
+# POST routes to support refreshing the page after posting a form.
+##
+
 @app.route('/')
 def index(**kwargs):
     with postgres:
-        return flask.render_template('index.html', senders=postgres.select('SenderDetail'),
-                                     bulkEmails=postgres.select('BulkEmailDetail'), **kwargs)
+        kwargs['senders'] = postgres.select('SenderDetail')
+        kwargs['bulkEmails'] = postgres.select('BulkEmailDetail')
+
+        return flask.render_template('index.html', **kwargs)
 
 @app.route('/sender/new')
+@app.route('/sender/<string:fromaddress>/remove')
+@app.route('/sender/<string:fromaddress>/email/<int:emailid>/remove')
 def newSender(**kwargs):
     with postgres:
         parts = parseURL(flask.request.url_root)
@@ -94,6 +105,11 @@ def addEmail(**kwargs):
         return index(**kwargs)
 
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>')
+@app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/new')
+@app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>')
+@app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>/remove')
+@app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>/sendTest')
+@app.route('/sender/<string:fromaddress>/email/<int:emailid>/sendBulk')
 def email(**kwargs):
     with postgres:
         parameters = dict((k, v) for k, v in kwargs.items() if k in ('fromaddress', 'emailid'))
@@ -217,6 +233,10 @@ def emailStatistics(**kwargs):
                                      emailSentDates=postgres.select('EmailSentDateStatistics', kwargs),
                                      emailVariations=postgres.select('EmailVariationStatistics', kwargs),
                                      **kwargs)
+
+##
+# Helper functions
+##
 
 def parseURL(uRL):
     parts = {}
