@@ -31,8 +31,28 @@ echo
 echo "Trying to update the subscriber..."
 curl -H "Content-type: application/json" -u tart-mailer@github.com: -X PUT -d '
     {
-        "locale": "tr_TR"
+       "locale": "tr_TR"
     }' http://localhost:8080/subscriber/osman@spam.bo
+echo
+echo
+
+echo "Trying an XML request..."
+curl -H "Content-type: application/xml" -u tart-mailer@github.com: -X POST -d '
+<xml></xml>' http://localhost:8080/subscriber
+echo
+echo
+
+echo "Trying a request with a JSON array..."
+curl -H "Content-type: application/json" -u tart-mailer@github.com: -X POST -d '
+    [
+        {"toAddress": "invalid1@example.com"},
+        {"fromAddress": "invalid2@example.com"}
+    ]' http://localhost:8080/subscriber
+echo
+echo
+
+echo "Trying a valid address without authentication..."
+curl -H "Content-type: application/json" -X POST http://localhost:8080/subscriber
 echo
 echo
 
@@ -41,8 +61,8 @@ curl -H "Content-type: application/json" -u tart-mailer@github.com: http://local
 echo
 echo
 
-echo "Trying a valid address without authentication..."
-curl -H "Content-type: application/json" -X POST http://localhost:8080/subscriber
+echo "Trying a not allowed method..."
+curl -H "Content-type: application/json" -X POST http://localhost:8080/subscriber/osman@spam.bo
 echo
 echo
 
