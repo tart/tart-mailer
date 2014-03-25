@@ -78,6 +78,11 @@ def databaseOperationViaAPI(operation):
 
     return wrapped
 
+@app.route('/subscriber', methods=['GET'])
+@databaseOperationViaAPI
+def listSubscribers(**kwargs):
+    return {'subscribers': postgres.select('Subscriber', kwargs)}
+
 @app.route('/subscriber', methods=['POST'])
 @databaseOperationViaAPI
 def addSubscriber(**kwargs):

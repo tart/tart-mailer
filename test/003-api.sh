@@ -36,6 +36,11 @@ curl -H "Content-type: application/json" -u tart-mailer@github.com: -X PUT -d '
 echo
 echo
 
+echo "Trying to list the subscribers..."
+curl -u tart-mailer@github.com: http://localhost:8080/subscriber
+echo
+echo
+
 echo "Trying an XML request..."
 curl -H "Content-type: application/xml" -u tart-mailer@github.com: -X POST -d '
 <xml></xml>' http://localhost:8080/subscriber
