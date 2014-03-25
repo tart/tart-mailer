@@ -246,6 +246,9 @@ def parseURL(uRL):
         parts['root'], parts['port'] = parts['root'].split(':')
     return parts
 
+##
+# HTTP server for development
+##
 if __name__ == '__main__':
     Postgres.debug = True
-    app.run(host='0.0.0.0', port=9000, debug=True)
+    app.run(port=9000, debug=True)

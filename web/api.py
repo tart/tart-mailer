@@ -132,6 +132,9 @@ def methodNotAllowed(error):
 def postgresError(error):
     return flask.jsonify({'error': str(error), 'type': type(error).__name__, 'details': error.details()}), 406
 
+##
+# HTTP server for development
+##
 if __name__ == '__main__':
     Postgres.debug = True
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    app.run(port=8080, debug=True)
