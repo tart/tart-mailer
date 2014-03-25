@@ -90,6 +90,16 @@ class Postgres(psycopg2.extensions.connection):
 
         return self.__execute(query, whereCondition.values(), table)
 
+    def exists(self, tableName, whereCondition={}):
+        '''Execute a exsits(select) query from a single table.'''
+
+        query = 'Select exists(select 1 from ' + tableName
+        if whereCondition:
+            query += ' where ' + ' and '.join(k + ' = %s' for k in whereCondition.keys())
+        query += ')'
+
+        return self.__execute(query, whereCondition.values(), False)
+
     def insert(self, tableName, setColumns, table=False):
         '''Execute an insert one row to a single table.'''
 

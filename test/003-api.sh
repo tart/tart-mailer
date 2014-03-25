@@ -8,9 +8,8 @@ sleep 3
 echo
 
 echo "Trying to add a subscriber..."
-curl -H "Content-type: application/json" -X POST -d '
+curl -H "Content-type: application/json" -u tart-mailer@github.com: -X POST -d '
     {
-        "fromAddress": "tart-mailer@github.com",
         "toAddress": "osman@spam.bo",
         "properties": {
             "eyeColor": "brown",
@@ -21,9 +20,8 @@ echo
 echo
 
 echo "Trying to add a subscriber with invalid fields..."
-curl -H "Content-type: application/json" -X POST -d '
+curl -H "Content-type: application/json" -u tart-mailer@github.com: -X POST -d '
     {
-        "fromAddress": "tart-mailer@github.com",
         "toAddress": "osman@spam.bo",
         "gender": "male"
     }' http://localhost:8080/subscriber
@@ -31,7 +29,12 @@ echo
 echo
 
 echo "Trying an address that does not exists..."
-curl -H "Content-type: application/json" http://localhost:8080/doesNotExists
+curl -H "Content-type: application/json" -u tart-mailer@github.com: http://localhost:8080/doesNotExists
+echo
+echo
+
+echo "Trying a valid address without authentication..."
+curl -H "Content-type: application/json" -X POST http://localhost:8080/subscriber
 echo
 echo
 

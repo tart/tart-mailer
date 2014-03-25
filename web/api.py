@@ -23,6 +23,10 @@ import datetime
 os.sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 from libtart.postgres import Postgres, PostgresError
 
+app = flask.Flask(__name__)
+app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == 'FLASK_'))
+postgres = Postgres()
+
 class JSONEncoder(flask.json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime.datetime):
@@ -30,14 +34,26 @@ class JSONEncoder(flask.json.JSONEncoder):
 
         return flask.json.JSONEncoder.default(self, obj)
 
-app = flask.Flask(__name__)
-app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == 'FLASK_'))
 app.json_encoder = JSONEncoder
 
 def databaseOperationViaAPI(operation):
+    """Wrapper for the API operations. Execute queries in a single database transaction. Authenticate senders.
+    Send a 401 response to enable basic HTTP authentication if required. Update kwargs with JSON POST data.
+    Return proper errors."""
+
     def wrapped(*args, **kwargs):
         try:
-            return flask.jsonify(operation(*args, **kwargs))
+            with postgres:
+                if flask.request.authorization:
+                    if postgres.exists('Sender', {'fromAddress': flask.request.authorization.username}):
+                        kwargs.update(flask.request.json)
+                        kwargs['fromAddress'] = flask.request.authorization.username
+
+                        return flask.jsonify(operation(*args, **kwargs))
+
+                response = {'error': 'authentication required', 'type': 'Authentication'}
+                return flask.jsonify(response), 401, {'WWW-Authenticate': 'Basic realm="Sender Authentication"'}
+
         except StandardError as error:
             response = {'error': str(error), 'type': type(error).__name__}
             if isinstance(error, PostgresError):
@@ -47,15 +63,19 @@ def databaseOperationViaAPI(operation):
 
     return wrapped
 
+##
+# Routes
+##
+
 @app.route('/subscriber', methods=['POST'])
 @databaseOperationViaAPI
-def addSubscriber():
-    with Postgres() as postgres:
-        return postgres.insert('Subscriber', flask.request.json)
+def addSubscriber(**kwargs):
+    return postgres.insert('Subscriber', kwargs)
 
 @app.errorhandler(404)
 def notFound(error):
-    return flask.jsonify({'error': 'Not found'}), 404
+    return flask.jsonify({'error': 'not found', 'type': 'General'}), 404
 
 if __name__ == '__main__':
+    Postgres.debug = True
     app.run(host='0.0.0.0', port=8080, debug=True)
