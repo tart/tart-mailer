@@ -1,4 +1,4 @@
-.. image:: logo.png
+.. image:: web/static/logo.png
 
 An application to maintain a mailing list, send bulk mails.
 

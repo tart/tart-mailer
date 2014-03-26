@@ -5,6 +5,8 @@
     </head>
 
     <body>
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="logo" />
+
         {% block body %}{% endblock %}
     </body>
 </html>
