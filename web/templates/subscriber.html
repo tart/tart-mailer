@@ -1,0 +1,41 @@
+{% extends 'layout.html' %}
+
+{% from 'macros.html' import button, dictionaryTable %}
+
+{% block body %}
+    <h1>New Subscriber from {{ fromaddress }}</h1>
+
+    <form method="POST" action="{{ url_for('addSubscriber', fromaddress=fromaddress) }}">
+        <table>
+            <tr>
+                <td>To Address:</td>
+
+                <td>
+                    <input type="text" name="toaddress" size="100" maxlength="1000" required />
+                </td>
+            </tr>
+
+            <tr>
+                <td>Locale:</td>
+
+                <td>
+                    <input type="text" name="locale" size="5" maxlength="5"/>
+                </td>
+            </tr>
+
+            <tr>
+                <td>Properties:</td>
+
+                <td>{{ dictionaryTable('properties', propertyCount) }}</td>
+            </tr>
+        </table>
+
+        <p>
+            <input type="submit" value="addSubscriber"/>
+        </p>
+    </form>
+
+    <p>
+        {{ button('index') }}
+    </p>
+{% endblock %}

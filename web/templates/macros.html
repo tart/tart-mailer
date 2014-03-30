@@ -81,3 +81,19 @@
         {% endfor %}
     </table>
 {% endmacro %}
+
+{% macro dictionaryTable(name, rowCount) %}
+    <table border="1" >
+        {% for row in range(rowCount) %}
+            <tr>
+                <td>
+                    <input type="text" name="{{ name }}[{{ row }}][key]" />
+                 </td>
+
+                <td>
+                    <input type="text" name="{{ name }}[{{ row }}][value]" />
+                 </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endmacro %}
