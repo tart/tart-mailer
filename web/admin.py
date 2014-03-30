@@ -59,7 +59,7 @@ def addSender():
         return index(senderMessage='Sender created.')
 
 @app.route('/sender/<string:fromaddress>')
-def sender(**kwargs):
+def editSender(**kwargs):
     with postgres:
         parameters = {'fromaddress': kwargs['fromaddress']}
 
@@ -77,7 +77,7 @@ def saveSender(**kwargs):
         else:
             kwargs['saveMessage'] = 'Sender could not found.'
 
-        return sender(**kwargs)
+        return editSender(**kwargs)
 
 @app.route('/sender/<string:fromaddress>/remove', methods=['POST'])
 def removeSender(**kwargs):
@@ -110,7 +110,7 @@ def addEmail(**kwargs):
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>/remove')
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>/sendTest')
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/sendBulk')
-def email(**kwargs):
+def editEmail(**kwargs):
     with postgres:
         parameters = dict((k, v) for k, v in kwargs.items() if k in ('fromaddress', 'emailid'))
 
@@ -144,7 +144,7 @@ def saveEmail(**kwargs):
         else:
             kwargs['saveMessage'] = 'Email could not found.'
 
-        return email(**kwargs)
+        return editEmail(**kwargs)
 
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/remove', methods=['POST'])
 def removeEmail(**kwargs):
@@ -165,7 +165,7 @@ def addEmailVariation(**kwargs):
         postgres.insert('EmailVariation', form)
         kwargs['saveEmailVariationMessage'] = 'Email Variation created.'
 
-        return email(**kwargs)
+        return editEmail(**kwargs)
 
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>', methods=['POST'])
 def saveEmailVariation(**kwargs):
@@ -177,7 +177,7 @@ def saveEmailVariation(**kwargs):
         else:
             kwargs['saveEmailVariationMessage'] = 'Email Variation could not found.'
 
-        return email(**kwargs)
+        return editEmail(**kwargs)
 
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>/remove', methods=['POST'])
 def removeEmailVariation(**kwargs):
@@ -187,7 +187,7 @@ def removeEmailVariation(**kwargs):
         else:
             kwargs['removeEmailVariationMessage'] = 'Email Variation could not be removed.'
 
-        return email(**kwargs)
+        return editEmail(**kwargs)
 
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>/sendTest', methods=['POST'])
 def sendTestEmail(**kwargs):
@@ -200,7 +200,7 @@ def sendTestEmail(**kwargs):
         else:
             kwargs['sendTestEmailMessage'] = 'Test email message could not send. Subscriber may not be in the database.'
 
-        return email(**kwargs)
+        return editEmail(**kwargs)
 
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/sendBulk', methods=['POST'])
 def sendBulkEmail(**kwargs):
@@ -214,7 +214,7 @@ def sendBulkEmail(**kwargs):
         subscriberCount = postgres.call('SendBulkEmail', kwargs)
         kwargs['sendBulkEmailMessage'] = str(subscriberCount) + ' email messages added to the queue.'
 
-        return email(**kwargs)
+        return editEmail(**kwargs)
 
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>/preview')
 def preview(**kwargs):

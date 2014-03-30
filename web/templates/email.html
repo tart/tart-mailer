@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 
-{% from 'macros.html' import checkboxTable %}
+{% from 'macros.html' import button, checkboxTable %}
 
 {% block body %}
     <h1>{{ emailid ~ '.' if emailid else 'New' }} Email from {{ fromaddress }}</h1>
@@ -37,7 +37,7 @@
         <strong>{{ saveMessage }}</strong>
 
         <p>
-            <input type="submit" value="Save Email" {{ 'disabled ' if not draft }} />
+            <input type="submit" value="saveEmail" {{ 'disabled ' if not draft }} />
         </p>
     </form>
 
@@ -58,7 +58,7 @@
 
         <form method="POST" action="{{ url_for('removeEmail', fromaddress=fromaddress, emailid=emailid) }}">
             <p>
-                <input type="submit" value="Remove Email"
+                <input type="submit" value="removeEmail"
                        {{ 'disabled' if not draft }} />
             </p>
         </form>
@@ -99,7 +99,7 @@
                 {% endif %}
 
                 <p>
-                    <input type="submit" value="Save Email Variation"
+                    <input type="submit" value="saveEmailVariation"
                            {{ 'disabled' if not emailVariation['draft'] }} />
                 </p>
             </form>
@@ -111,23 +111,21 @@
                 {% endif %}
 
                 <p>
-                    <input type="submit" value="Remove Email Variation"
+                    <input type="submit" value="removeEmailVariation"
                            {{ 'disabled' if not emailVariation['draft'] }} />
                 </p>
             </form>
 
             {% if emailVariation['htmlbody'] %}
                 <p>
-                    <a href="{{ url_for('preview', fromaddress=fromaddress, emailid=emailid, variationid=emailVariation['variationid']) }}">
-                        <button>Preview HTML</button>
-                    </a>
+                    {{ button('preview', {'fromaddress': fromaddress, 'emailid': emailid, 'variationid': emailVariation['variationid']}) }}
                 </p>
 
                 <form method="POST" action="http://validator.w3.org/check">
                     <p>
                         <input type="hidden" name="fragment" value="{{ emailVariation['htmlbody'] }}"/>
 
-                        <input type="submit" value="Validate HTML"/>
+                        <input type="submit" value="validate"/>
                     </p>
                 </form>
             {% endif %}
@@ -147,7 +145,7 @@
                 {% endif %}
 
                 <p>
-                    <input type="submit" value="Send Test Email" />
+                    <input type="submit" value="sendTestEmail" />
                 </p>
             </form>
         {% endfor %}
@@ -179,7 +177,7 @@
             </table>
 
             <p>
-                <input type="submit" value="Add Email Variation" />
+                <input type="submit" value="addEmailVariation" />
             </p>
         </form>
 
@@ -213,17 +211,17 @@
                 <strong>{{ sendBulkEmailMessage }}</strong>
 
                 <p>
-                    <input type="submit" value="Send Bulk Email" {{ 'disabled ' if subscribercount == 0 }}/>
+                    <input type="submit" value="sendBulkEmail" {{ 'disabled ' if subscribercount == 0 }}/>
                 </p>
             </form>
         {% endif %}
     {% endif %}
 
     <p>
-        <a href="{{ url_for('index') }}" >Index</a>
+        {{ button('index') }}
     </p>
 
     <p>
-        <a href="{{ url_for('newEmail', fromaddress=fromaddress) }}" >New Email</a>
+        {{ button('newEmail', {'fromaddress': fromaddress}) }}
     </p>
 {% endblock %}

@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 
-{% from 'macros.html' import table %}
+{% from 'macros.html' import button, table %}
 
 {% block body %}
     {% if emailid %}
@@ -18,16 +18,16 @@
     {{ table(emailVariations) }}
 
     <p>
-        <a href="{{ url_for('index') }}" >Index</a>
+        {{ button('index') }}
     </p>
 
     {% if emailid %}
         <p>
-            <a href="{{ url_for('emailStatistics', fromaddress=fromaddress) }}" >Statistics of All Emails from {{ fromaddress }}</a>
+            {{ button('emailStatistics', {'fromaddress': fromaddress}) }}
         </p>
 
         <p>
-            <a href="{{ url_for('email', fromaddress=fromaddress, emailid=emailid) }}" >Email</a>
+            {{ button('editEmail', {'fromaddress': fromaddress, 'emailid': emailid}) }}
         </p>
     {% endif %}
 {% endblock %}
