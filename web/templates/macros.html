@@ -1,7 +1,8 @@
 {% extends "layout.html" %}
 
 {% macro link(methodName, kwargs={}) %}
-    <a href="{{ url_for(methodName, **kwargs) }}" >{{ methodName }}</a>
+    {# This ugly hack change the default behavior of url_for() not to add unknown parameters to the URL. #}
+    <a href="{{ url_for(methodName, **kwargs).split('?')[0] }}" >{{ methodName }}</a>
 {% endmacro %}
 
 {% macro table(tableData) %}
