@@ -1,21 +1,21 @@
 {% extends 'layout.html' %}
 
-{% from 'macros.html' import button, buttonTable %}
+{% from 'macros.html' import link, linkTable %}
 
 {% block body %}
     <h2>Senders</h2>
 
     <strong>{{ senderMessage }}</strong>
 
-    {{ buttonTable(senders, ('editSender', 'newSubscriber', 'newEmail')) }}
+    {{ linkTable(senders, ('editSender', 'newSubscriber', 'newEmail')) }}
 
     <p>
-        {{ button('newSender') }}
+        {{ link('newSender') }}
     </p>
 
     <h2>Bulk Emails</h2>
 
     <strong>{{ emailMessage }}</strong>
 
-    {{ buttonTable(bulkEmails, ('editEmail', 'emailStatistics')) }}
+    {{ linkTable(bulkEmails, ('editEmail', 'emailStatistics')) }}
 {% endblock %}

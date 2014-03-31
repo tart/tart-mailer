@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% from 'macros.html' import button %}
+{% from 'macros.html' import link %}
 
 {% block body %}
     <form method="POST" action="{{ url_for('saveSender', fromaddress=fromaddress)
@@ -45,10 +45,10 @@
     {% endif %}
 
     <p>
-        {{ button('index') }}
+        {{ link('index') }}
     </p>
 
     <p>
-        {{ button('newSender') }}
+        {{ link('newSender') }}
     </p>
 {% endblock %}

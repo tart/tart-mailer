@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 
-{% from 'macros.html' import button, table %}
+{% from 'macros.html' import link, table %}
 
 {% block body %}
     {% if emailid %}
@@ -18,16 +18,16 @@
     {{ table(emailVariations) }}
 
     <p>
-        {{ button('index') }}
+        {{ link('index') }}
     </p>
 
     {% if emailid %}
         <p>
-            {{ button('emailStatistics', {'fromaddress': fromaddress}) }}
+            {{ link('emailStatistics', {'fromaddress': fromaddress}) }}
         </p>
 
         <p>
-            {{ button('editEmail', {'fromaddress': fromaddress, 'emailid': emailid}) }}
+            {{ link('editEmail', {'fromaddress': fromaddress, 'emailid': emailid}) }}
         </p>
     {% endif %}
 {% endblock %}

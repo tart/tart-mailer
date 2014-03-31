@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 
-{% from 'macros.html' import button, checkboxTable %}
+{% from 'macros.html' import link, checkboxTable %}
 
 {% block body %}
     <h1>{{ emailid ~ '.' if emailid else 'New' }} Email from {{ fromaddress }}</h1>
@@ -17,6 +17,7 @@
         <table>
             <tr>
                 <td>Redirect URL:</td>
+
                 <td>
                     <input type="text" name="redirecturl" size="100" maxlength="1000" value="{{ redirecturl or '' }}"
                            {{ 'disabled ' if not draft }} />
@@ -25,6 +26,7 @@
 
             <tr>
                 <td>Bulk:</td>
+
                 <td>
                     <input type="checkbox" name="bulk" value="True" {{ 'checked' if bulk }}
                            {{ 'disabled ' if not draft }} />
@@ -45,6 +47,7 @@
         <table>
             <tr>
                 <td>Example Properies:</td>
+
                 <td>{{ exampleproperties }}</td>
             </tr>
         </table>
@@ -70,27 +73,36 @@
                 <table>
                     <tr>
                         <td>Subject:</td>
+
                         <td>
                             <input type="text" name="subject" size="100" maxlength="1000"
                                    value="{{ emailVariation['subject'] }}" required
                                    {{ 'disabled' if not emailVariation['draft'] }} />
                         </td>
+
+                        <td></td>
                     </tr>
 
                     <tr>
                         <td>Plain Text Body:</td>
+
                         <td>
                             <textarea name="plainbody" rows="10" cols="100"
                                       {{ 'disabled' if not emailVariation['draft'] }} >{{ emailVariation['plainbody'] or '' }}</textarea>
                         </td>
+
+                        <td></td>
                     </tr>
 
                     <tr>
                         <td>HTML Body:</td>
+
                         <td>
                             <textarea name="htmlbody" rows="10" cols="100"
                                       {{ 'disabled' if not emailVariation['draft'] }} >{{ emailVariation['htmlbody'] or '' }}</textarea>
                         </td>
+
+                        <td>{{ link('preview', {'fromaddress': fromaddress, 'emailid': emailid, 'variationid': emailVariation['variationid']}) if emailVariation['htmlbody'] }}</td>
                     </tr>
                 </table>
 
@@ -117,15 +129,11 @@
             </form>
 
             {% if emailVariation['htmlbody'] %}
-                <p>
-                    {{ button('preview', {'fromaddress': fromaddress, 'emailid': emailid, 'variationid': emailVariation['variationid']}) }}
-                </p>
-
                 <form method="POST" action="http://validator.w3.org/check">
                     <p>
                         <input type="hidden" name="fragment" value="{{ emailVariation['htmlbody'] }}"/>
 
-                        <input type="submit" value="validate"/>
+                        <input type="submit" value="validateHTML"/>
                     </p>
                 </form>
             {% endif %}
@@ -134,6 +142,7 @@
                 <table>
                     <tr>
                         <td>Email Address:</td>
+
                         <td>
                             <input type="text" name="emailaddress" size="100" maxlength="200" required />
                         </td>
@@ -156,6 +165,7 @@
             <table>
                 <tr>
                     <td>Subject:</td>
+
                     <td>
                         <input type="text" name="subject" size="100" maxlength="1000" required />
                     </td>
@@ -163,6 +173,7 @@
 
                 <tr>
                     <td>Plain Text Body:</td>
+
                     <td>
                         <textarea name="plainbody" rows="10" cols="100"></textarea>
                     </td>
@@ -170,6 +181,7 @@
 
                 <tr>
                     <td>HTML Body:</td>
+
                     <td>
                         <textarea name="htmlbody" rows="10" cols="100"></textarea>
                     </td>
@@ -197,6 +209,7 @@
                 <table>
                     <tr>
                         <td>Maximum Subscriber Count:</td>
+
                         <td>
                             <input type="text" name="subscribercount" maxlength="20" value="{{ subscribercount }}" required {{ 'disabled ' if subscribercount == 0 }}/>
                         </td>
@@ -218,10 +231,10 @@
     {% endif %}
 
     <p>
-        {{ button('index') }}
+        {{ link('index') }}
     </p>
 
     <p>
-        {{ button('newEmail', {'fromaddress': fromaddress}) }}
+        {{ link('newEmail', {'fromaddress': fromaddress}) }}
     </p>
 {% endblock %}

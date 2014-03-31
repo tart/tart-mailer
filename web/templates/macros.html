@@ -1,9 +1,7 @@
 {% extends "layout.html" %}
 
-{% macro button(methodName, kwargs={}) %}
-    <a href="{{ url_for(methodName, **kwargs) }}">
-        <button>{{ methodName }}</button>
-    </a>
+{% macro link(methodName, kwargs={}) %}
+    <a href="{{ url_for(methodName, **kwargs) }}" >{{ methodName }}</a>
 {% endmacro %}
 
 {% macro table(tableData) %}
@@ -26,7 +24,7 @@
     </table>
 {% endmacro %}
 
-{% macro buttonTable(tableData, methodNames) %}
+{% macro linkTable(tableData, methodNames) %}
     <table border="1" >
         {% if tableData %}
             <tr>
@@ -34,9 +32,7 @@
                     <th>{{ header }}</th>
                 {% endfor %}
 
-                {% for header in methodNames %}
-                    <th></th>
-                {% endfor %}
+                <th></th>
             </tr>
         {% endif %}
 
@@ -46,11 +42,11 @@
                     <td>{{ cell if cell != None }}</td>
                 {% endfor %}
 
-                {% for cell in methodNames %}
                     <td>
-                        {{ button(cell, row) }}
-                    </td>
+                {% for cell in methodNames %}
+                        {{ link(cell, row) }}
                 {% endfor %}
+                    </td>
             </tr>
         {% endfor %}
     </table>

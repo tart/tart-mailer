@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 
-{% from 'macros.html' import button, dictionaryTable %}
+{% from 'macros.html' import link, dictionaryTable %}
 
 {% block body %}
     <h1>New Subscriber from {{ fromaddress }}</h1>
@@ -36,6 +36,6 @@
     </form>
 
     <p>
-        {{ button('index') }}
+        {{ link('index') }}
     </p>
 {% endblock %}
