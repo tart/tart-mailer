@@ -40,9 +40,9 @@ class Postgres(psycopg2.extensions.connection):
             try:
                 cursor.execute(query, parameters)
             except psycopg2.ProgrammingError as error:
-                raise PostgresProgrammingError(error)
+                raise ProgrammingError(error)
             except psycopg2.IntegrityError as error:
-                raise PostgresIntegrityError(error)
+                raise IntegrityError(error)
 
             rows = cursor.fetchall()
             columnNames = [desc[0] for desc in cursor.description]
@@ -133,15 +133,13 @@ class Postgres(psycopg2.extensions.connection):
 
         return self.__execute(query, parameters, table)
 
-class PostgresException(Exception): pass
+class PostgresNoRow(Exception): pass
 
-class PostgresNoRow(PostgresException): pass
+class PostgresMoreThanOneRow(Exception): pass
 
-class PostgresMoreThanOneRow(PostgresException): pass
-
-class PostgresError(PostgresException, StandardError):
+class PostgresError(StandardError):
     def __init__(self, psycopgError):
-        PostgresException.__init__(self, psycopgError.diag.message_primary)
+        StandardError.__init__(self, psycopgError.diag.message_primary)
         self.__psycopgError = psycopgError
 
     def details(self):
@@ -149,6 +147,6 @@ class PostgresError(PostgresException, StandardError):
                     for attr in dir(self.__psycopgError.diag)
                     if not attr.startswith('__') and getattr(self.__psycopgError.diag, attr) is not None)
 
-class PostgresProgrammingError(PostgresError): pass
+class ProgrammingError(PostgresError): pass
 
-class PostgresIntegrityError(PostgresError): pass
+class IntegrityError(PostgresError): pass
