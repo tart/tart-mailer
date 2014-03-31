@@ -28,8 +28,7 @@ postgres = Postgres()
 ##
 # Routes
 #
-# Only POST and GET used on the routes because HTML forms does not accept other methods. A GET route added for all
-# POST routes to support refreshing the page after posting a form.
+# Only POST and GET used on the routes because HTML forms does not accept other methods.
 ##
 
 @app.route('/')
@@ -41,8 +40,6 @@ def index(**kwargs):
         return flask.render_template('index.html', **kwargs)
 
 @app.route('/sender/new')
-@app.route('/sender/<string:fromaddress>/remove')
-@app.route('/sender/<string:fromaddress>/email/<int:emailid>/remove')
 def newSender(**kwargs):
     with postgres:
         parts = parseURL(flask.request.url_root)
@@ -115,11 +112,6 @@ def addEmail(**kwargs):
         return index(**kwargs)
 
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>')
-@app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/new')
-@app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>')
-@app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>/remove')
-@app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>/sendTest')
-@app.route('/sender/<string:fromaddress>/email/<int:emailid>/sendBulk')
 def editEmail(**kwargs):
     with postgres:
         parameters = dict((k, v) for k, v in kwargs.items() if k in ('fromaddress', 'emailid'))
