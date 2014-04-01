@@ -1,0 +1,6 @@
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+MAILTO=admin@example.com
+PGDATABASE=mailer
+
+* * * * * /home/tart-mailer/worker/send.py --amount 200
+* * * * * /home/tart-mailer/worker/receive.py --amount 200
