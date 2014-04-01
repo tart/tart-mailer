@@ -25,7 +25,7 @@ def addArgumentGroup(parser):
     '''Return ArgumentParser instance with the common arguments required to connect to an email server.'''
 
     group = parser.add_argument_group(description='Mail Server Arguments')
-    group.add_argument('--hostname', default='localhost', help='hostname of the mail server')
+    group.add_argument('--host', help='hostname of the mail server')
     group.add_argument('--port', type=int, help='port for the mail server')
     group.add_argument('--username', help='username for the mail server')
     group.add_argument('--password', help='password for the incoming mail server')
@@ -34,16 +34,13 @@ def addArgumentGroup(parser):
 class SMTP(smtplib.SMTP):
     '''Extend IMAP4 class on the standart library.'''
 
-    defaultPort = 25
-
     @staticmethod
     def addArguments(parser):
         group = addArgumentGroup(parser)
-        group.set_defaults(port=SMTP.defaultPort)
         group.add_argument('--usetls', action='store_true', help='use TLS to connect to the mail server')
 
-    def __init__(self, hostname, port=defaultPort, usetls=False, username=None, password=None):
-        smtplib.SMTP.__init__(self, hostname, port)
+    def __init__(self, usetls=False, username=None, password=None, **kwargs):
+        smtplib.SMTP.__init__(self, **kwargs)
 
         if usetls:
             self.starttls()
@@ -55,16 +52,14 @@ class IMAP4(imaplib.IMAP4):
     '''Extend IMAP4 class on the standart library.'''
 
     debug = False
-    defaultPort = 143
 
     @staticmethod
     def addArguments(parser):
         group = addArgumentGroup(parser)
-        group.set_defaults(port=IMAP4.defaultPort)
-        group.add_argument('--mailbox', default='INBOX', help='mailbox to receive emails, default INBOX')
+        group.add_argument('--mailbox', help='mailbox to receive emails, default INBOX')
 
-    def __init__(self, hostname, port=defaultPort, username=None, password=None, mailbox=None):
-        imaplib.IMAP4.__init__(self, hostname, port)
+    def __init__(self, username=None, password=None, mailbox=None, **kwargs):
+        imaplib.IMAP4.__init__(self, **kwargs)
 
         if username:
             self.execute('login', username, password)
@@ -77,12 +72,26 @@ class IMAP4(imaplib.IMAP4):
     def execute(self, method, *args):
         status, response = getattr(self, method)(*args)
 
-        if IMAP4.debug:
+        if self.debug:
             print('IMAP4 ' + method + ' method returned ' + status + '.')
         if status != 'OK':
             raise IMAP4Exception('IMAP4 ' + method + ' method returned ' + status + ': ' + str(response))
 
         return response
+
+class IMAP4SSL(imaplib.IMAP4_SSL, IMAP4):
+    '''Extend IMAP4_SSL class on the standart library.'''
+
+    def __init__(self, username=None, password=None, mailbox=None, **kwargs):
+        imaplib.IMAP4_SSL.__init__(self, **kwargs)
+
+        if username:
+            self.execute('login', username, password)
+
+        if mailbox:
+            self.execute('select', mailbox)
+        else:
+            self.execute('select')
 
 class IMAP4Exception(Exception):
     pass

@@ -26,7 +26,7 @@ import psycopg2
 
 os.sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 from libtart.postgres import Postgres, PostgresNoRow
-from libtart.email.server import IMAP4
+from libtart.email.server import IMAP4, IMAP4SSL
 from libtart.email.message import Message
 from libtart.helpers import warning
 
@@ -36,6 +36,7 @@ def main():
     parser.add_argument('--amount', type=int, default=1, help='maximum email message amount to receive')
     parser.add_argument('--timeout', type=int, help='seconds to kill the process')
     parser.add_argument('--debug', action='store_true', help='debug mode')
+    parser.add_argument('--protocol', default='IMAP4', help='protocol to connect to the mail server, default IMAP4')
     IMAP4.addArguments(parser)
 
     arguments = vars(parser.parse_args())
@@ -43,6 +44,7 @@ def main():
     amount = arguments.pop('amount')
     timeout = arguments.pop('timeout')
     debug = arguments.pop('debug')
+    protocol = arguments.pop('protocol')
     # Remaining arguments are for IMAP4.
 
     if timeout:
@@ -59,7 +61,7 @@ def main():
             if not postgres.select('Sender', {'fromAddress': sender}):
                 raise Exception('Sender does not exists.')
 
-    server = IMAP4(**arguments)
+    server = globals()[protocol](**dict((k, v) for k, v in arguments.items() if v is not None))
     messageIds = server.execute('search', 'utf-8', 'UNSEEN')[0].split()
     print(str(len(messageIds)) + ' email messages to process.')
 
