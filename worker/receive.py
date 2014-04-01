@@ -22,13 +22,14 @@ import signal
 import argparse
 import re
 import email
-import psycopg2
 
 os.sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 from libtart.postgres import Postgres, PostgresNoRow
 from libtart.email.server import IMAP4, IMAP4SSL
 from libtart.email.message import Message
 from libtart.helpers import warning
+
+postgres = Postgres()
 
 def main():
     parser = argparse.ArgumentParser()
@@ -54,8 +55,6 @@ def main():
         Postgres.debug = True
         IMAP4.debug = True
 
-    postgres = Postgres()
-
     if sender:
         with postgres:
             if not postgres.select('Sender', {'fromAddress': sender}):
@@ -70,19 +69,19 @@ def main():
         message.check()
         returnedOriginal = None
 
-        if message.get_content_type() in ('multipart/report', 'multipart/mixed'):
-            # The last payload must be the returned original.
-            returnedOriginal = message.get_payload()[-1]
-        elif message.get_content_type() in ('text/plain', 'multipart/alternative'):
-            warning('Unexpected plain text email message will be processed as returned original:', message)
-            returnedOriginal = message
-        else:
-            warning('Unexpected MIME type:', message)
+        ##
+        # Messages will be classified by the last payload. It may be returned original or DMARC report.
+        ##
 
-        if returnedOriginal:
+        if message.lastPayload().get_content_type() in ('message/rfc822', 'text/rfc822-headers', 'text/plain',
+                                                        'multipart/alternative'):
+
+            if message.get_content_type() != 'multipart/report':
+                warning('Unexpected message will be processed as returned original:', message)
+
             report = {}
-
             if returnedOriginal.is_multipart():
+                report['body'] = message.get_payload(0).plainest()
                 report['originalHeaders'] = dict(returnedOriginal.get_payload(0).headers())
             else:
                 splitMessage = returnedOriginal.splitSubmessage()
@@ -92,18 +91,29 @@ def main():
                 else:
                     report['body'] = returnedOriginal.plainestWithoutQuote()
 
-            if message.get_content_type() in ('multipart/report', 'multipart/mixed'):
+            if message.get_content_type() == 'multipart/report' and len(message.get_payload()) > 2:
                 # Aditional fields for the standart response reports.
-                if len(message.get_payload()) > 1:
-                    report['body'] = message.get_payload(0).plainest()
-                    if len(message.get_payload()) > 2:
-                        report['fields'] = dict(message.get_payload()[-2].recursiveHeaders())
+                report['fields'] = dict(message.get_payload()[-2].recursiveHeaders())
 
             if addResponseReport(sender, report):
-                print(messageId + '. email message processed and will be deleted.')
+                print(messageId + '. email message processed as returned original and will be deleted.')
                 server.execute('store', messageId, '+FLAGS', '\Deleted')
             else:
-                warning('Email could not found in the database:', message)
+                warning('Email messages cannot be saved to the database as response report:', message)
+
+        elif message.lastPayload().get_content_type() in ('application/zip', 'application/x-zip-compressed'):
+            from zipfile import ZipFile
+            from cStringIO import StringIO
+
+            with ZipFile(StringIO((message.lastPayload().get_payload(decode=True)))) as archive:
+                if addDMARCReport(archive.read(archive.namelist()[0])):
+                    print(messageId + '. email message processed as DMARC report and will be deleted.')
+                    server.execute('store', messageId, '+FLAGS', '\Deleted')
+                else:
+                    warning('Email messages cannot be saved to the database as DMARC report:', message)
+
+        else:
+            warning('Unexpected MIME type:', message)
 
     if debug:
         print('Deleted emails will be left on the server in debug mode.')
@@ -154,6 +164,38 @@ def addResponseReport(sender, report):
 
         with postgres:
             postgres.insert('EmailSendResponseReport', report)
+            return True
+
+    return False
+
+def addDMARCReport(body):
+    import xml.etree.cElementTree as ElementTree
+    from psycopg2.extras import DateTimeTZRange
+    from datetime import datetime
+
+    tree = ElementTree.fromstring(body)
+
+    report = {
+        'reporterAddress': tree.find('report_metadata/email').text,
+        'reportId': tree.find('report_metadata/report_id').text,
+        'domain': tree.find('policy_published/domain').text,
+        'period': DateTimeTZRange(datetime.fromtimestamp(int(tree.find('report_metadata/date_range/begin').text)),
+                                  datetime.fromtimestamp(int(tree.find('report_metadata/date_range/end').text))),
+        'body': body
+    }
+
+    with postgres:
+        postgres.insert('DMARCReport', report)
+
+        for record in tree.iter('record'):
+            postgres.insert('DMARCReportRow', {
+                'reporterAddress': report['reporterAddress'],
+                'reportId': report['reportId'],
+                'source': record.find('row/source_ip').text,
+                'disposition': record.find('row/policy_evaluated/disposition').text,
+                'dKIMPass': record.find('row/policy_evaluated/dkim').text == 'pass',
+                'sPFPass': record.find('row/policy_evaluated/spf').text == 'pass',
+            })
             return True
 
     return False

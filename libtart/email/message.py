@@ -25,32 +25,34 @@ class Message(email.message.Message):
     def check(self):
         splitType = self.get_content_type().split('/')
 
-        if splitType[0] in ('multipart', 'message'):
+        if splitType[0] == 'multipart':
+            assert self.is_multipart()
+            assert len(self.get_payload()) > 1
+
+            if splitType[1] == 'report':
+                # Sanity checks for response reports and multipart emails supposed to include the returned
+                # original according to RFC 2464 page 7.
+
+                assert len(self.get_payload()) <= 3
+
+                # The last content type must be the returned original.
+                assert self.get_payload()[-1].get_content_type() in ('message/rfc822', 'text/rfc822-headers')
+
+                if len(self.get_payload()) > 2:
+                    # The one before the returned original must be one of the standart responses.
+                    assert self.get_payload()[-2].get_content_type() in ('message/delivery-status',
+                                                                         'message/feedback-report')
+
+        elif splitType[0] == 'message':
             assert self.is_multipart()
 
-            if splitType[0] == 'multipart':
-                assert len(self.get_payload()) > 1
+        else:
+            assert not self.is_multipart()
 
-                if splitType[1] in ('report', 'mixed'):
-                    # Sanity checks for response reports and multipart emails supposed to include the returned
-                    # original according to RFC 2464 page 7.
-
-                    assert len(self.get_payload()) <= 3
-
-                    # The last content type must be the returned original.
-                    assert self.get_payload()[-1].get_content_type() in ('message/rfc822', 'text/rfc822-headers')
-
-                    if len(self.get_payload()) > 2:
-                        # The one before the returned original must be one of the standart responses.
-                        assert self.get_payload()[-2].get_content_type() in ('message/delivery-status',
-                                                                             'message/feedback-report')
-
+        if self.is_multipart():
+            # Continue checks recursively.
             for payload in self.get_payload():
                 payload.check()
-
-        elif splitType[0] == 'text':
-            # Sanity checks plain text emails.
-            assert not self.is_multipart()
 
     def plainest(self):
         '''Return the text/plain payload or first payload inside multipart/alternative message which should
@@ -59,6 +61,11 @@ class Message(email.message.Message):
         if self.is_multipart():
             return self.get_payload(0).plainest()
         return self.get_payload()
+
+    def lastPayload(self):
+        if self.is_multipart():
+            return self.get_payload()[-1]
+        return self
 
     def headers(self):
         '''Return headers with lower case names and without new lines.'''
