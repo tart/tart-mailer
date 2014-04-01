@@ -74,6 +74,11 @@ Duplicate headers of the response reports are not saved to the database.
 Changelog
 ---------
 
-Version 1.0.1
+Version 1.0
 
 * Improve database schema using more composite keys
+* Make the infrastructure suitable to not bulk emails
+* Add authorization to the API
+* Allow adding subscribers via admin panel
+* Support IMAP4 SSL
+* Process DMARC reports
