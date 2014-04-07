@@ -1,5 +1,3 @@
-Begin;
-
 Create extension if not exists btree_gist;
 
 Create table DMARCReport (
@@ -28,5 +26,3 @@ Create table DMARCReportRow (
     sPFPass boolean not null default false,
     constraint DMARCReportRowPK primary key (reporterAddress, reportId, source)
 );
-
-Commit;

@@ -1,5 +1,3 @@
-Begin;
-
 Create or replace view EmailSentDateStatistics as
     select EmailSend.fromAddress, EmailSend.emailId, EmailSend.revisedAt::date as sentDate,
             count(*) as total,
@@ -29,5 +27,3 @@ Create or replace view EmailVariationStatistics as
             where EmailSend.sent
             group by EmailSend.fromAddress, EmailSend.emailId, EmailSend.variationId
             order by EmailSend.fromAddress, EmailSend.emailId, EmailSend.variationId;
-
-Commit;

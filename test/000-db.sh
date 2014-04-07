@@ -8,7 +8,7 @@ echo "Create database $PGDATABASE" | psql postgres
 echo
 
 echo "Executing the database scripts..."
-cat ../db/* | psql
+(echo 'Begin;'; cat ../db/*; echo 'Commit') | psql
 echo
 
 echo "Adding data..."

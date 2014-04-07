@@ -1,5 +1,3 @@
-Begin;
-
 Create or replace function RemoveNotAllowedEmailSend()
     returns setof EmailSend
     language sql strict
@@ -79,5 +77,3 @@ Create or replace function EmailToSendCount(fromAddress varchar(200))
     as $$
 Select count(*) from EmailSend where not sent and fromAddress = EmailToSendCount.fromAddress
 $$;
-
-Commit;

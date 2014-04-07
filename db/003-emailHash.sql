@@ -1,5 +1,3 @@
-Begin;
-
 Create extension if not exists pgcrypto;
 
 Create or replace function Base64ForURL(bytea)
@@ -23,5 +21,3 @@ Select Base64ForURL(digest('secret1' || $1.fromAddress ||
 $$;
 
 Create unique index EmailSendEmailHashI on EmailSend (EmailHash(EmailSend));
-
-Commit;

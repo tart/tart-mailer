@@ -24,7 +24,7 @@ db/003-emailHash.sql includes the hash function for user URL's. Is is better to 
 Executing only the new scripts should be sufficient for upgrading. All of the scripts can be executed in order like
 this::
 
-    cat db/* | psql
+    (echo ' Begin;'; cat db/*; echo 'Commit;') | psql
 
 There are seperate web servers. One of them is for users to redirect, unsubscribe... One is a RESTful API for
 other applications. Other one is for administrators to list emails, send new ones... They both can be run directly::

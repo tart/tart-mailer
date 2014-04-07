@@ -1,5 +1,3 @@
-Begin;
-
 Create extension if not exists plpythonu;
 
 Create or replace function FormatEmailToSend(body text, k text[], v text[])
@@ -46,5 +44,3 @@ Select coalesce(FormatEmailToSend(EmailVariation.hTMLBody, Subscriber.properties
         join Subscriber using (fromAddress, toAddress)
         where EmailHash(EmailSend) = ViewEmailBody.emailHash
 $$;
-
-Commit;

@@ -1,5 +1,3 @@
-Begin;
-
 Create or replace function LastEmailSendToEmailAddresses(toAddresses varchar(200)[])
     returns setof EmailSend
     language sql strict
@@ -49,5 +47,3 @@ select EmailSend.*
                 and EmailHash(EmailSend) = regexp_replace(EmailSendFromUnsubscribeURL.unsubscribeURL,
                                                           '^' || Sender.returnURLRoot || 'unsubscribe/', '')
 $$;
-
-Commit;

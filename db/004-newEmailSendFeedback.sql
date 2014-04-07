@@ -1,5 +1,3 @@
-Begin;
-
 Create or replace function NewEmailSendFeedback(
         emailHash text,
         feedbackType EmailSendFeedbackType,
@@ -29,5 +27,3 @@ Select Email.redirectURL
         join Email using (fromAddress, emailId)
         where EmailHash(EmailSend) = $1
 $$;
-
-Commit;

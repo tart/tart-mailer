@@ -1,5 +1,3 @@
-Begin;
-
 Create or replace function SendTestEmail(
         fromAddress varchar(200),
         toAddress varchar(200),
@@ -135,5 +133,3 @@ Select EmailVariation.variationId, coalesce(count(EmailSend), 0)
         group by EmailVariation.variationId
         order by EmailVariation.variationId
 $$;
-
-Commit;

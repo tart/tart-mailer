@@ -1,5 +1,3 @@
-Begin;
-
 Create or replace view SenderDetail as
     with SubscriberStats as (select fromAddress, count(*) as count
             from Subscriber
@@ -51,5 +49,3 @@ Create or replace view BulkEmailDetail as
                 left join EmailVariationStats using (fromAddress, emailId)
                 where Email.bulk
                 order by Email.fromAddress, Email.emailId;
-
-Commit;

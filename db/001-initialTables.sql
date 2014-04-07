@@ -1,5 +1,3 @@
-Begin;
-
 Create extension if not exists hstore;
 
 Create domain EmailAddress varchar(200) collate "C"
@@ -116,5 +114,3 @@ Create table EmailSendResponseReport (
 );
 
 Create index EmailSendResponseReportEmailFKI on EmailSendResponseReport (fromAddress, emailId);
-
-Commit;

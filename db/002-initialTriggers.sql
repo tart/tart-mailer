@@ -1,5 +1,3 @@
-Begin;
-
 Create or replace function SetRevisedAt()
     returns trigger
     language plpgsql
@@ -45,5 +43,3 @@ $$;
 
 Create trigger EmailVariationInsertVariationIdT before insert on EmailVariation
     for each row execute procedure SetNextVariationId();
-
-Commit;
