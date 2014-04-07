@@ -38,33 +38,31 @@ def main():
     parser.add_argument('--timeout', type=int, help='seconds to kill the process')
     parser.add_argument('--debug', action='store_true', help='debug mode')
     parser.add_argument('--protocol', default='IMAP4', help='protocol to connect to the mail server, default IMAP4')
+    parser.add_argument('--delete', action='store_true', help='delete processed messages from the mail server')
     IMAP4.addArguments(parser)
 
     arguments = vars(parser.parse_args())
-    sender = arguments.pop('sender')
-    amount = arguments.pop('amount')
-    timeout = arguments.pop('timeout')
-    debug = arguments.pop('debug')
-    protocol = arguments.pop('protocol')
+    options = dict((k, arguments.pop(k)) for k in arguments.keys() if k in ('sender', 'amount', 'timeout', 'debug',
+                                                                            'protocol', 'delete'))
     # Remaining arguments are for IMAP4.
 
-    if timeout:
-        signal.alarm(timeout)
+    if options['timeout']:
+        signal.alarm(options['timeout'])
 
-    if debug:
+    if options['debug']:
         Postgres.debug = True
         IMAP4.debug = True
 
-    if sender:
+    if options['sender']:
         with postgres:
-            if not postgres.select('Sender', {'fromAddress': sender}):
+            if not postgres.select('Sender', {'fromAddress': options['sender']}):
                 raise Exception('Sender does not exists.')
 
-    server = globals()[protocol](**dict((k, v) for k, v in arguments.items() if v is not None))
+    server = globals()[options['protocol']](**dict((k, v) for k, v in arguments.items() if v is not None))
     messageIds = server.execute('search', 'utf-8', 'UNSEEN')[0].split()
     print(str(len(messageIds)) + ' email messages to process.')
 
-    for messageId in messageIds[:amount]:
+    for messageId in messageIds[:options['amount']]:
         message = email.message_from_string(server.execute('fetch', messageId, '(RFC822)')[0][1], Message)
         message.check()
         returnedOriginal = None
@@ -95,9 +93,11 @@ def main():
                 # Aditional fields for the standart response reports.
                 report['fields'] = dict(message.get_payload()[-2].recursiveHeaders())
 
-            if addResponseReport(sender, report):
-                print(messageId + '. email message processed as returned original and will be deleted.')
-                server.execute('store', messageId, '+FLAGS', '\Deleted')
+            if addResponseReport(options['sender'], report):
+                print(messageId + '. email message processed as returned original.')
+
+                if options['delete']:
+                    server.execute('store', messageId, '+FLAGS', '\Deleted')
             else:
                 warning('Email messages cannot be saved to the database as response report:', message)
 
@@ -107,26 +107,29 @@ def main():
 
             with ZipFile(StringIO((message.lastPayload().get_payload(decode=True)))) as archive:
                 if addDMARCReport(archive.read(archive.namelist()[0])):
-                    print(messageId + '. email message processed as DMARC report and will be deleted.')
-                    server.execute('store', messageId, '+FLAGS', '\Deleted')
+                    print(messageId + '. email message processed as DMARC report.')
+
+                    if options['delete']:
+                        server.execute('store', messageId, '+FLAGS', '\Deleted')
                 else:
                     warning('Email messages cannot be saved to the database as DMARC report:', message)
 
         else:
             warning('Unexpected MIME type:', message)
 
-    if debug:
-        print('Deleted emails will be left on the server in debug mode.')
-    else:
-        server.execute('expunge')
+    if options['delete']:
+        if options['debug']:
+            print('Deleted emails will be left on the server in debug mode.')
+        else:
+            server.execute('expunge')
 
-def addResponseReport(sender, report):
+def addResponseReport(fromAddress, report):
     emailSend = None
 
     if 'originalHeaders' in report and 'list-unsubscribe' in report['originalHeaders']:
         unsubscribeURL = report['originalHeaders']['list-unsubscribe'][1:-1]
         with postgres:
-            emailSend = postgres.call('EmailSendFromUnsubscribeURL', ([sender] or []) + [unsubscribeURL])
+            emailSend = postgres.call('EmailSendFromUnsubscribeURL', ([fromAddress] or []) + [unsubscribeURL])
 
     else:
         addresses = []
@@ -154,7 +157,7 @@ def addResponseReport(sender, report):
         if addresses:
             with postgres:
                 try:
-                    emailSend = postgres.call('LastEmailSendToEmailAddresses', ([sender] or []) + [addresses])
+                    emailSend = postgres.call('LastEmailSendToEmailAddresses', ([fromAddress] or []) + [addresses])
                 except PostgresNoRow: pass
 
     if emailSend:
