@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 
-{% from 'macros.html' import link, linkTable %}
+{% from 'tables.html' import linkTable %}
 
 {% block body %}
     {% if domain %}
@@ -11,11 +11,11 @@
 
     <h2>DMARC Reports</h2>
 
-    {{ linkTable(dMARCReports, ('report',)) }}
+    {{ linkTable(dMARCReports, {'report': 'report'}) }}
 
     {% if domain %}
         <p>
-            {{ link('domainStatistics') }}
+            <a href="{{ url_for('domainStatistics', domain=None) }}">Statistics for All Domains</a>
         </p>
     {% endif %}
 {% endblock %}

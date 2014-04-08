@@ -17,6 +17,7 @@
 
 import os
 import flask
+import jinja2
 
 os.sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 from libtart.postgres import Postgres
@@ -48,14 +49,6 @@ def newSender(**kwargs):
 
         return flask.render_template('sender.html', returnurlroot=root, **kwargs)
 
-@app.route('/sender/new', methods=['POST'])
-def addSender():
-    with postgres:
-        kwargs = postgres.insert('Sender', formData())
-        kwargs['senderMessage'] = 'Sender created.'
-
-        return editSender(**kwargs)
-
 @app.route('/sender/<string:fromaddress>')
 def editSender(**kwargs):
     with postgres:
@@ -65,13 +58,18 @@ def editSender(**kwargs):
 
         return flask.render_template('sender.html', **kwargs)
 
+@app.route('/sender/new', methods=['POST'])
 @app.route('/sender/<string:fromaddress>', methods=['POST'])
 def saveSender(**kwargs):
     with postgres:
-        if postgres.update('Sender', formData(), kwargs, table=False):
-            kwargs['saveMessage'] = 'Sender updated.'
+        if 'fromaddress' not in kwargs:
+            kwargs = postgres.insert('Sender', formData())
+            kwargs['senderMessage'] = 'Sender created.'
         else:
-            kwargs['saveMessage'] = 'Sender could not found.'
+            if postgres.update('Sender', formData(), kwargs, table=False):
+                kwargs['saveMessage'] = 'Sender updated.'
+            else:
+                kwargs['saveMessage'] = 'Sender could not found.'
 
         return editSender(**kwargs)
 
@@ -92,7 +90,7 @@ def newSubscriber(**kwargs):
     return flask.render_template('subscriber.html', **kwargs)
 
 @app.route('/sender/<string:fromaddress>/subscriber/new', methods=['POST'])
-def addSubscriber(**kwargs):
+def saveSubscriber(**kwargs):
     with postgres:
         postgres.insert('Subscriber', formData(**kwargs))
         kwargs['saveMessage'] = 'Subscriber created.'
@@ -104,14 +102,6 @@ def newEmail(**kwargs):
     kwargs['draft'] = True
 
     return flask.render_template('email.html', **kwargs)
-
-@app.route('/sender/<string:fromaddress>/email/new', methods=['POST'])
-def addEmail(**kwargs):
-    with postgres:
-        kwargs.update(postgres.insert('Email', formData(**kwargs)))
-        kwargs['saveMessage'] = 'Email created.'
-
-        return editEmail(**kwargs)
 
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>')
 def editEmail(**kwargs):
@@ -138,13 +128,18 @@ def editEmail(**kwargs):
 
     return flask.render_template('email.html', **kwargs)
 
+@app.route('/sender/<string:fromaddress>/email/new', methods=['POST'])
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>', methods=['POST'])
 def saveEmail(**kwargs):
     with postgres:
-        if postgres.update('Email', formData(), kwargs):
-            kwargs['saveMessage'] = 'Email updated.'
+        if 'emailid' not in kwargs:
+            kwargs.update(postgres.insert('Email', formData(**kwargs)))
+            kwargs['saveMessage'] = 'Email created.'
         else:
-            kwargs['saveMessage'] = 'Email could not found.'
+            if postgres.update('Email', formData(), kwargs):
+                kwargs['saveMessage'] = 'Email updated.'
+            else:
+                kwargs['saveMessage'] = 'Email could not found.'
 
         return editEmail(**kwargs)
 
@@ -159,20 +154,17 @@ def removeEmail(**kwargs):
         return index(**kwargs)
 
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/new', methods=['POST'])
-def addEmailVariation(**kwargs):
-    with postgres:
-        postgres.insert('EmailVariation', formData(**kwargs))
-        kwargs['saveEmailVariationMessage'] = 'Email Variation created.'
-
-        return editEmail(**kwargs)
-
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>', methods=['POST'])
 def saveEmailVariation(**kwargs):
     with postgres:
-        if postgres.update('EmailVariation', formData(), kwargs):
-            kwargs['saveEmailVariationMessage'] = 'Email Variation updated.'
+        if 'variationid' not in kwargs:
+            postgres.insert('EmailVariation', formData(**kwargs))
+            kwargs['saveEmailVariationMessage'] = 'Email Variation created.'
         else:
-            kwargs['saveEmailVariationMessage'] = 'Email Variation could not found.'
+            if postgres.update('EmailVariation', formData(), kwargs):
+                kwargs['saveEmailVariationMessage'] = 'Email Variation updated.'
+            else:
+                kwargs['saveEmailVariationMessage'] = 'Email Variation could not found.'
 
         return editEmail(**kwargs)
 
@@ -240,6 +232,18 @@ def report(**kwargs):
 ##
 # Helper functions
 ##
+
+@jinja2.contextfunction
+def uRLFor(context, *args, **kwargs):
+    """Override the default url_for() view helper with a magical one. The magic is to use the context variables
+    as the default kwargs. It will also change the default behavior not to add unknown parameters to the URL
+    with an ugly split() hack."""
+
+    values = dict(context)
+    values.update(kwargs)
+
+    return flask.helpers.url_for(*args, **values).split('?')[0]
+app.jinja_env.globals.update(url_for=uRLFor)
 
 def formData(**kwargs):
     """Hydrate flask.request.form to a complex dictionary. Elements like x[] will become a an array in x. Element

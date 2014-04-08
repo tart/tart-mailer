@@ -1,10 +1,3 @@
-{% extends "layout.html" %}
-
-{% macro link(methodName, kwargs={}) %}
-    {# This ugly hack change the default behavior of url_for() not to add unknown parameters to the URL. #}
-    <a href="{{ url_for(methodName, **kwargs).split('?')[0] }}" >{{ methodName }}</a>
-{% endmacro %}
-
 {% macro cell(value) %}
     {% if value is string %}
         {{ value }}
@@ -35,7 +28,7 @@
     </table>
 {% endmacro %}
 
-{% macro linkTable(tableData, methodNames) %}
+{% macro linkTable(tableData, endpoints) %}
     <table border="1" >
         {% if tableData %}
             <tr>
@@ -54,8 +47,8 @@
                 {% endfor %}
 
                 <td>
-                    {% for name in methodNames %}
-                        {{ link(name, row) }}
+                    {% for endpoint, value in endpoints.items() %}
+                        <a href="{{ url_for(endpoint, **row) }}" >{{ value }}</a>
                     {% endfor %}
                 </td>
             </tr>

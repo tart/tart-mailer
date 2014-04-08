@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 
-{% from 'macros.html' import link, table %}
+{% from 'tables.html' import table %}
 
 {% block body %}
     {% if emailid %}
@@ -19,11 +19,7 @@
 
     {% if emailid %}
         <p>
-            {{ link('emailStatistics', {'fromaddress': fromaddress}) }}
-        </p>
-
-        <p>
-            {{ link('editEmail', {'fromaddress': fromaddress, 'emailid': emailid}) }}
+            <a href="{{ url_for('editEmail') }}">Edit the Email</a>
         </p>
     {% endif %}
 {% endblock %}

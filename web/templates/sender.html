@@ -1,10 +1,7 @@
 {% extends "layout.html" %}
 
-{% from 'macros.html' import link %}
-
 {% block body %}
-    <form method="POST" action="{{ url_for('saveSender', fromaddress=fromaddress)
-                                   if fromaddress else url_for('addSender') }}">
+    <form method="POST" action="{{ url_for('saveSender') }}">
         <table>
             <tr>
                 <td>From Address:</td>
@@ -32,19 +29,19 @@
         <strong>{{ saveMessage }}</strong>
 
         <p>
-            <input type="submit" value="saveSender" />
+            <input type="submit" value="Save" />
         </p>
     </form>
 
     {% if fromaddress %}
-        <form method="POST" action="{{ url_for('removeSender', fromaddress=fromaddress) }}">
+        <form method="POST" action="{{ url_for('removeSender') }}">
             <p>
-                <input type="submit" value="removeSender" />
+                <input type="submit" value="Semove" />
             </p>
         </form>
     {% endif %}
 
     <p>
-        {{ link('newSender') }}
+        <a href="{{ url_for('newSender') }}">Add New Sender</a>
     </p>
 {% endblock %}

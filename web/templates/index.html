@@ -1,25 +1,26 @@
 {% extends 'layout.html' %}
 
-{% from 'macros.html' import link, linkTable %}
+{% from 'tables.html' import linkTable %}
 
 {% block body %}
     <h2>Domains</h2>
 
-    {{ linkTable(domains, ('domainStatistics',)) }}
+    {{ linkTable(domains, {'domainStatistics': 'statistics'}) }}
 
     <h2>Senders</h2>
 
     <strong>{{ senderMessage }}</strong>
 
-    {{ linkTable(senders, ('editSender', 'newSubscriber', 'newEmail')) }}
+    {{ linkTable(senders, {'editSender': 'edit', 'newSubscriber': 'newSubscriber',
+                           'newEmail': 'newEmail', 'emailStatistics': 'statistics'}) }}
 
     <p>
-        {{ link('newSender') }}
+        <a href="{{ url_for('newSender') }}">Add New Sender</a>
     </p>
 
     <h2>Bulk Emails</h2>
 
     <strong>{{ emailMessage }}</strong>
 
-    {{ linkTable(bulkEmails, ('editEmail', 'emailStatistics')) }}
+    {{ linkTable(bulkEmails, {'editEmail': 'edit', 'emailStatistics': 'statistics'}) }}
 {% endblock %}

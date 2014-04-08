@@ -1,11 +1,11 @@
 {% extends 'layout.html' %}
 
-{% from 'macros.html' import link, dictionaryInputTable %}
+{% from 'tables.html' import dictionaryInputTable %}
 
 {% block body %}
     <h1>New Subscriber from {{ fromaddress }}</h1>
 
-    <form method="POST" action="{{ url_for('addSubscriber', fromaddress=fromaddress) }}">
+    <form method="POST" action="{{ url_for('saveSubscriber') }}">
         <table>
             <tr>
                 <td>To Address:</td>
@@ -31,7 +31,7 @@
         </table>
 
         <p>
-            <input type="submit" value="addSubscriber"/>
+            <input type="submit" value="Save"/>
         </p>
     </form>
 {% endblock %}

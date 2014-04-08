@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 
-{% from 'macros.html' import link, checkboxTable %}
+{% from 'tables.html' import checkboxTable %}
 
 {% block body %}
     <h1>{{ emailid ~ '.' if emailid else 'New' }} Email from {{ fromaddress }}</h1>
@@ -12,8 +12,7 @@
         </p>
     {% endif %}
 
-    <form method="POST" action="{{ url_for('saveEmail', fromaddress=fromaddress, emailid=emailid)
-                                   if emailid else url_for('addEmail', fromaddress=fromaddress) }}">
+    <form method="POST" action="{{ url_for('saveEmail') }}">
         <table>
             <tr>
                 <td>Redirect URL:</td>
@@ -39,7 +38,7 @@
         <strong>{{ saveMessage }}</strong>
 
         <p>
-            <input type="submit" value="saveEmail" {{ 'disabled ' if not draft }} />
+            <input type="submit" value="Save" {{ 'disabled ' if not draft }} />
         </p>
     </form>
 
@@ -59,9 +58,9 @@
             a brace character in the literal text, it can be escaped by doubling: {{ '{{ and }}' }}.
         </p>
 
-        <form method="POST" action="{{ url_for('removeEmail', fromaddress=fromaddress, emailid=emailid) }}">
+        <form method="POST" action="{{ url_for('removeEmail') }}">
             <p>
-                <input type="submit" value="removeEmail"
+                <input type="submit" value="Semove"
                        {{ 'disabled' if not draft }} />
             </p>
         </form>
@@ -69,7 +68,7 @@
         {% for emailVariation in variations %}
             <h3>{{ emailVariation['variationid'] }}. Variation</h3>
 
-            <form method="POST" action="{{ url_for('saveEmailVariation', fromaddress=fromaddress, emailid=emailid, variationid=emailVariation['variationid']) }}">
+            <form method="POST" action="{{ url_for('saveEmailVariation', **emailVariation) }}">
                 <table>
                     <tr>
                         <td>Subject:</td>
@@ -102,7 +101,11 @@
                                       {{ 'disabled' if not emailVariation['draft'] }} >{{ emailVariation['htmlbody'] or '' }}</textarea>
                         </td>
 
-                        <td>{{ link('preview', {'fromaddress': fromaddress, 'emailid': emailid, 'variationid': emailVariation['variationid']}) if emailVariation['htmlbody'] }}</td>
+                        <td>
+                            {% if emailVariation['htmlbody'] %}
+                                <a href="{{ url_for('preview', **emailVariation) }}">preview</a>
+                            {% endif %}
+                        </td>
                     </tr>
                 </table>
 
@@ -111,20 +114,18 @@
                 {% endif %}
 
                 <p>
-                    <input type="submit" value="saveEmailVariation"
-                           {{ 'disabled' if not emailVariation['draft'] }} />
+                    <input type="submit" value="Save" {{ 'disabled' if not emailVariation['draft'] }} />
                 </p>
             </form>
 
-            <form method="POST" action="{{ url_for('removeEmailVariation', fromaddress=fromaddress, emailid=emailid, variationid=emailVariation['variationid']) }}">
+            <form method="POST" action="{{ url_for('removeEmailVariation', **emailVariation) }}">
 
                 {% if emailVariation['variationid'] == variationid %}
                     <strong>{{ removeEmailVariationMessage }}</strong>
                 {% endif %}
 
                 <p>
-                    <input type="submit" value="removeEmailVariation"
-                           {{ 'disabled' if not emailVariation['draft'] }} />
+                    <input type="submit" value="Semove" {{ 'disabled' if not emailVariation['draft'] }} />
                 </p>
             </form>
 
@@ -133,12 +134,12 @@
                     <p>
                         <input type="hidden" name="fragment" value="{{ emailVariation['htmlbody'] }}"/>
 
-                        <input type="submit" value="validateHTML"/>
+                        <input type="submit" value="Validate HTML"/>
                     </p>
                 </form>
             {% endif %}
 
-            <form method="POST" action="{{ url_for('sendTestEmail', fromaddress=fromaddress, emailid=emailid, variationid=emailVariation['variationid']) }}">
+            <form method="POST" action="{{ url_for('sendTestEmail', **emailVariation) }}">
                 <table>
                     <tr>
                         <td>Email Address:</td>
@@ -154,14 +155,14 @@
                 {% endif %}
 
                 <p>
-                    <input type="submit" value="sendTestEmail" />
+                    <input type="submit" value="Send Test Email" />
                 </p>
             </form>
         {% endfor %}
 
         <h3>New Variation</h3>
 
-        <form method="POST" action="{{ url_for('addEmailVariation', fromaddress=fromaddress, emailid=emailid) }}">
+        <form method="POST" action="{{ url_for('saveEmailVariation') }}">
             <table>
                 <tr>
                     <td>Subject:</td>
@@ -189,14 +190,14 @@
             </table>
 
             <p>
-                <input type="submit" value="addEmailVariation" />
+                <input type="submit" value="Save" />
             </p>
         </form>
 
         {% if bulk %}
             <h3>Send Bulk Email</h3>
 
-            <form method="POST" action="{{ url_for('sendBulkEmail', fromaddress=fromaddress, emailid=emailid) }}">
+            <form method="POST" action="{{ url_for('sendBulkEmail') }}">
                 {{ checkboxTable(subscriberlocalestats, 'locale') }}
 
                 <p>
@@ -224,13 +225,13 @@
                 <strong>{{ sendBulkEmailMessage }}</strong>
 
                 <p>
-                    <input type="submit" value="sendBulkEmail" {{ 'disabled ' if subscribercount == 0 }}/>
+                    <input type="submit" value="Send Bulk Email" {{ 'disabled ' if subscribercount == 0 }}/>
                 </p>
             </form>
         {% endif %}
     {% endif %}
 
     <p>
-        {{ link('newEmail', {'fromaddress': fromaddress}) }}
+        <a href="{{ url_for('newEmail') }}">Add New Email</a>
     </p>
 {% endblock %}
