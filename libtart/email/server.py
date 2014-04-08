@@ -41,6 +41,7 @@ class SMTP(smtplib.SMTP):
 
     def __init__(self, usetls=False, username=None, password=None, **kwargs):
         smtplib.SMTP.__init__(self, **kwargs)
+        self.connect()
 
         if usetls:
             self.starttls()
