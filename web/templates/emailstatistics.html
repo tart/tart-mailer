@@ -17,10 +17,6 @@
 
     {{ table(emailVariations) }}
 
-    <p>
-        {{ link('index') }}
-    </p>
-
     {% if emailid %}
         <p>
             {{ link('emailStatistics', {'fromaddress': fromaddress}) }}

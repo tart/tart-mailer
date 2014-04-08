@@ -5,7 +5,9 @@
     </head>
 
     <body>
-        <img src="{{ url_for('static', filename='logo.png') }}" alt="logo" />
+        <a href="{{ url_for('index') }}">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="logo" />
+        </a>
 
         {% block body %}{% endblock %}
     </body>
