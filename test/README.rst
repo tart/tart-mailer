@@ -10,8 +10,9 @@ Dependencies
 Usage
 -----
 
-A PostgreSQL database named "mailertest" will be dropped and recreated by the script. Other PostgreSQL connection
-parameters can be given as environment variables.
+PostgreSQL connection parameters can also be given as environment variables. The database will be dropped
+re-created by the script 000-db.sh. It will be the database with that same name of the current user, if the
+environment variable PGDATABASE does not set. It should be the database will be used by the other scripts.
 
 Tab seperated files emails.data and subscribers.data will be loaded to the database. Only one email will be send
 and feedback functionality will be tested for this one. The email and the subscriber will be the ones on top of

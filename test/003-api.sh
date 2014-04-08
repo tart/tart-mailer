@@ -1,7 +1,5 @@
 #!/bin/bash -e
 
-export PGDATABASE=mailertest
-
 echo "Running the web server for API..."
 ../web/api.py &
 sleep 3

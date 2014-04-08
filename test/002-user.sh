@@ -1,13 +1,11 @@
 #!/bin/bash -e
 
-export PGDATABASE=mailertest
-
 echo "Running the web server for users..."
 ../web/user.py &
 sleep 3
 echo
 
-emailHash=$(echo "Select EmailHash(EmailSend) from EmailSend limit 1" | psql -XAt $dbname)
+emailHash=$(echo "Select EmailHash(EmailSend) from EmailSend limit 1" | psql -XAt)
 
 echo "Trying to get the tracker image..."
 curl http://localhost:8000/trackerImage/$emailHash

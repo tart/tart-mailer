@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-export PGDATABASE=mailertest
+test "$PGDATABASE" || PGDATABASE=$USER
 
 echo "Creating database..."
 echo "Drop database if exists $PGDATABASE" | psql postgres
