@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 
-{% from 'macros.html' import link, dictionaryTable %}
+{% from 'macros.html' import link, dictionaryInputTable %}
 
 {% block body %}
     <h1>New Subscriber from {{ fromaddress }}</h1>
@@ -26,7 +26,7 @@
             <tr>
                 <td>Properties:</td>
 
-                <td>{{ dictionaryTable('properties', propertyCount) }}</td>
+                <td>{{ dictionaryInputTable('properties', propertyCount) }}</td>
             </tr>
         </table>
 

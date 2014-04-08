@@ -34,6 +34,7 @@ postgres = Postgres()
 @app.route('/')
 def index(**kwargs):
     with postgres:
+        kwargs['domains'] = postgres.select('DomainDetail')
         kwargs['senders'] = postgres.select('SenderDetail')
         kwargs['bulkEmails'] = postgres.select('BulkEmailDetail')
 
@@ -218,6 +219,21 @@ def emailStatistics(**kwargs):
         return flask.render_template('emailstatistics.html',
                                      emailSentDates=postgres.select('EmailSentDateStatistics', kwargs),
                                      emailVariations=postgres.select('EmailVariationStatistics', kwargs),
+                                     **kwargs)
+
+@app.route('/domain/statistics')
+@app.route('/domain/<string:domain>/statistics')
+def domainStatistics(**kwargs):
+    with postgres:
+        return flask.render_template('domainstatistics.html',
+                                     dMARCReports=postgres.select('DMARCReportDetail', kwargs),
+                                     **kwargs)
+
+@app.route('/reporter/<string:reporteraddress>/report/<string:reportid>')
+def report(**kwargs):
+    with postgres:
+        return flask.render_template('report.html',
+                                     dMARCReportRows=postgres.select('DMARCReportRow', kwargs),
                                      **kwargs)
 
 ##

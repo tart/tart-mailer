@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+
+{% from 'macros.html' import link, table %}
+
+{% block body %}
+    <h1>Report {{ reportid }} from {{ reporteraddress }}</h1>
+
+    <h2>DMARC Report Rows</h2>
+
+    {{ table(dMARCReportRows) }}
+
+    <p>
+        {{ link('index') }}
+    </p>
+{% endblock %}

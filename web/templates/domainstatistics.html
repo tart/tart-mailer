@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+
+{% from 'macros.html' import link, linkTable %}
+
+{% block body %}
+    {% if domain %}
+        <h1>{{ domain }} Statistics</h1>
+    {% else %}
+        <h1>Domain Statistics</h1>
+    {% endif %}
+
+    <h2>DMARC Reports</h2>
+
+    {{ linkTable(dMARCReports, ('report',)) }}
+
+    {% if domain %}
+        <p>
+            {{ link('domainStatistics') }}
+        </p>
+    {% endif %}
+
+    <p>
+        {{ link('index') }}
+    </p>
+{% endblock %}

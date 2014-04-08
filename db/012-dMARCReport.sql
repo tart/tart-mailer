@@ -30,3 +30,26 @@ Create table DMARCReportRow (
             references DMARCReport on delete cascade on update cascade,
     constraint DMARCReportRowMessageCountC check (messageCount > 0)
 );
+
+Create or replace view DomainDetail as
+    select domain,
+            array_agg(distinct reporterAddress::text) as reporterAddresses,
+            count(*) as dMARCReports,
+            max(createdAt) as lastReport
+        from DMARCReport
+            group by domain;
+
+Create or replace view DMARCReportDetail as
+    select DMARCReport.domain,
+            DMARCReport.reporterAddress,
+            DMARCReport.reportId,
+            DMARCReport.createdAt,
+            DMARCReport.period::text as period,
+            count(DMARCReportRow) as rows,
+            sum(DMARCReportRow.messageCount) as total,
+            array_agg(distinct DMARCReportRow.source) as sources,
+            array_agg(distinct DMARCReportRow.disposition) as dispositions
+        from DMARCReport
+            left join DMARCReportRow using (reporterAddress, reportId)
+            group by DMARCReport.reporterAddress, DMARCReport.reportId
+            order by DMARCReport.createdAt;

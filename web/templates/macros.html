@@ -5,6 +5,16 @@
     <a href="{{ url_for(methodName, **kwargs).split('?')[0] }}" >{{ methodName }}</a>
 {% endmacro %}
 
+{% macro cell(value) %}
+    {% if value is string %}
+        {{ value }}
+    {% elif value is iterable %}
+        {{ value|join(', ') }}
+    {% elif value is not none %}
+        {{ value|string }}
+    {% endif %}
+{% endmacro %}
+
 {% macro table(tableData) %}
     <table border="1" >
         {% if tableData %}
@@ -17,8 +27,8 @@
 
         {% for row in tableData %}
             <tr>
-                {% for cell in row.values() %}
-                    <td>{{ cell if cell != None }}</td>
+                {% for value in row.values() %}
+                    <td>{{ cell(value) }}</td>
                 {% endfor %}
             </tr>
         {% endfor %}
@@ -39,15 +49,15 @@
 
         {% for row in tableData %}
             <tr>
-                {% for cell in row.values() %}
-                    <td>{{ cell if cell != None }}</td>
+                {% for value in row.values() %}
+                    <td>{{ cell(value) }}</td>
                 {% endfor %}
 
-                    <td>
-                {% for cell in methodNames %}
-                        {{ link(cell, row) }}
-                {% endfor %}
-                    </td>
+                <td>
+                    {% for name in methodNames %}
+                        {{ link(name, row) }}
+                    {% endfor %}
+                </td>
             </tr>
         {% endfor %}
     </table>
@@ -71,15 +81,15 @@
                     <input type="checkbox" name="{{ checkboxColumn }}[]" value="{{ row[checkboxColumn] }}" />
                  </td>
 
-                {% for header, cell in row.items() %}
-                    <td>{{ cell }}</td>
+                {% for header, value in row.items() %}
+                    <td>{{ cell(value) }}</td>
                 {% endfor %}
             </tr>
         {% endfor %}
     </table>
 {% endmacro %}
 
-{% macro dictionaryTable(name, rowCount) %}
+{% macro dictionaryInputTable(name, rowCount) %}
     <table border="1" >
         {% for row in range(rowCount) %}
             <tr>

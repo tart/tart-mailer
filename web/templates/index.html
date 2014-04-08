@@ -3,6 +3,10 @@
 {% from 'macros.html' import link, linkTable %}
 
 {% block body %}
+    <h2>Domains</h2>
+
+    {{ linkTable(domains, ('domainStatistics',)) }}
+
     <h2>Senders</h2>
 
     <strong>{{ senderMessage }}</strong>
