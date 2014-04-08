@@ -51,9 +51,10 @@ def newSender(**kwargs):
 @app.route('/sender/new', methods=['POST'])
 def addSender():
     with postgres:
-        postgres.insert('Sender', formData())
+        kwargs = postgres.insert('Sender', formData())
+        kwargs['senderMessage'] = 'Sender created.'
 
-        return index(senderMessage='Sender created.')
+        return editSender(**kwargs)
 
 @app.route('/sender/<string:fromaddress>')
 def editSender(**kwargs):
@@ -107,10 +108,10 @@ def newEmail(**kwargs):
 @app.route('/sender/<string:fromaddress>/email/new', methods=['POST'])
 def addEmail(**kwargs):
     with postgres:
-        postgres.insert('Email', formData(**kwargs))
+        kwargs.update(postgres.insert('Email', formData(**kwargs)))
         kwargs['saveMessage'] = 'Email created.'
 
-        return index(**kwargs)
+        return editEmail(**kwargs)
 
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>')
 def editEmail(**kwargs):
