@@ -195,6 +195,7 @@ def addDMARCReport(body):
                 'reporterAddress': report['reporterAddress'],
                 'reportId': report['reportId'],
                 'source': record.find('row/source_ip').text,
+                'messageCount': record.find('row/count').text,
                 'disposition': record.find('row/policy_evaluated/disposition').text,
                 'dKIMPass': record.find('row/policy_evaluated/dkim').text == 'pass',
                 'sPFPass': record.find('row/policy_evaluated/spf').text == 'pass',
