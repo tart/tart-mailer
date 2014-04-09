@@ -12,10 +12,12 @@ Create trigger SubscriberUpdateRevisedAtT before update on Subscriber
     for each row execute procedure SetRevisedAt();
 
 Create trigger EmailVariationUpdateRevisedAtT before update on EmailVariation
-    for each row execute procedure SetRevisedAt();
+    for each row
+    execute procedure SetRevisedAt();
 
 Create trigger EmailSendUpdateRevisedAtT before update on EmailSend
-    for each row execute procedure SetRevisedAt();
+    for each row
+    execute procedure SetRevisedAt();
 
 Create or replace function SetNextEmailId()
     returns trigger
@@ -28,7 +30,9 @@ End;
 $$;
 
 Create trigger EmailInsertEmailIdT before insert on Email
-    for each row execute procedure SetNextEmailId();
+    for each row
+    when (new.emailId is null)
+    execute procedure SetNextEmailId();
 
 Create or replace function SetNextVariationId()
     returns trigger
@@ -42,4 +46,6 @@ End;
 $$;
 
 Create trigger EmailVariationInsertVariationIdT before insert on EmailVariation
-    for each row execute procedure SetNextVariationId();
+    for each row
+    when (new.variationId is null)
+    execute procedure SetNextVariationId();
