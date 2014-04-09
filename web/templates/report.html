@@ -5,7 +5,45 @@
 {% block body %}
     <h1>Report {{ reportid }} from {{ reporteraddress }}</h1>
 
+    <table>
+        <tr>
+            <td>Domain:</td>
+
+            <td>
+                <input type="text" name="subject" size="100" maxlength="200" value="{{ domain }}" disabled />
+            </td>
+        </tr>
+
+        <tr>
+            <td>Start:</td>
+
+            <td>
+                <input type="text" name="period" size="100" maxlength="25" value="{{ period.lower }}" disabled />
+            </td>
+        </tr>
+
+        <tr>
+            <td>End:</td>
+
+            <td>
+                <input type="text" name="period" size="100" maxlength="25" value="{{ period.upper }}" disabled />
+            </td>
+        </tr>
+
+        <tr>
+            <td>Body:</td>
+
+            <td>
+                <textarea name="body" rows="10" cols="100" disabled >{{ body }}</textarea>
+            </td>
+        </tr>
+    </table>
+
     <h2>DMARC Report Rows</h2>
 
-    {{ table(dMARCReportRows) }}
+    {{ table(rows) }}
+
+    <p>
+        <a href="{{ url_for('domainStatistics') }}">The Domain Statistics</a>
+    </p>
 {% endblock %}

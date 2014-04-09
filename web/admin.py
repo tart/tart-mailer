@@ -225,9 +225,11 @@ def domainStatistics(**kwargs):
 @app.route('/reporter/<string:reporteraddress>/report/<string:reportid>')
 def report(**kwargs):
     with postgres:
-        return flask.render_template('report.html',
-                                     dMARCReportRows=postgres.select('DMARCReportRow', kwargs),
-                                     **kwargs)
+        parameters = dict(kwargs)
+        kwargs.update(postgres.select('DMARCReport', parameters, table=False))
+        kwargs['rows'] = postgres.select('DMARCReportRow', parameters)
+
+        return flask.render_template('report.html', **kwargs)
 
 ##
 # Helper functions
