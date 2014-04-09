@@ -184,7 +184,7 @@ def addDMARCReport(body):
         'domain': tree.find('policy_published/domain').text,
         'period': DateTimeTZRange(datetime.fromtimestamp(int(tree.find('report_metadata/date_range/begin').text)),
                                   datetime.fromtimestamp(int(tree.find('report_metadata/date_range/end').text))),
-        'body': body
+        'body': body.decode('utf-8-sig')
     }
 
     with postgres:
