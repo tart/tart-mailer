@@ -167,7 +167,8 @@ def addResponseReport(fromAddress, report):
 
         with postgres:
             postgres.insert('EmailSendResponseReport', report)
-            return True
+
+        return True
 
     return False
 
@@ -200,9 +201,8 @@ def addDMARCReport(body):
                 'dKIMPass': record.find('row/policy_evaluated/dkim').text == 'pass',
                 'sPFPass': record.find('row/policy_evaluated/spf').text == 'pass',
             })
-            return True
 
-    return False
+    return True
 
 if __name__ == '__main__':
     main()
