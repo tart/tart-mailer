@@ -3,11 +3,7 @@
 {% from 'tables.html' import table %}
 
 {% block body %}
-    {% if emailid %}
-        <h1>{{ emailid }}. Email from {{ fromaddress }}</h1>
-    {% else %}
-        <h1>Emails from {{ fromaddress }}</h1>
-    {% endif %}
+    <h1>Sender Statistics</h1>
 
     <h2>Email Sent Dates</h2>
 
@@ -20,6 +16,14 @@
     {% if emailid %}
         <p>
             <a href="{{ url_for('editEmail') }}">Edit the Email</a>
+        </p>
+
+        <p>
+            <a href="{{ url_for('senderStatistics', emailid=None) }}">Statistics for All Emails</a>
+        </p>
+    {% elif fromaddress %}
+        <p>
+            <a href="{{ url_for('senderStatistics', fromaddress=None) }}">Statistics for All Senders</a>
         </p>
     {% endif %}
 {% endblock %}

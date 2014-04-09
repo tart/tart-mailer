@@ -12,7 +12,7 @@
     <strong>{{ senderMessage }}</strong>
 
     {{ linkTable(senders, {'editSender': 'edit', 'newSubscriber': 'newSubscriber',
-                           'newEmail': 'newEmail', 'emailStatistics': 'statistics'}) }}
+                           'newEmail': 'newEmail', 'senderStatistics': 'statistics'}) }}
 
     <p>
         <a href="{{ url_for('newSender') }}">Add New Sender</a>
@@ -22,5 +22,5 @@
 
     <strong>{{ emailMessage }}</strong>
 
-    {{ linkTable(bulkEmails, {'editEmail': 'edit', 'emailStatistics': 'statistics'}) }}
+    {{ linkTable(bulkEmails, {'editEmail': 'edit', 'senderStatistics': 'statistics'}) }}
 {% endblock %}
