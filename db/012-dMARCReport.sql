@@ -44,11 +44,10 @@ Create or replace view DMARCReportDetail as
             DMARCReport.reporterAddress,
             DMARCReport.reportId,
             DMARCReport.createdAt,
-            DMARCReport.period::text as period,
             count(DMARCReportRow) as rows,
             sum(DMARCReportRow.messageCount) as total,
-            array_agg(distinct DMARCReportRow.source) as sources,
-            array_agg(distinct DMARCReportRow.disposition) as dispositions
+            sum((DMARCReportRow.disposition = 'quarantine')::integer * DMARCReportRow.messageCount) as quarantines,
+            sum((DMARCReportRow.disposition = 'reject')::integer * DMARCReportRow.messageCount) as rejects
         from DMARCReport
             left join DMARCReportRow using (reporterAddress, reportId)
             group by DMARCReport.reporterAddress, DMARCReport.reportId
