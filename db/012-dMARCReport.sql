@@ -24,5 +24,7 @@ Create table DMARCReportRow (
     disposition DMARCDisposition not null default 'none',
     dKIMPass boolean not null default false,
     sPFPass boolean not null default false,
-    constraint DMARCReportRowPK primary key (reporterAddress, reportId, source)
+    constraint DMARCReportRowPK primary key (reporterAddress, reportId, source),
+    constraint DMARCReportRowFK foreign key (reporterAddress, reportId)
+            references DMARCReport on delete cascade on update cascade
 );
