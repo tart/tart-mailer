@@ -22,11 +22,10 @@ import datetime
 import functools
 
 os.sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
-from libtart.postgres import Postgres, PostgresNoRow, PostgresError
+from libtart import postgres
 
 app = flask.Flask(__name__)
 app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == 'FLASK_'))
-postgres = Postgres()
 
 class InvalidRequest(Exception): pass
 
@@ -65,8 +64,8 @@ def databaseOperationViaAPI(operation):
         if not flask.request.authorization:
             raise AuthenticationRequired('authentication required')
 
-        with postgres:
-            if not postgres.exists('Sender', {'fromAddress': flask.request.authorization.username}):
+        with postgres.connection():
+            if not postgres.connection().exists('Sender', {'fromAddress': flask.request.authorization.username}):
                 raise AuthenticationRequired('sender does not exists')
 
             kwargs['fromAddress'] = flask.request.authorization.username
@@ -81,23 +80,24 @@ def databaseOperationViaAPI(operation):
 @app.route('/subscriber', methods=['GET'])
 @databaseOperationViaAPI
 def listSubscribers(**kwargs):
-    return {'subscribers': postgres.select('Subscriber', kwargs)}
+    return {'subscribers': postgres.connection().select('Subscriber', kwargs)}
 
 @app.route('/subscriber', methods=['POST'])
 @databaseOperationViaAPI
 def addSubscriber(**kwargs):
-    return postgres.insert('Subscriber', kwargs)
+    return postgres.connection().insert('Subscriber', kwargs)
 
 @app.route('/subscriber/<string:toaddress>', methods=['PUT'])
 @databaseOperationViaAPI
 def upsertSubscriber(**kwargs):
-    try:
-        whereConditions = dict((k, v) for k, v in kwargs.items() if k.lower() in ('fromaddress', 'toaddress'))
-        setColumns = dict((k, v) for k, v in kwargs.items() if k not in whereConditions)
+    whereConditions = dict((k, v) for k, v in kwargs.items() if k.lower() in ('fromaddress', 'toaddress'))
+    setColumns = dict((k, v) for k, v in kwargs.items() if k not in whereConditions)
 
-        return postgres.update('Subscriber', setColumns, whereConditions, table=False)
-    except PostgresNoRow:
-        return postgres.insert('Subscriber', kwargs)
+    try:
+        return postgres.connection().update('Subscriber', setColumns, whereConditions, table=False)
+    except postgres.NoRow:
+        return postgres.connection().insert('Subscriber', kwargs)
+
 
 ##
 # Errors
@@ -128,13 +128,15 @@ def notFound(error):
 def methodNotAllowed(error):
     return flask.jsonify({'error': 'method not allowed', 'type': 'General'}), 405
 
-@app.errorhandler(PostgresError)
+@app.errorhandler(postgres.PostgresError)
 def postgresError(error):
     return flask.jsonify({'error': str(error), 'type': type(error).__name__, 'details': error.details()}), 406
 
 ##
 # HTTP server for development
+#
+# Do not use it on production.
 ##
 if __name__ == '__main__':
-    Postgres.debug = True
+    postgres.debug = True
     app.run(port=8080, debug=True)

@@ -20,10 +20,16 @@ import io
 import flask
 
 os.sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
-from libtart.postgres import Postgres
+from libtart import postgres
 
 app = flask.Flask(__name__)
 app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == 'FLASK_'))
+
+##
+# Routes
+#
+# Only GET used on the routes to be able to be used inside the email messages.
+##
 
 @app.route('/')
 def index():
@@ -32,17 +38,15 @@ def index():
 
 @app.route('/trackerImage/<emailHash>')
 def trackerImage(emailHash):
-    with Postgres() as postgres:
-        postgres.call('NewEmailSendFeedback', (emailHash, 'trackerImage', flask.request.remote_addr))
+    postgres.connection().call('NewEmailSendFeedback', (emailHash, 'trackerImage', flask.request.remote_addr))
 
     # Return 1px * 1px transparent image.
     return flask.send_file(io.BytesIO('GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'), mimetype='image/gif')
 
 @app.route('/view/<emailHash>')
 def view(emailHash):
-    with Postgres() as postgres:
-        postgres.call('NewEmailSendFeedback', (emailHash, 'view', flask.request.remote_addr))
-        body = postgres.call('ViewEmailBody', emailHash)
+    postgres.connection().call('NewEmailSendFeedback', (emailHash, 'view', flask.request.remote_addr))
+    body = postgres.connection().call('ViewEmailBody', emailHash)
 
     if body:
         return body
@@ -50,9 +54,8 @@ def view(emailHash):
 
 @app.route('/redirect/<emailHash>')
 def redirect(emailHash):
-    with Postgres() as postgres:
-        postgres.call('NewEmailSendFeedback', (emailHash, 'redirect', flask.request.remote_addr))
-        redirectURL = postgres.call('EmailSendRedirectURL', emailHash)
+    postgres.connection().call('NewEmailSendFeedback', (emailHash, 'redirect', flask.request.remote_addr))
+    redirectURL = postgres.connection().call('EmailSendRedirectURL', emailHash)
 
     if redirectURL:
         return flask.redirect(redirectURL)
@@ -60,15 +63,16 @@ def redirect(emailHash):
 
 @app.route('/unsubscribe/<emailHash>')
 def unsubscribe(emailHash):
-    with Postgres() as postgres:
-        if postgres.call('NewEmailSendFeedback', (emailHash, 'unsubscribe', flask.request.remote_addr)):
-            return 'You are successfully unsubscribed.'
-        else:
-            return 'You have already unsubscribed.'
+    if postgres.connection().call('NewEmailSendFeedback', (emailHash, 'unsubscribe', flask.request.remote_addr)):
+        return 'You are successfully unsubscribed.'
+    else:
+        return 'You have already unsubscribed.'
 
 ##
 # HTTP server for development
+#
+# Do not use it on production.
 ##
 if __name__ == '__main__':
-    Postgres.debug = True
+    postgres.debug = True
     app.run(port=8000, debug=True)

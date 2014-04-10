@@ -27,7 +27,7 @@ from email.mime.text import MIMEText
 from email.utils import formataddr
 
 os.sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
-from libtart.postgres import Postgres
+from libtart import postgres
 from libtart.email.server import SMTP
 from libtart.helpers import warning
 
@@ -50,19 +50,16 @@ def main():
         signal.alarm(timeout)
 
     if debug:
-        Postgres.debug = True
+        postgres.debug = True
 
-    postgres = Postgres()
+    if sender:
+        if not postgres.connection().select('Sender', {'fromAddress': sender}):
+            raise Exception('Sender does not exists.')
 
-    with postgres:
-        if sender:
-            if not postgres.select('Sender', {'fromAddress': sender}):
-                raise Exception('Sender does not exists.')
+    for emailSend in postgres.connection().call('RemoveNotAllowedEmailSend', sender, table=True):
+        warning('Not allowed email messages removed from the queue:', emailSend)
 
-        for emailSend in postgres.call('RemoveNotAllowedEmailSend', sender, table=True):
-            warning('Not allowed email messages removed from the queue:', emailSend)
-
-        count = postgres.call('EmailToSendCount', sender)
+    count = postgres.connection().call('EmailToSendCount', sender)
 
     print(str(count) + ' waiting email messages to send.')
     if count < amount:
@@ -72,8 +69,8 @@ def main():
     print('SMTP connection successful.')
 
     for messageId in range(amount):
-        with postgres:
-            email = postgres.call('NextEmailToSend', sender)
+        with postgres.connection() as transaction:
+            email = transaction.call('NextEmailToSend', sender)
 
             if email['plainbody'] and email['htmlbody']:
                 message = MIMEMultipart('alternative')

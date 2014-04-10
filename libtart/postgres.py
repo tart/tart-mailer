@@ -18,22 +18,37 @@ import collections
 import psycopg2.extensions
 import psycopg2.extras
 
+from libtart.helpers import singleton
+
+# These are not necessary with Python 3.
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 
-class Postgres(psycopg2.extensions.connection):
+debug = False
 
-    debug = False
+@singleton
+class connection(psycopg2.extensions.connection):
+    """The purpose of the class is to add practical functions to the connection class on the psycopg2 library.
+    Unlike the parent class autocommit enabled by default but it will be disabled on demand."""
 
     def __init__(self, dsn=''):
         psycopg2.extensions.connection.__init__(self, dsn)
+        self.autocommit = True
         psycopg2.extras.register_hstore(self)
 
-    def __execute(self, query, parameters, table):
-        '''Execute a query on the database; return None, the value of the cell, the values in the row in
-        a dictionary or the values of the rows in a list of dictionary.'''
+    def __enter__(self):
+        self.autocommit = False
+        return psycopg2.extensions.connection.__enter__(self)
 
-        if Postgres.debug:
+    def __exit__(self, *args):
+        psycopg2.extensions.connection.__exit__(self, *args)
+        self.autocommit = True
+
+    def __execute(self, query, parameters, table):
+        """Execute a query on the database; return None, the value of the cell, the values in the row in
+        a dictionary or the values of the rows in a list of dictionary."""
+
+        if debug:
             print('QUERY: ' + query)
 
         with self.cursor() as cursor:
@@ -51,10 +66,10 @@ class Postgres(psycopg2.extensions.connection):
             return [collections.OrderedDict(zip(columnNames, row)) for row in rows]
 
         if len(rows) == 0:
-            raise PostgresNoRow('Query does not return any rows.')
+            raise NoRow('Query does not return any rows.')
 
         if len(rows) > 1:
-            raise PostgresMoreThanOneRow('Query returned more than one row.')
+            raise MoreThanOneRow('Query returned more than one row.')
 
         if len(columnNames) > 1:
             return collections.OrderedDict(zip(columnNames, rows[0]))
@@ -63,7 +78,7 @@ class Postgres(psycopg2.extensions.connection):
             return rows[0][0]
 
     def call(self, functionName, parameters=[], table=False):
-        '''Call a function inside the database with the given arguments.'''
+        """Call a function inside the database with the given arguments."""
 
         query = 'Select * from ' + functionName + '('
         if isinstance(parameters, dict):
@@ -81,7 +96,7 @@ class Postgres(psycopg2.extensions.connection):
         return self.__execute(query, parameters, table)
 
     def select(self, tableName, whereCondition={}, table=True):
-        '''Execute a select query from a single table.'''
+        """Execute a select query from a single table."""
 
         query = 'Select * from ' + tableName
         if whereCondition:
@@ -90,7 +105,7 @@ class Postgres(psycopg2.extensions.connection):
         return self.__execute(query, whereCondition.values(), table)
 
     def exists(self, tableName, whereCondition={}):
-        '''Execute a exsits(select) query from a single table.'''
+        """Execute a exsits(select) query from a single table."""
 
         query = 'Select exists(select 1 from ' + tableName
         if whereCondition:
@@ -100,7 +115,7 @@ class Postgres(psycopg2.extensions.connection):
         return self.__execute(query, whereCondition.values(), False)
 
     def insert(self, tableName, setColumns):
-        '''Execute an insert one row to a single table.'''
+        """Execute an insert one row to a single table."""
 
         query = 'Insert into ' + tableName + ' (' + ', '.join(setColumns.keys()) + ')'
         query += ' values (' + ', '.join(['%s'] * len(setColumns)) + ')'
@@ -109,7 +124,7 @@ class Postgres(psycopg2.extensions.connection):
         return self.__execute(query, setColumns.values(), False)
 
     def update(self, tableName, setColumns, whereCondition={}, table=True):
-        '''Execute an update for a single table.'''
+        """Execute an update for a single table."""
 
         query = 'Update ' + tableName + ' set ' + ', '.join(k + ' = %s' for k in setColumns.keys())
         parameters = setColumns.values()
@@ -121,7 +136,7 @@ class Postgres(psycopg2.extensions.connection):
         return self.__execute(query, parameters, table)
 
     def delete(self, tableName, whereCondition={}, table=True):
-        '''Execute a delete for a single table.'''
+        """Execute a delete for a single table."""
 
         query = 'Delete from ' + tableName
         parameters = []
@@ -132,9 +147,9 @@ class Postgres(psycopg2.extensions.connection):
 
         return self.__execute(query, parameters, table)
 
-class PostgresNoRow(Exception): pass
+class NoRow(Exception): pass
 
-class PostgresMoreThanOneRow(Exception): pass
+class MoreThanOneRow(Exception): pass
 
 class PostgresError(StandardError):
     def __init__(self, psycopgError):

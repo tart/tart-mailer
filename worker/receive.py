@@ -24,12 +24,10 @@ import re
 import email
 
 os.sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
-from libtart.postgres import Postgres, PostgresNoRow
+from libtart import postgres
 from libtart.email.server import IMAP4, IMAP4SSL
 from libtart.email.message import Message
 from libtart.helpers import warning
-
-postgres = Postgres()
 
 def main():
     parser = argparse.ArgumentParser()
@@ -50,13 +48,12 @@ def main():
         signal.alarm(options['timeout'])
 
     if options['debug']:
-        Postgres.debug = True
+        postgres.debug = True
         IMAP4.debug = True
 
     if options['sender']:
-        with postgres:
-            if not postgres.select('Sender', {'fromAddress': options['sender']}):
-                raise Exception('Sender does not exists.')
+        if not postgres.connection().select('Sender', {'fromAddress': options['sender']}):
+            raise Exception('Sender does not exists.')
 
     server = globals()[options['protocol']](**dict((k, v) for k, v in arguments.items() if v is not None))
     messageIds = server.execute('search', 'utf-8', 'UNSEEN')[0].split()
@@ -128,8 +125,7 @@ def addResponseReport(fromAddress, report):
 
     if 'originalHeaders' in report and 'list-unsubscribe' in report['originalHeaders']:
         unsubscribeURL = report['originalHeaders']['list-unsubscribe'][1:-1]
-        with postgres:
-            emailSend = postgres.call('EmailSendFromUnsubscribeURL', ([fromAddress] or []) + [unsubscribeURL])
+        emailSend = postgres.connection().call('EmailSendFromUnsubscribeURL', ([fromAddress] or []) + [unsubscribeURL])
 
     else:
         addresses = []
@@ -155,19 +151,17 @@ def addResponseReport(fromAddress, report):
                                                        report['body'])]
 
         if addresses:
-            with postgres:
-                try:
-                    emailSend = postgres.call('LastEmailSendToEmailAddresses', ([fromAddress] or []) + [addresses])
-                except PostgresNoRow: pass
+            try:
+                emailSend = postgres.connection().call('LastEmailSendToEmailAddresses', ([fromAddress] or []) +
+                                                                                         [addresses])
+            except postgres.NoRow: pass
 
     if emailSend:
         report['fromAddress'] = emailSend['fromaddress']
         report['toAddress'] = emailSend['toaddress']
         report['emailId'] = emailSend['emailid']
 
-        with postgres:
-            postgres.insert('EmailSendResponseReport', report)
-
+        postgres.connection().insert('EmailSendResponseReport', report)
         return True
 
     return False
@@ -188,11 +182,11 @@ def addDMARCReport(body):
         'body': body.decode('utf-8-sig')
     }
 
-    with postgres:
-        postgres.insert('DMARCReport', report)
+    with postgres.connection() as transaction:
+        transaction.insert('DMARCReport', report)
 
         for record in tree.iter('record'):
-            postgres.insert('DMARCReportRow', {
+            transaction.insert('DMARCReportRow', {
                 'reporterAddress': report['reporterAddress'],
                 'reportId': report['reportId'],
                 'source': record.find('row/source_ip').text,

@@ -18,6 +18,16 @@ from __future__ import absolute_import, print_function
 
 import sys
 
+def singleton(cls):
+    """Very basic implementation of the singleton pattern with a decorator from PEP318."""
+
+    instances = {}
+    def getinstance():
+        if cls not in instances:
+            instances[cls] = cls()
+        return instances[cls]
+    return getinstance
+
 def printWarning(message, level=0):
     if isinstance(message, dict):
         print(file=sys.stderr)
