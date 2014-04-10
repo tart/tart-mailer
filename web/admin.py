@@ -107,7 +107,7 @@ def editEmail(**kwargs):
     kwargs.update(postgres.connection().select('Email', parameters, table=False))
 
     kwargs['variations'] = postgres.connection().select('EmailVariation', parameters)
-    if flask.request.args.get('force'):
+    if 'force' in flask.request.args:
         kwargs['draft'] = True
         for variation in kwargs['variations']:
             variation['draft'] = True
