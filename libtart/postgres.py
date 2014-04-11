@@ -27,7 +27,7 @@ psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 debug = False
 
 @singleton
-class connection(psycopg2.extensions.connection):
+class connection(psycopg2.extras.RealDictConnection):
     """The purpose of the class is to add practical functions to the connection class on the psycopg2 library.
     Unlike the parent class autocommit enabled by default but it will be disabled on demand."""
 
@@ -59,23 +59,21 @@ class connection(psycopg2.extensions.connection):
             except psycopg2.IntegrityError as error:
                 raise IntegrityError(error)
 
-            rows = cursor.fetchall()
-            columnNames = [desc[0] for desc in cursor.description]
+            if table:
+                return cursor.fetchall()
 
-        if table:
-            return [collections.OrderedDict(zip(columnNames, row)) for row in rows]
+            if cursor.rowcount == 0:
+                raise NoRow('Query does not return any rows.')
 
-        if len(rows) == 0:
-            raise NoRow('Query does not return any rows.')
+            if cursor.rowcount > 1:
+                raise MoreThanOneRow('Query returned more than one row.')
 
-        if len(rows) > 1:
-            raise MoreThanOneRow('Query returned more than one row.')
+            if len(cursor.description) == 1:
+                for cell in cursor.fetchone().values():
+                    return cell
 
-        if len(columnNames) > 1:
-            return collections.OrderedDict(zip(columnNames, rows[0]))
-
-        if rows and columnNames:
-            return rows[0][0]
+            if len(cursor.description) > 1:
+                return cursor.fetchone()
 
     def call(self, functionName, parameters=[], table=False):
         """Call a function inside the database with the given arguments."""
