@@ -60,7 +60,10 @@ class connection(psycopg2.extras.RealDictConnection):
                 raise IntegrityError(error)
 
             if table:
-                return cursor.fetchall()
+                if cursor.rowcount > 0:
+                    return cursor.fetchall()
+
+                return []
 
             if cursor.rowcount == 0:
                 raise NoRow('Query does not return any rows.')
@@ -144,6 +147,11 @@ class connection(psycopg2.extras.RealDictConnection):
         query += ' returning *'
 
         return self.__execute(query, parameters, table)
+
+    def truncate(self, tableName):
+        """Execute a truncate."""
+
+        return self.__execute('Truncate ' + tableName, [], True)
 
 class NoRow(Exception): pass
 
