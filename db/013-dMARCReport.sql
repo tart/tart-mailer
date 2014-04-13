@@ -32,9 +32,10 @@ Create table DMARCReportRow (
 
 Create or replace view DomainDetail as
     select domain,
-            array_agg(distinct reporterAddress::text) as reporterAddresses,
+            count(distinct reporterAddress) as reporters,
             count(*) as dMARCReports,
-            max(createdAt) as lastReport
+            max(createdAt) as lastReport,
+            last(reporterAddress order by createdAt) lastReporter
         from DMARCReport
             group by domain;
 
