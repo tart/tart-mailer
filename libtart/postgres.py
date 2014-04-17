@@ -96,14 +96,20 @@ class connection(psycopg2.extras.RealDictConnection):
 
         return self.__execute(query, parameters, table)
 
-    def select(self, tableName, whereCondition={}, table=True):
+    def callTable(self, *args):
+        return self.call(*args, table=True)
+
+    def select(self, tableName, whereConditions={}, table=True):
         """Execute a select query from a single table."""
 
         query = 'Select * from ' + tableName
-        if whereCondition:
-            query += ' where ' + ' and '.join(k + ' = %s' for k in whereCondition.keys())
+        if whereConditions:
+            query += ' where ' + ' and '.join(k + ' = %s' for k in whereConditions.keys())
 
-        return self.__execute(query, whereCondition.values(), table)
+        return self.__execute(query, whereConditions.values(), table)
+
+    def selectOne(self, *args):
+        return self.select(*args, table=False)
 
     def insert(self, tableName, setColumns):
         """Execute an insert one row to a single table."""
@@ -114,26 +120,30 @@ class connection(psycopg2.extras.RealDictConnection):
 
         return self.__execute(query, setColumns.values(), False)
 
-    def update(self, tableName, setColumns, whereCondition={}, table=True):
+    def update(self, tableName, setColumns, whereConditions={}, table=True):
         """Execute an update for a single table."""
 
         query = 'Update ' + tableName + ' set ' + ', '.join(k + ' = %s' for k in setColumns.keys())
         parameters = setColumns.values()
-        if whereCondition:
-            query += ' where ' + ' and '.join(k + ' = %s' for k in whereCondition.keys())
-            parameters += whereCondition.values()
+
+        if whereConditions:
+            query += ' where ' + ' and '.join(k + ' = %s' for k in whereConditions.keys())
+            parameters += whereConditions.values()
         query += ' returning *'
 
         return self.__execute(query, parameters, table)
 
-    def delete(self, tableName, whereCondition={}, table=True):
+    def updateOne(self, *args):
+        return self.update(*args, table=False)
+
+    def delete(self, tableName, whereConditions={}, table=True):
         """Execute a delete for a single table."""
 
         query = 'Delete from ' + tableName
         parameters = []
-        if whereCondition:
-            query += ' where ' + ' and '.join(k + ' = %s' for k in whereCondition.keys())
-            parameters += whereCondition.values()
+        if whereConditions:
+            query += ' where ' + ' and '.join(k + ' = %s' for k in whereConditions.keys())
+            parameters += whereConditions.values()
         query += ' returning *'
 
         return self.__execute(query, parameters, table)

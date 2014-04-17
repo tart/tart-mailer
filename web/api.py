@@ -94,7 +94,7 @@ def upsertSubscriber(**kwargs):
     setColumns = dict((k, v) for k, v in kwargs.items() if k not in whereConditions)
 
     try:
-        return postgres.connection().update('Subscriber', setColumns, whereConditions, table=False)
+        return postgres.connection().updateOne('Subscriber', setColumns, whereConditions)
     except postgres.NoRow:
         return postgres.connection().insert('Subscriber', kwargs)
 

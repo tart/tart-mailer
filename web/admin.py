@@ -52,7 +52,7 @@ def newSender(**kwargs):
 def editSender(**kwargs):
     parameters = {'fromaddress': kwargs['fromaddress']}
 
-    kwargs.update(postgres.connection().select('Sender', parameters, table=False))
+    kwargs.update(postgres.connection().selectOne('Sender', parameters))
 
     return flask.render_template('sender.html', **kwargs)
 
@@ -64,7 +64,7 @@ def saveSender(**kwargs):
             kwargs = transaction.insert('Sender', formData())
             kwargs['senderMessage'] = 'Sender created.'
         else:
-            if transaction.update('Sender', formData(), kwargs, table=False):
+            if transaction.updateOne('Sender', formData(), kwargs):
                 kwargs['saveMessage'] = 'Sender updated.'
             else:
                 kwargs['saveMessage'] = 'Sender could not found.'
@@ -105,7 +105,7 @@ def newEmail(**kwargs):
 def editEmail(**kwargs):
     parameters = dict((k, v) for k, v in kwargs.items() if k in ('fromaddress', 'emailid'))
 
-    kwargs.update(postgres.connection().select('Email', parameters, table=False))
+    kwargs.update(postgres.connection().selectOne('Email', parameters))
 
     kwargs['variations'] = postgres.connection().select('EmailVariation', parameters)
     if 'force' in flask.request.args:
@@ -116,10 +116,10 @@ def editEmail(**kwargs):
         kwargs['draft'] = all(variation['draft'] for variation in kwargs['variations'])
 
     if kwargs['bulk']:
-        subscriberLocaleStats = postgres.connection().call('SubscriberLocaleStats', parameters, table=True)
+        subscriberLocaleStats = postgres.connection().callTable('SubscriberLocaleStats', parameters)
         kwargs['subscriberlocalestats'] = subscriberLocaleStats
         kwargs['subscribercount'] = sum(s['total'] - s['send'] for s in subscriberLocaleStats)
-        kwargs['variationstats'] = postgres.connection().call('EmailVariationStats', parameters, table=True)
+        kwargs['variationstats'] = postgres.connection().callTable('EmailVariationStats', parameters)
 
     kwargs['exampleproperties'] = postgres.connection().call('SubscriberExampleProperties', kwargs['fromaddress'])
 
@@ -195,7 +195,7 @@ def sendBulkEmail(**kwargs):
 
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>/preview')
 def preview(**kwargs):
-    emailVariation = postgres.connection().select('EmailVariation', kwargs, table=False)
+    emailVariation = postgres.connection().selectOne('EmailVariation', kwargs)
 
     if emailVariation and emailVariation['htmlbody']:
         return emailVariation['htmlbody']
@@ -220,7 +220,7 @@ def domainStatistics(**kwargs):
 @app.route('/reporter/<string:reporteraddress>/report/<string:reportid>')
 def report(**kwargs):
     parameters = dict(kwargs)
-    kwargs.update(postgres.connection().select('DMARCReport', parameters, table=False))
+    kwargs.update(postgres.connection().selectOne('DMARCReport', parameters))
     kwargs['rows'] = postgres.connection().select('DMARCReportRow', parameters)
 
     return flask.render_template('report.html', **kwargs)
