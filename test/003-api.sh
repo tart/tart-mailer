@@ -6,7 +6,7 @@ sleep 3
 echo
 
 echo "Trying to add a subscriber..."
-curl -H "Content-type: application/json" -u tart-mailer@github.com: -X POST -d '
+curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X POST -d '
     {
         "toAddress": "osman@spam.bo",
         "properties": {
@@ -18,7 +18,7 @@ echo
 echo
 
 echo "Trying to add a subscriber with invalid fields..."
-curl -H "Content-type: application/json" -u tart-mailer@github.com: -X POST -d '
+curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X POST -d '
     {
         "toAddress": "osman@spam.bo",
         "gender": "male"
@@ -27,7 +27,7 @@ echo
 echo
 
 echo "Trying to update the subscriber..."
-curl -H "Content-type: application/json" -u tart-mailer@github.com: -X PUT -d '
+curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X PUT -d '
     {
        "locale": "tr_TR"
     }' http://localhost:8080/subscriber/osman@spam.bo
@@ -35,18 +35,18 @@ echo
 echo
 
 echo "Trying to list the subscribers..."
-curl -u tart-mailer@github.com: http://localhost:8080/subscriber
+curl -u tart-mailer@github.com:secret http://localhost:8080/subscriber
 echo
 echo
 
 echo "Trying an XML request..."
-curl -H "Content-type: application/xml" -u tart-mailer@github.com: -X POST -d '
+curl -H "Content-type: application/xml" -u tart-mailer@github.com:secret -X POST -d '
 <xml></xml>' http://localhost:8080/subscriber
 echo
 echo
 
 echo "Trying a request with a JSON array..."
-curl -H "Content-type: application/json" -u tart-mailer@github.com: -X POST -d '
+curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X POST -d '
     [
         {"toAddress": "invalid1@example.com"},
         {"fromAddress": "invalid2@example.com"}
@@ -60,7 +60,7 @@ echo
 echo
 
 echo "Trying an address that does not exists..."
-curl -H "Content-type: application/json" -u tart-mailer@github.com: http://localhost:8080/doesNotExists
+curl -H "Content-type: application/json" -u tart-mailer@github.com:secret http://localhost:8080/doesNotExists
 echo
 echo
 

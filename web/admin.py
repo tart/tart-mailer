@@ -43,9 +43,10 @@ def index(**kwargs):
 @app.route('/sender/new')
 def newSender(**kwargs):
     parts = parseURL(flask.request.url_root)
-    root = parts['protocol'] + '//' + parts['root'] + '/'
+    kwargs['returnurlroot'] = parts['protocol'] + '//' + parts['root'] + '/'
+    kwargs['password'] = postgres.connection().call('GeneratePassword')
 
-    return flask.render_template('sender.html', returnurlroot=root, **kwargs)
+    return flask.render_template('sender.html', **kwargs)
 
 @app.route('/sender/<string:fromaddress>')
 def editSender(**kwargs):

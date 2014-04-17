@@ -29,7 +29,7 @@ app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == '
 
 class InvalidRequest(Exception): pass
 
-class AuthenticationRequired(Exception): pass
+class AuthenticationError(Exception): pass
 
 class JSONEncoder(flask.json.JSONEncoder):
     def default(self, obj):
@@ -62,11 +62,11 @@ def databaseOperationViaAPI(operation):
             kwargs.update(flask.request.json)
 
         if not flask.request.authorization:
-            raise AuthenticationRequired('authentication required')
+            raise AuthenticationError('authentication required')
 
         with postgres.connection():
-            if not postgres.connection().exists('Sender', {'fromAddress': flask.request.authorization.username}):
-                raise AuthenticationRequired('sender does not exists')
+            if not postgres.connection().call('SenderAuthenticate', flask.request.authorization):
+                raise AuthenticationError('authentication failed')
 
             kwargs['fromAddress'] = flask.request.authorization.username
 
@@ -113,7 +113,7 @@ def badRequest(error):
 def invalidRequest(error):
     return flask.jsonify({'error': str(error), 'type': 'BadRequest'}), 400
 
-@app.errorhandler(AuthenticationRequired)
+@app.errorhandler(AuthenticationError)
 def authenticationRequired(error):
     """Send a 401 response to enable basic HTTP authentication."""
 

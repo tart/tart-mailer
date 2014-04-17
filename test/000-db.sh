@@ -12,7 +12,7 @@ echo "Executing the database scripts..."
 echo
 
 echo "Adding data..."
-echo "\Copy Sender (fromAddress, fromName, returnURLRoot) from 'sender.data';
+echo "\Copy Sender (fromAddress, password, fromName, returnURLRoot) from 'sender.data';
 \Copy Subscriber (fromAddress, toAddress, properties) from 'subscriber.data';
 \Copy Email (fromAddress, redirectURL) from 'email.data';
 Create temp table TempEmailVariation (subject varchar(1000), plainBody text, hTMLBody text);
