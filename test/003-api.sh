@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 echo "Running the web server for API..."
-../web/api.py &
+${0%/*}/../web/api.py &
 sleep 3
 echo
 

@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 echo "Running the web server for users..."
-../web/user.py &
+${0%/*}/../web/user.py &
 sleep 3
 echo
 

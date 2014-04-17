@@ -8,15 +8,15 @@ echo "Create database $PGDATABASE" | psql postgres
 echo
 
 echo "Executing the database scripts..."
-(echo 'Begin;'; cat ../db/*; echo 'Commit') | psql
+(echo 'Begin;'; cat ${0%/*}/../db/*; echo 'Commit') | psql
 echo
 
 echo "Adding data..."
-echo "\Copy Sender (fromAddress, password, fromName, returnURLRoot) from 'sender.data';
-\Copy Subscriber (fromAddress, toAddress, properties) from 'subscriber.data';
-\Copy Email (fromAddress, redirectURL) from 'email.data';
+echo "\Copy Sender (fromAddress, password, fromName, returnURLRoot) from '${0%/*}/sender.data';
+\Copy Subscriber (fromAddress, toAddress, properties) from '${0%/*}/subscriber.data';
+\Copy Email (fromAddress, redirectURL) from '${0%/*}/email.data';
 Create temp table TempEmailVariation (subject varchar(1000), plainBody text, hTMLBody text);
-\Copy TempEmailVariation from 'emailvariation.data';
+\Copy TempEmailVariation from '${0%/*}/emailvariation.data';
 Insert into EmailVariation (fromAddress, emailId, subject, plainBody, hTMLBody)
     select Email.fromAddress, Email.emailId, TempEmailVariation.*
         from Email, TempEmailVariation;
