@@ -18,8 +18,9 @@
                 <td>Redirect URL:</td>
 
                 <td>
-                    <input type="text" name="redirecturl" size="100" maxlength="1000" value="{{ redirecturl or '' }}"
-                           {{ 'disabled ' if not draft }} />
+                    <input type="text" name="redirecturl" size="100" maxlength="1000"
+                           pattern="(http|https)://.*" title="must be a HTTP URL"
+                           value="{{ redirecturl or '' }}" {{ 'disabled ' if not draft }} />
                 </td>
             </tr>
 
@@ -75,7 +76,7 @@
 
                         <td>
                             <input type="text" name="subject" size="100" maxlength="1000"
-                                   value="{{ emailVariation['subject'] }}" required
+                                   required value="{{ emailVariation['subject'] }}" 
                                    {{ 'disabled' if not emailVariation['draft'] }} />
                         </td>
 
@@ -87,7 +88,8 @@
 
                         <td>
                             <textarea name="plainbody" rows="10" cols="100"
-                                      {{ 'disabled' if not emailVariation['draft'] }} >{{ emailVariation['plainbody'] or '' }}</textarea>
+                                      {{ 'disabled' if not emailVariation['draft'] }}
+                                      >{{ emailVariation['plainbody'] or '' }}</textarea>
                         </td>
 
                         <td></td>
@@ -98,7 +100,8 @@
 
                         <td>
                             <textarea name="htmlbody" rows="10" cols="100"
-                                      {{ 'disabled' if not emailVariation['draft'] }} >{{ emailVariation['htmlbody'] or '' }}</textarea>
+                                      {{ 'disabled' if not emailVariation['draft'] }}
+                                      >{{ emailVariation['htmlbody'] or '' }}</textarea>
                         </td>
 
                         <td>
@@ -125,7 +128,7 @@
                 {% endif %}
 
                 <p>
-                    <input type="submit" value="Semove" {{ 'disabled' if not emailVariation['draft'] }} />
+                    <input type="submit" value="Remove" {{ 'disabled' if not emailVariation['draft'] }} />
                 </p>
             </form>
 
@@ -142,10 +145,12 @@
             <form method="POST" action="{{ url_for('sendTestEmail', **emailVariation) }}">
                 <table>
                     <tr>
-                        <td>Email Address:</td>
+                        <td>To Address:</td>
 
                         <td>
-                            <input type="text" name="emailaddress" size="100" maxlength="200" required />
+                            <input type="text" name="toaddress" size="100" maxlength="200"
+                                   required pattern="[a-z0-9._\-+!']+@[a-z0-9.\-]+.[a-z0-9]+"
+                                   title="must be a valid email address" />
                         </td>
                     </tr>
                 </table>
@@ -201,8 +206,8 @@
                 {{ checkboxTable(subscriberlocalestats, 'locale') }}
 
                 <p>
-                    Counts does not include unsubscribed or response report sent subscribers but emails may have been sent
-                    to them, before.
+                    Counts does not include unsubscribed or response report sent subscribers but emails may
+                    have been sent to them, before.
                 </p>
 
                 {{ checkboxTable(variationstats, 'variationid') }}
@@ -212,14 +217,16 @@
                         <td>Maximum Subscriber Count:</td>
 
                         <td>
-                            <input type="text" name="subscribercount" maxlength="20" value="{{ subscribercount }}" required {{ 'disabled ' if subscribercount == 0 }}/>
+                            <input type="text" name="subscribercount" maxlength="20" required
+                                   pattern="[0-9]*" title="must be a number"
+                                   value="{{ subscribercount }}" {{ 'disabled ' if subscribercount == 0 }} />
                         </td>
                     </tr>
                 </table>
 
                 <p>
-                    The current subscribers will be added to the queue. Emails will be send asynchronously. Adding many emails
-                    to the queue can take few minutes.
+                    The current subscribers will be added to the queue. Emails will be send asynchronously.
+                    Adding many emails to the queue can take few minutes.
                 </p>
 
                 <strong>{{ sendBulkEmailMessage }}</strong>

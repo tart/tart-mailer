@@ -6,29 +6,36 @@
             <tr>
                 <td>From Address:</td>
                 <td>
-                    <input type="text" name="fromaddress" size="100" maxlength="200" value="{{ fromaddress }}"
-                            {{ 'disabled' if fromaddress }} />
+                    <input type="text" name="fromaddress" size="100" maxlength="200" required
+                           pattern="[a-z0-9._\-+!']+@[a-z0-9.\-]+.[a-z0-9]+"
+                           title="must be a valid email address"
+                           value="{{ fromaddress }}" {{ 'disabled' if fromaddress }} />
                 </td>
             </tr>
 
             <tr>
                 <td>Password:</td>
                 <td>
-                    <input type="text" name="fromname" size="100" maxlength="100" value="{{ password }}" />
+                    <input type="text" name="fromname" size="100" maxlength="100" required
+                           pattern="[A-Za-z0-9]{16,}" title="minimum 16 alpha-numeric characters"
+                           value="{{ password }}" />
                 </td>
             </tr>
 
             <tr>
                 <td>From Name:</td>
                 <td>
-                    <input type="text" name="fromname" size="100" maxlength="200" value="{{ fromname }}" />
+                    <input type="text" name="fromname" size="100" maxlength="200" required
+                           value="{{ fromname }}" />
                 </td>
             </tr>
 
             <tr>
                 <td>Return URL Root:</td>
                 <td>
-                    <input type="text" name="returnurlroot" size="100" maxlength="1000" value="{{ returnurlroot }}" />
+                    <input type="text" name="returnurlroot" size="100" maxlength="1000" required
+                           pattern="(http|https)://.*" title="must be a HTTP URL"
+                           value="{{ returnurlroot }}" />
                 </td>
             </tr>
         </table>
