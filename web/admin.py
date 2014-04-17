@@ -181,7 +181,7 @@ def sendTestEmail(**kwargs):
         if transaction.call('SendTestEmail', formData(**kwargs)):
             kwargs['sendTestEmailMessage'] = 'Test email message added to the queue.'
         else:
-            kwargs['sendTestEmailMessage'] = 'Test email message could not send. Subscriber may not be in the database.'
+            kwargs['sendTestEmailMessage'] = 'Test email message could not send.'
 
         return editEmail(**kwargs)
 

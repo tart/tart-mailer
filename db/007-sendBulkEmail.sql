@@ -6,6 +6,14 @@ Create or replace function SendTestEmail(
     ) returns boolean
     language sql
     as $$
+Insert into Subscriber (fromAddress, toAddress)
+    select SendTestEmail.fromAddress, SendTestEmail.toAddress
+        from Sender
+            where Sender.fromAddress = SendTestEmail.fromAddress
+                    and not exists (select 1 from Subscriber
+                                    where Subscriber.fromAddress = SendTestEmail.fromAddress
+                                            and Subscriber.toAddress = SendTestEmail.toAddress);
+
 With UpdatedEmailSend as (update EmailSend
             set sent = false,
                     variationId = variationId
