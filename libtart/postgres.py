@@ -123,6 +123,7 @@ class connection(psycopg2.extras.RealDictConnection):
     def update(self, tableName, setColumns, whereConditions={}, table=True):
         """Execute an update for a single table."""
 
+        assert setColumns
         query = 'Update ' + tableName + ' set ' + ', '.join(k + ' = %s' for k in setColumns.keys())
         parameters = setColumns.values()
 

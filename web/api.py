@@ -91,10 +91,9 @@ def addSubscriber(**kwargs):
 @databaseOperationViaAPI
 def upsertSubscriber(**kwargs):
     whereConditions = dict((k, v) for k, v in kwargs.items() if k.lower() in ('fromaddress', 'toaddress'))
-    setColumns = dict((k, v) for k, v in kwargs.items() if k not in whereConditions)
 
     try:
-        return postgres.connection().updateOne('Subscriber', setColumns, whereConditions)
+        return postgres.connection().updateOne('Subscriber', kwargs, whereConditions)
     except postgres.NoRow:
         return postgres.connection().insert('Subscriber', kwargs)
 
