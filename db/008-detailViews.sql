@@ -5,7 +5,7 @@ Create or replace view SenderDetail as
         EmailStats as (select fromAddress, count(*) as totalCount, sum(bulk::int) as bulkCount
             from Email
             group by fromAddress)
-        select Sender.*,
+        select Sender.fromAddress, Sender.fromName, Sender.createdAt,
                 coalesce(SubscriberStats.count, 0) as subscribers,
                 coalesce(EmailStats.bulkCount, 0) as bulkEmails,
                 coalesce(EmailStats.totalCount, 0) as totalEmails
@@ -15,37 +15,35 @@ Create or replace view SenderDetail as
             order by Sender.fromAddress;
 
 Create or replace view BulkEmailDetail as
-    with EmailSendStats as (select fromAddress, emailId, count(*) as totalCount, sum(sent::int) as sentCount
+    with EmailVariationStats as (select fromAddress, emailId, count(*) as count
+            from EmailVariation
+            group by fromAddress, emailId),
+        EmailSendStats as (select fromAddress, emailId, count(*) as totalCount, sum(sent::int) as sentCount
             from EmailSend
             group by fromAddress, emailId),
-        EmailFeedbackTypeStats as (select fromAddress, emailId, feedbackType, count(*) as count
-            from EmailSendFeedback
-            group by fromAddress, emailId, feedbackType),
-        EmailResponseReportStats as (select fromAddress, emailId, count(*) as count
+        EmailSendResponseReportStats as (select fromAddress, emailId, count(*) as count
             from EmailSendResponseReport
             group by fromAddress, emailId),
-        EmailFeedbackStats as (select fromAddress, emailId,
-                    string_agg(feedbackType::text || ': ' || count::text, ' ') as counts
-            from EmailFeedbackTypeStats
-            group by fromAddress, emailId),
-        EmailVariationIdStats as (select EmailVariation.*, count(*) as count
-            from EmailVariation
-                join EmailSend using (fromAddress, emailId, variationId)
-            group by EmailVariation.fromAddress, EmailVariation.emailId, EmailVariation.variationId),
-        EmailVariationStats as (select fromAddress, emailId,
-                string_agg(variationId::text || ': ' || count::text, ' ') as counts
-            from EmailVariationIdStats
+        EmailSendFeedbackStats as (select fromAddress, emailId,
+                sum((feedbackType = 'trackerImage')::int) as trackerImageCount,
+                sum((feedbackType = 'view')::int) as viewCount,
+                sum((feedbackType = 'redirect')::int) as redirectCount,
+                sum((feedbackType = 'unsubscribe')::int) as unsubscribeCount
+            from EmailSendFeedback
             group by fromAddress, emailId)
         select Email.fromAddress, Email.emailId, Email.createdAt,
+                EmailVariationStats.count as variations,
                 coalesce(EmailSendStats.totalCount, 0) as totalMessages,
                 coalesce(EmailSendStats.sentCount, 0) as sentMessages,
-                coalesce(EmailResponseReportStats.count, 0) as responseReports,
-                EmailFeedbackStats.counts as feedbacks,
-                EmailVariationStats.counts as variations
+                coalesce(EmailSendResponseReportStats.count, 0) as responseReports,
+                coalesce(EmailSendFeedbackStats.trackerImageCount, 0) as trackerImages,
+                coalesce(EmailSendFeedbackStats.viewCount, 0) as views,
+                coalesce(EmailSendFeedbackStats.redirectCount, 0) as redirects,
+                coalesce(EmailSendFeedbackStats.unsubscribeCount, 0) as unsubscribes
             from Email
-                left join EmailSendStats using (fromAddress, emailId)
-                left join EmailFeedbackStats using (fromAddress, emailId)
-                left join EmailResponseReportStats using (fromAddress, emailId)
                 left join EmailVariationStats using (fromAddress, emailId)
+                left join EmailSendStats using (fromAddress, emailId)
+                left join EmailSendResponseReportStats using (fromAddress, emailId)
+                left join EmailSendFeedbackStats using (fromAddress, emailId)
                 where Email.bulk
                 order by Email.fromAddress, Email.emailId;
