@@ -100,6 +100,11 @@ def upsertSubscriber(data):
     except postgres.NoRow:
         return postgres.connection().insert('Subscriber', data)
 
+@app.route('/subscriber/<string:toAddress>/send', methods=['POST'])
+@databaseOperationViaAPI
+def sendToSubscriber(data):
+    return postgres.connection().call('SendToSubscriber', data)
+
 ##
 # Errors
 #

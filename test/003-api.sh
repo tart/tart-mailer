@@ -5,6 +5,10 @@ ${0%/*}/../web/api.py &
 sleep 3
 echo
 
+#
+# Methods
+#
+
 echo "Trying to add a subscriber..."
 curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X POST -d '
     {
@@ -13,15 +17,6 @@ curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X POS
             "eyeColor": "brown",
             "gender": "male"
         }
-    }' http://localhost:8080/subscriber
-echo
-echo
-
-echo "Trying to add a subscriber with invalid fields..."
-curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X POST -d '
-    {
-        "toAddress": "osman@spam.bo",
-        "gender": "male"
     }' http://localhost:8080/subscriber
 echo
 echo
@@ -36,6 +31,30 @@ echo
 
 echo "Trying to list the subscribers..."
 curl -u tart-mailer@github.com:secret http://localhost:8080/subscriber
+echo
+echo
+
+echo "Trying to send an email to the suscriber..."
+curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X POST -d '
+    {
+        "redirectURL": "http://click.xxx/?from=mailer",
+        "subject": "Click this link!",
+        "plainBody": "Click: {redirecturl}",
+        "hTMLBody": "<h1>XXX</h1><p><a href=\"{redirecturl}\">click</a></p>"
+    }' http://localhost:8080/subscriber/osman@spam.bo/send
+echo
+echo
+
+#
+# Errors
+#
+
+echo "Trying to add a subscriber with invalid fields..."
+curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X POST -d '
+    {
+        "toAddress": "osman@spam.bo",
+        "gender": "male"
+    }' http://localhost:8080/subscriber
 echo
 echo
 
