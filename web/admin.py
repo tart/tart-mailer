@@ -115,12 +115,6 @@ def editEmail(**kwargs):
     else:
         kwargs['draft'] = all(variation['draft'] for variation in kwargs['variations'])
 
-    if kwargs['bulk']:
-        subscriberLocaleStats = postgres.connection().callTable('SubscriberLocaleStats', parameters)
-        kwargs['subscriberlocalestats'] = subscriberLocaleStats
-        kwargs['subscribercount'] = sum(s['total'] - s['send'] for s in subscriberLocaleStats)
-        kwargs['variationstats'] = postgres.connection().callTable('EmailVariationStats', parameters)
-
     kwargs['exampleproperties'] = postgres.connection().call('SubscriberExampleProperties', kwargs['fromaddress'])
 
     return flask.render_template('email.html', **kwargs)
@@ -185,13 +179,24 @@ def sendTestEmail(**kwargs):
 
         return editEmail(**kwargs)
 
+@app.route('/sender/<string:fromaddress>/email/<int:emailid>/sendBulk')
+def prepareBulkEmail(**kwargs):
+    parameters = dict((k, v) for k, v in kwargs.items() if k in ('fromaddress', 'emailid'))
+    subscriberLocaleStats = postgres.connection().callTable('SubscriberLocaleStats', parameters)
+    kwargs['subscriberlocalestats'] = subscriberLocaleStats
+    kwargs['subscribercount'] = sum(s['total'] - s['send'] for s in subscriberLocaleStats)
+    kwargs['variationstats'] = postgres.connection().callTable('EmailVariationStats', parameters)
+    kwargs['exampleproperties'] = postgres.connection().call('SubscriberExampleProperties', kwargs['fromaddress'])
+
+    return flask.render_template('bulkemail.html', **kwargs)
+
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/sendBulk', methods=['POST'])
 def sendBulkEmail(**kwargs):
     with postgres.connection() as transaction:
         subscriberCount = transaction.call('SendBulkEmail', formData(**kwargs))
-        kwargs['sendBulkEmailMessage'] = str(subscriberCount) + ' email messages added to the queue.'
+        kwargs['message'] = str(subscriberCount) + ' email messages added to the queue.'
 
-        return editEmail(**kwargs)
+        return prepareBulkEmail(**kwargs)
 
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>/preview')
 def preview(**kwargs):

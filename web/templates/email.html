@@ -1,7 +1,5 @@
 {% extends 'layout.html' %}
 
-{% from 'tables.html' import checkboxTable %}
-
 {% block body %}
     <h1>{{ emailid ~ '.' if emailid else 'New' }} Email from {{ fromaddress }}</h1>
 
@@ -61,7 +59,7 @@
 
         <form method="POST" action="{{ url_for('removeEmail') }}">
             <p>
-                <input type="submit" value="Semove"
+                <input type="submit" value="Remove"
                        {{ 'disabled' if not draft }} />
             </p>
         </form>
@@ -199,42 +197,10 @@
             </p>
         </form>
 
-        {% if bulk %}
-            <h3>Send Bulk Email</h3>
-
-            <form method="POST" action="{{ url_for('sendBulkEmail') }}">
-                {{ checkboxTable(subscriberlocalestats, 'locale') }}
-
-                <p>
-                    Counts does not include unsubscribed or response report sent subscribers but emails may
-                    have been sent to them, before.
-                </p>
-
-                {{ checkboxTable(variationstats, 'variationid') }}
-
-                <table>
-                    <tr>
-                        <td>Maximum Subscriber Count:</td>
-
-                        <td>
-                            <input type="text" name="subscribercount" maxlength="20" required
-                                   pattern="[0-9]*" title="must be a number"
-                                   value="{{ subscribercount }}" {{ 'disabled ' if subscribercount == 0 }} />
-                        </td>
-                    </tr>
-                </table>
-
-                <p>
-                    The current subscribers will be added to the queue. Emails will be send asynchronously.
-                    Adding many emails to the queue can take few minutes.
-                </p>
-
-                <strong>{{ sendBulkEmailMessage }}</strong>
-
-                <p>
-                    <input type="submit" value="Send Bulk Email" {{ 'disabled ' if subscribercount == 0 }}/>
-                </p>
-            </form>
+        {% if bulk and variations %}
+            <p>
+                <a href="{{ url_for('prepareBulkEmail') }}">Send</a>
+            </p>
         {% endif %}
     {% endif %}
 

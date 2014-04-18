@@ -22,5 +22,6 @@
 
     <strong>{{ emailMessage }}</strong>
 
-    {{ linkTable(bulkEmails, {'editEmail': 'edit', 'senderStatistics': 'statistics'}) }}
+    {{ linkTable(bulkEmails, {'editEmail': 'edit', 'senderStatistics': 'statistics',
+                              'prepareBulkEmail': 'send'}) }}
 {% endblock %}
