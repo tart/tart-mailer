@@ -48,10 +48,10 @@ class connection(psycopg2.extras.RealDictConnection):
         """Execute a query on the database; return None, the value of the cell, the values in the row in
         a dictionary or the values of the rows in a list of dictionary."""
 
-        if debug:
-            print('QUERY: ' + query)
-
         with self.cursor() as cursor:
+            if debug:
+                print('QUERY: ' + cursor.mogrify(query, parameters))
+
             try:
                 cursor.execute(query, parameters)
             except psycopg2.ProgrammingError as error:
