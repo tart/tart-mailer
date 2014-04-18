@@ -74,7 +74,7 @@ echo
 echo
 
 echo "Trying a valid address without authentication..."
-curl -H "Content-type: application/json" -X POST http://localhost:8080/subscriber
+curl -H "Content-type: application/json" http://localhost:8080/subscriber
 echo
 echo
 

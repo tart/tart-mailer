@@ -17,6 +17,7 @@
 
 import os
 import flask
+import werkzeug
 import json
 import datetime
 import functools
@@ -27,10 +28,6 @@ from libtart import postgres
 
 app = flask.Flask(__name__)
 app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == 'FLASK_'))
-
-class InvalidRequest(Exception): pass
-
-class AuthenticationError(Exception): pass
 
 class JSONEncoder(flask.json.JSONEncoder):
     def default(self, obj):
@@ -55,24 +52,24 @@ def databaseOperationViaAPI(operation):
     def wrapped(**kwargs):
         if flask.request.method in ('POST', 'PUT'):
             if flask.request.headers['Content-Type'] != 'application/json':
-                raise InvalidRequest('Content-Type must be application/json')
+                raise werkzeug.exceptions.BadRequest('Content-Type must be application/json')
 
             if not isinstance(flask.request.json, dict):
-                raise InvalidRequest('data must be a JSON object')
+                raise werkzeug.exceptions.BadRequest('data must be a JSON object')
 
         if not flask.request.authorization:
-            raise AuthenticationError('authentication required')
+            raise werkzeug.exceptions.Unauthorized('authentication required')
 
         with postgres.connection():
             if not postgres.connection().call('SenderAuthenticate', flask.request.authorization):
-                raise AuthenticationError('authentication failed')
+                raise werkzeug.exceptions.Unauthorized('authentication failed')
 
             data = collections.OrderedCaseInsensitiveDict(kwargs)
             data['fromAddress'] = flask.request.authorization.username
             if flask.request.json:
                 for key in flask.request.json.keys():
                     if key in data:
-                        raise InvalidRequest(key + ' already defined')
+                        raise werkzeug.exceptions.BadRequest(key + ' already defined')
                 data.update(flask.request.json)
 
             response = operation(data)
@@ -111,28 +108,20 @@ def sendToSubscriber(data):
 # Only client errors (4xx) are catch and returned in a standart JSON object. Server errors (5xx) left untouched.
 ##
 
-@app.errorhandler(400)
-def badRequest(error):
-    return flask.jsonify({'error': 'bad request', 'type': 'BadRequest'}), 400
-
-@app.errorhandler(InvalidRequest)
-def invalidRequest(error):
-    return flask.jsonify({'error': str(error), 'type': 'BadRequest'}), 400
-
-@app.errorhandler(AuthenticationError)
+@app.errorhandler(401)
 def authenticationRequired(error):
-    """Send a 401 response to enable basic HTTP authentication."""
+    """Add WWW-Authenticate header to the 401 response to enable basic HTTP authentication."""
 
-    return (flask.jsonify({'error': str(error), 'type': 'Authentication'}), 401,
+    return (flask.jsonify({'error': error.description, 'type': type(error).__name__}), 401,
             {'WWW-Authenticate': 'Basic realm="Sender Authentication"'})
 
-@app.errorhandler(404)
-def notFound(error):
-    return flask.jsonify({'error': 'not found', 'type': 'General'}), 404
+def clientError(error):
+    return flask.jsonify({'error': error.description, 'type': type(error).__name__}), error.code
 
-@app.errorhandler(405)
-def methodNotAllowed(error):
-    return flask.jsonify({'error': 'method not allowed', 'type': 'General'}), 405
+# A decorator should be use instead of this: @app.errorhandler(werkzeug.exceptions.HTTPException)
+# Currently, it is not possible because of a design flaw in Flask. I hope it will be fixed
+# by: https://github.com/mitsuhiko/flask/pull/839
+app.error_handler_spec[None].update(dict((code, clientError) for code in range(400, 499) if code != 401))
 
 @app.errorhandler(postgres.PostgresError)
 def postgresError(error):
