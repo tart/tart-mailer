@@ -22,6 +22,7 @@ import datetime
 import functools
 
 os.sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
+from libtart import collections
 from libtart import postgres
 
 app = flask.Flask(__name__)
@@ -51,15 +52,13 @@ def databaseOperationViaAPI(operation):
     Validate the request. Update kwargs with JSON POST data."""
 
     @functools.wraps(operation)
-    def wrapped(*args, **kwargs):
+    def wrapped(**kwargs):
         if flask.request.method in ('POST', 'PUT'):
             if flask.request.headers['Content-Type'] != 'application/json':
                 raise InvalidRequest('Content-Type must be application/json')
 
             if not isinstance(flask.request.json, dict):
                 raise InvalidRequest('data must be a JSON object')
-
-            kwargs.update(flask.request.json)
 
         if not flask.request.authorization:
             raise AuthenticationError('authentication required')
@@ -68,9 +67,15 @@ def databaseOperationViaAPI(operation):
             if not postgres.connection().call('SenderAuthenticate', flask.request.authorization):
                 raise AuthenticationError('authentication failed')
 
-            kwargs['fromAddress'] = flask.request.authorization.username
+            data = collections.CaseInsensitiveDict(kwargs)
+            data['fromAddress'] = flask.request.authorization.username
+            if flask.request.json:
+                for key in flask.request.json.keys():
+                    if key in data:
+                        raise InvalidRequest(key + ' already defined')
+                data.update(flask.request.json)
 
-            response = operation(*args, **kwargs)
+            response = operation(data)
             assert isinstance(response, dict)
 
             return flask.jsonify(response)
@@ -79,24 +84,21 @@ def databaseOperationViaAPI(operation):
 
 @app.route('/subscriber', methods=['GET'])
 @databaseOperationViaAPI
-def listSubscribers(**kwargs):
-    return {'subscribers': postgres.connection().select('Subscriber', kwargs)}
+def listSubscribers(data):
+    return {'subscribers': postgres.connection().select('Subscriber', data)}
 
 @app.route('/subscriber', methods=['POST'])
 @databaseOperationViaAPI
-def addSubscriber(**kwargs):
-    return postgres.connection().insert('Subscriber', kwargs)
+def addSubscriber(data):
+    return postgres.connection().insert('Subscriber', data)
 
-@app.route('/subscriber/<string:toaddress>', methods=['PUT'])
+@app.route('/subscriber/<string:toAddress>', methods=['PUT'])
 @databaseOperationViaAPI
-def upsertSubscriber(**kwargs):
-    whereConditions = dict((k, v) for k, v in kwargs.items() if k.lower() in ('fromaddress', 'toaddress'))
-
+def upsertSubscriber(data):
     try:
-        return postgres.connection().updateOne('Subscriber', kwargs, whereConditions)
+        return postgres.connection().updateOne('Subscriber', data, data.subset('fromAddress', 'toAddress'))
     except postgres.NoRow:
-        return postgres.connection().insert('Subscriber', kwargs)
-
+        return postgres.connection().insert('Subscriber', data)
 
 ##
 # Errors
