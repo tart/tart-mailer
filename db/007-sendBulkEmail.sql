@@ -92,16 +92,15 @@ With BulkEmail as (select *
                     and exists (select 1 from unnest(SendBulkEmail.locale) as locale
                                 where locale is not distinct from Subscriber.locale)
                     and not exists (select 1 from EmailSend
-                                where EmailSend.fromAddress = SendBulkEmail.fromAddress
+                                where EmailSend.fromAddress = Subscriber.fromAddress
                                         and EmailSend.toAddress = Subscriber.toAddress
                                         and EmailSend.emailId = SendBulkEmail.emailId)
                     and not exists (select 1 from EmailSendFeedback
-                                where EmailSendFeedback.fromAddress = SendBulkEmail.fromAddress
+                                where EmailSendFeedback.fromAddress = Subscriber.fromAddress
                                         and EmailSendFeedback.toAddress = Subscriber.toAddress
                                         and EmailSendFeedback.feedbackType = 'unsubscribe')
                     and not exists (select 1 from EmailSendResponseReport
-                                where EmailSendResponseReport.fromAddress = SendBulkEmail.fromAddress
-                                        and EmailSendResponseReport.toAddress = Subscriber.toAddress)
+                                where EmailSendResponseReport.toAddress = Subscriber.toAddress)
             limit SendBulkEmail.subscriberCount),
     EmailVariationWithRowNumber as (select EmailVariation.*,
             row_number() over () as rowNumber,
