@@ -187,6 +187,7 @@ def prepareBulkEmail(**kwargs):
     kwargs['subscribercount'] = sum(s['total'] - s['send'] for s in subscriberLocaleStats)
     kwargs['variationstats'] = postgres.connection().callTable('EmailVariationStats', parameters)
     kwargs['exampleproperties'] = postgres.connection().call('SubscriberExampleProperties', kwargs['fromaddress'])
+    kwargs['propertyCount'] = 10
 
     return flask.render_template('bulkemail.html', **kwargs)
 

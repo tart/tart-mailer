@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 
-{% from 'tables.html' import checkboxTable %}
+{% from 'tables.html' import checkboxTable, dictionaryInputTable %}
 
 {% block body %}
     <h1>{{ emailid }}. Email from {{ fromaddress }}</h1>
@@ -8,16 +8,31 @@
     <h3>Send Bulk Email</h3>
 
     <form method="POST" action="{{ url_for('sendBulkEmail') }}">
-        {{ checkboxTable(subscriberlocalestats, 'locale') }}
-
-        <p>
-            Counts does not include unsubscribed or response report sent subscribers but emails may have been
-            sent to them, before.
-        </p>
-
-        {{ checkboxTable(variationstats, 'variationid') }}
-
         <table>
+            <tr>
+                <td>Variations:</td>
+
+                <td>{{ checkboxTable(variationstats, 'variationid') }}</td>
+            </tr>
+
+            <tr>
+                <td>Locales:</td>
+
+                <td>{{ checkboxTable(subscriberlocalestats, 'locale') }}</td>
+            </tr>
+
+            <tr>
+                <td>Example Properies:</td>
+
+                <td>{{ exampleproperties }}</td>
+            </tr>
+
+            <tr>
+                <td>Properties:</td>
+
+                <td>{{ dictionaryInputTable('properties', propertyCount) }}</td>
+            </tr>
+
             <tr>
                 <td>Maximum Subscriber Count:</td>
 
@@ -28,6 +43,11 @@
                 </td>
             </tr>
         </table>
+
+        <p>
+            Counts does not include unsubscribed or response report sent subscribers but emails may have been
+            sent to them, before.
+        </p>
 
         <p>
             The current subscribers will be added to the queue. Emails will be send asynchronously. Adding many

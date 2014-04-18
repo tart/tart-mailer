@@ -82,3 +82,7 @@ Version 1.0
 * Allow adding subscribers via admin panel
 * Support IMAP4 SSL
 * Process DMARC reports
+
+Version 1.1
+
+* Allow filtering subscribers to send bulk emails
