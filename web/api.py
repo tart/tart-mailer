@@ -67,7 +67,7 @@ def databaseOperationViaAPI(operation):
             if not postgres.connection().call('SenderAuthenticate', flask.request.authorization):
                 raise AuthenticationError('authentication failed')
 
-            data = collections.CaseInsensitiveDict(kwargs)
+            data = collections.OrderedCaseInsensitiveDict(kwargs)
             data['fromAddress'] = flask.request.authorization.username
             if flask.request.json:
                 for key in flask.request.json.keys():

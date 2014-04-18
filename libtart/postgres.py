@@ -14,11 +14,13 @@
 # performance of this software.
 ##
 
-import collections
+from __future__ import absolute_import
+
 import psycopg2.extensions
 import psycopg2.extras
 
 from libtart.helpers import singleton
+from libtart.collections import OrderedCaseInsensitiveDict
 
 # These are not necessary with Python 3.
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
@@ -27,7 +29,7 @@ psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 debug = False
 
 @singleton
-class connection(psycopg2.extras.RealDictConnection):
+class connection(psycopg2.extensions.connection):
     """The purpose of the class is to add practical functions to the connection class on the psycopg2 library.
     Unlike the parent class autocommit enabled by default but it will be disabled on demand."""
 
@@ -43,6 +45,10 @@ class connection(psycopg2.extras.RealDictConnection):
     def __exit__(self, *args):
         psycopg2.extensions.connection.__exit__(self, *args)
         self.autocommit = True
+
+    def cursor(self, *args, **kwargs):
+        kwargs.setdefault('cursor_factory', OrderedCaseInsensitiveDictCursor)
+        return psycopg2.extensions.connection.cursor(self, *args, **kwargs)
 
     def __execute(self, query, parameters, table):
         """Execute a query on the database; return None, the value of the cell, the values in the row in
@@ -153,6 +159,31 @@ class connection(psycopg2.extras.RealDictConnection):
         """Execute a truncate."""
 
         return self.__execute('Truncate ' + tableName, [], True)
+
+class OrderedCaseInsensitiveDictCursor(psycopg2.extras.RealDictCursor):
+    def __init__(self, *args, **kwargs):
+        kwargs['row_factory'] = OrderedCaseInsensitiveDictRow
+        super(psycopg2.extras.RealDictCursor, self).__init__(*args, **kwargs)
+        self._prefetch = 0
+
+
+class OrderedCaseInsensitiveDictRow(psycopg2.extras.RealDictRow, OrderedCaseInsensitiveDict):
+    """Inspired by the structure on the psycopg2 library.
+    See: https://github.com/psycopg/psycopg2/blob/master/lib/extras.py
+    """
+
+    def __init__(self, cursor):
+        OrderedCaseInsensitiveDict.__init__(self)
+
+        # Required for named cursors
+        if cursor.description and not cursor.column_mapping:
+            cursor._build_index()
+        self._column_mapping = cursor.column_mapping
+
+    def __setitem__(self, name, value):
+        if type(name) == int:
+            name = self._column_mapping[name]
+        return OrderedCaseInsensitiveDict.__setitem__(self, name, value)
 
 class NoRow(Exception): pass
 

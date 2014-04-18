@@ -14,7 +14,11 @@
 # performance of this software.
 ##
 
-class CaseInsensitiveDict(dict):
+from __future__ import absolute_import
+
+import collections
+
+class OrderedCaseInsensitiveDict(collections.OrderedDict):
     """Low performance case in-sensitive dict-like class.
 
     Inspired by the structure on the requests library.
@@ -30,29 +34,29 @@ class CaseInsensitiveDict(dict):
     def __getitem__(self, key):
         for k in self.keys():
             if k.lower() == key.lower():
-                return dict.__getitem__(self, k)
+                return collections.OrderedDict.__getitem__(self, k)
 
     def __setitem__(self, key, value):
         for k in self.keys():
             if k.lower() == key.lower():
-                return dict.__setitem__(self, k, value)
-        return dict.__setitem__(self, key, value)
+                return collections.OrderedDict.__setitem__(self, k, value)
+        return collections.OrderedDict.__setitem__(self, key, value)
 
     def __delitem__(self, key):
         for k in self.keys():
             if k.lower() == key.lower():
-                return dict.__delitem__(self, k)
+                return collections.OrderedDict.__delitem__(self, k)
 
     def __eq__(self, other):
         if isinstance(other, CaseInsensitiveDict):
-            return dict(self.lowerItems()) == dict(other.lowerItems())
-        return dict.__eq__(self, other)
+            return collections.OrderedDict(self.lowerItems()) == collections.OrderedDict(other.lowerItems())
+        return collections.OrderedDict.__eq__(self, other)
 
     def lowerItems(self):
         return ((k.lower(), v) for k, v in self.items())
 
     def subset(self, *args):
-        return dict((k, v) for k, v in self.items() if k.lower() in [a.lower() for a in args])
+        return collections.OrderedDict((k, v) for k, v in self.items() if k.lower() in [a.lower() for a in args])
 
     def update(self, other):
         for k, v in other.items():
