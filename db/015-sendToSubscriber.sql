@@ -5,11 +5,19 @@ Create or replace function SendToSubscriber(
         redirectURL varchar(1000) default null,
         plainBody varchar(1000) default null,
         hTMLBody varchar(1000) default null
-    ) returns EmailSend
+    ) returns setof EmailSend
     language sql
     as $$
 With InsertedEmail as (insert into Email (fromAddress, redirectURL)
-            values (fromAddress, redirectURL)
+            select fromAddress, redirectURL
+                from Subscriber
+                    where fromAddress = SendToSubscriber.fromAddress
+                            and not exists (select 1 from EmailSendFeedback
+                                        where EmailSendFeedback.fromAddress = Subscriber.fromAddress
+                                                and EmailSendFeedback.toAddress = Subscriber.toAddress
+                                                and EmailSendFeedback.feedbackType = 'unsubscribe')
+                            and not exists (select 1 from EmailSendResponseReport
+                                        where EmailSendResponseReport.toAddress = Subscriber.toAddress)
             returning *),
         InsertedEmailVariation as (insert into EmailVariation (fromAddress, emailId, subject, plainBody, hTMLBody)
             select fromAddress, emailId, subject, plainBody, hTMLBody

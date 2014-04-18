@@ -29,6 +29,8 @@ from libtart import postgres
 app = flask.Flask(__name__)
 app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == 'FLASK_'))
 
+class NotAllowed(werkzeug.exceptions.Gone): pass
+
 class JSONEncoder(flask.json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime.datetime):
@@ -100,7 +102,10 @@ def upsertSubscriber(data):
 @app.route('/subscriber/<string:toAddress>/send', methods=['POST'])
 @databaseOperationViaAPI
 def sendToSubscriber(data):
-    return postgres.connection().call('SendToSubscriber', data)
+    try:
+        return postgres.connection().call('SendToSubscriber', data)
+    except postgres.NoRow:
+        raise NotAllowed('cannot send to this address')
 
 ##
 # Errors

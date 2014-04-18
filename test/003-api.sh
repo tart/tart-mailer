@@ -88,5 +88,16 @@ curl -H "Content-type: application/json" -X POST http://localhost:8080/subscribe
 echo
 echo
 
+echo "Trying to send an email to the previously unsubscribed address..."
+curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X POST -d '
+    {
+        "redirectURL": "http://click.xxx/?from=mailer",
+        "subject": "Click this link!",
+        "plainBody": "Click: {redirecturl}",
+        "hTMLBody": "<h1>XXX</h1><p><a href=\"{redirecturl}\">click</a></p>"
+    }' http://localhost:8080/subscriber/me@mydomain/send
+echo
+echo
+
 echo "Killing the web server..."
 trap "kill 0" SIGINT SIGTERM EXIT
