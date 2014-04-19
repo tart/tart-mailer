@@ -81,6 +81,14 @@ def databaseOperationViaAPI(operation):
 
     return wrapped
 
+@app.route('/email/<int:emailId>', methods=['GET'])
+@databaseOperationViaAPI
+def getEmail(data):
+    email = postgres.connection().selectOne('Email', data)
+    email['variations'] = postgres.connection().select('EmailVariation', data)
+
+    return email
+
 @app.route('/subscriber', methods=['GET'])
 @databaseOperationViaAPI
 def listSubscribers(data):
