@@ -19,7 +19,7 @@ from __future__ import absolute_import
 import collections
 
 class OrderedCaseInsensitiveDict(collections.OrderedDict):
-    """Low performance case in-sensitive dict-like class.
+    """Low performance case in-sensitive dict class.
 
     Inspired by the structure on the requests library.
     See: https://github.com/kennethreitz/requests/blob/v1.2.3/requests/structures.py#L37
@@ -48,7 +48,7 @@ class OrderedCaseInsensitiveDict(collections.OrderedDict):
                 return collections.OrderedDict.__delitem__(self, k)
 
     def __eq__(self, other):
-        if isinstance(other, CaseInsensitiveDict):
+        if isinstance(other, OrderedCaseInsensitiveDict):
             return collections.OrderedDict(self.lowerItems()) == collections.OrderedDict(other.lowerItems())
         return collections.OrderedDict.__eq__(self, other)
 
