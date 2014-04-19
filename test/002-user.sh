@@ -5,7 +5,7 @@ ${0%/*}/../web/user.py &
 sleep 3
 echo
 
-emailHash=$(echo "Select EmailHash(EmailSend) from EmailSend limit 1" | psql -XAt)
+emailHash=$(echo "Select MessageHash(EmailSend) from EmailSend limit 1" | psql -XAt)
 
 echo "Trying to get the tracker image..."
 curl http://localhost:8000/trackerImage/$emailHash

@@ -42,5 +42,5 @@ Select coalesce(FormatEmailToSend(EmailVariation.hTMLBody, Subscriber.properties
         join Sender using (fromAddress)
         join EmailVariation using (fromAddress, emailId, variationId)
         join Subscriber using (fromAddress, toAddress)
-        where EmailHash(EmailSend) = ViewEmailBody.emailHash
+        where MessageHash(EmailSend) = ViewEmailBody.emailHash
 $$;

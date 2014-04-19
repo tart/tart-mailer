@@ -31,8 +31,8 @@ select EmailSend.*
     from EmailSend
         join Sender using (fromAddress)
         where EmailSend.sent
-                and EmailHash(EmailSend) = regexp_replace(EmailSendFromUnsubscribeURL.unsubscribeURL,
-                                                          '^' || Sender.returnURLRoot || 'unsubscribe/', '')
+                and MessageHash(EmailSend) = regexp_replace(EmailSendFromUnsubscribeURL.unsubscribeURL,
+                                                            '^' || Sender.returnURLRoot || 'unsubscribe/', '')
 $$;
 
 Create or replace function EmailSendFromUnsubscribeURL(fromAddress varchar(200), unsubscribeURL text)
@@ -44,6 +44,6 @@ select EmailSend.*
         join Sender using (fromAddress)
         where EmailSend.sent
                 and EmailSend.fromAddress = EmailSendFromUnsubscribeURL.fromAddress
-                and EmailHash(EmailSend) = regexp_replace(EmailSendFromUnsubscribeURL.unsubscribeURL,
-                                                          '^' || Sender.returnURLRoot || 'unsubscribe/', '')
+                and MessageHash(EmailSend) = regexp_replace(EmailSendFromUnsubscribeURL.unsubscribeURL,
+                                                            '^' || Sender.returnURLRoot || 'unsubscribe/', '')
 $$;

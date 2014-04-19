@@ -53,9 +53,11 @@ With FirstWaitingEmail as (select EmailSend.*
             Sender.fromAddress,
             Subscriber.toAddress,
             FormatEmailToSend(EmailVariation.subject, Subscriber.properties),
-            FormatEmailToSend(EmailVariation.plainBody, Subscriber.properties, Sender.returnURLRoot, EmailHash(UpdatedEmailSend)),
-            FormatEmailToSend(EmailVariation.hTMLBody, Subscriber.properties, Sender.returnURLRoot, EmailHash(UpdatedEmailSend)),
-            Sender.returnURLRoot || 'unsubscribe/' || EmailHash(UpdatedEmailSend),
+            FormatEmailToSend(EmailVariation.plainBody, Subscriber.properties, Sender.returnURLRoot,
+                              MessageHash(UpdatedEmailSend)),
+            FormatEmailToSend(EmailVariation.hTMLBody, Subscriber.properties, Sender.returnURLRoot,
+                              MessageHash(UpdatedEmailSend)),
+            Sender.returnURLRoot || 'unsubscribe/' || MessageHash(UpdatedEmailSend),
             Email.bulk
         from UpdatedEmailSend
             join Sender using (fromAddress)

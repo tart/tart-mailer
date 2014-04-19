@@ -9,7 +9,7 @@ Create or replace function Base64ForURL(bytea)
 Select replace(replace(replace(encode($1, 'base64'), '+', '-'), '/', '_'), '=', '')
 $$;
 
-Create or replace function EmailHash(EmailSend)
+Create or replace function MessageHash(EmailSend)
     returns text
     language sql strict
     as $$
@@ -19,4 +19,4 @@ Select Base64ForURL(digest('secret1' || $1.fromAddress ||
                            'secret4', 'sha256'))
 $$;
 
-Create unique index EmailSendEmailHashI on EmailSend (EmailHash(EmailSend));
+Create unique index EmailSendMessageHashI on EmailSend (MessageHash(EmailSend));

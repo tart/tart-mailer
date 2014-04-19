@@ -9,7 +9,7 @@ With NewEmailSendFeedback as (insert into EmailSendFeedback (fromAddress, toAddr
     select fromAddress, toAddress, emailId, NewEmailSendFeedback.feedbackType, NewEmailSendFeedback.iPAddress
         from EmailSend
             where sent
-                    and EmailHash(EmailSend) = NewEmailSendFeedback.emailHash
+                    and MessageHash(EmailSend) = NewEmailSendFeedback.emailHash
                     and not exists (select 1 from EmailSendFeedback
                                 where EmailSendFeedback.fromAddress = EmailSend.fromAddress
                                         and EmailSendFeedback.toAddress = EmailSend.toAddress
@@ -25,5 +25,5 @@ Create or replace function EmailSendRedirectURL(text)
 Select Email.redirectURL
     from EmailSend
         join Email using (fromAddress, emailId)
-        where EmailHash(EmailSend) = $1
+        where MessageHash(EmailSend) = $1
 $$;
