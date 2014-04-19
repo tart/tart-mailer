@@ -117,14 +117,20 @@ class connection(psycopg2.extensions.connection):
     def selectOne(self, *args):
         return self.select(*args, table=False)
 
-    def insert(self, tableName, setColumns):
+    def insert(self, tableName, newValues):
         """Execute an insert one row to a single table."""
 
-        query = 'Insert into ' + tableName + ' (' + ', '.join(setColumns.keys()) + ')'
-        query += ' values (' + ', '.join(['%s'] * len(setColumns)) + ')'
+        if isinstance(newValues, dict):
+            columns = newValues.keys()
+            newValues = (newValues,)
+        else:
+            columns = set(k.lower() for n in newValues for k in n.keys())
+
+        query = 'Insert into ' + tableName + ' (' + ', '.join(columns) + ') values '
+        query += ', '.join('(' + ', '.join('%s' if c in v else 'default' for c in columns) + ')' for v in newValues)
         query += ' returning *'
 
-        return self.__execute(query, setColumns.values(), False)
+        return self.__execute(query, [v[c] for v in newValues for c in columns if c in v], len(newValues) > 1)
 
     def update(self, tableName, setColumns, whereConditions={}, table=True):
         """Execute an update for a single table."""
