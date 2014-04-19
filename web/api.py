@@ -94,6 +94,11 @@ def getEmail(data):
 def listSubscribers(data):
     return {'subscribers': postgres.connection().select('Subscriber', data)}
 
+@app.route('/subscriber/<string:toAddress>', methods=['GET'])
+@databaseOperationViaAPI
+def getSubscriber(data):
+    return postgres.connection().selectOne('Subscriber', data)
+
 @app.route('/subscriber', methods=['POST'])
 @databaseOperationViaAPI
 def addSubscriber(data):
