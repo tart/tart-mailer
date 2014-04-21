@@ -35,6 +35,7 @@ class connection(psycopg2.extensions.connection):
 
     def __init__(self, dsn=''):
         psycopg2.extensions.connection.__init__(self, dsn)
+        self.set_client_encoding('utf8')
         self.autocommit = True
         psycopg2.extras.register_hstore(self)
 
@@ -56,10 +57,10 @@ class connection(psycopg2.extensions.connection):
 
         with self.cursor() as cursor:
             if debug:
-                print('QUERY: ' + cursor.mogrify(query, parameters))
+                print('QUERY: ' + str(cursor.mogrify(query, list(parameters))))
 
             try:
-                cursor.execute(query, parameters)
+                cursor.execute(query, list(parameters))
             except psycopg2.ProgrammingError as error:
                 raise ProgrammingError(error)
             except psycopg2.IntegrityError as error:
@@ -195,9 +196,9 @@ class NoRow(Exception): pass
 
 class MoreThanOneRow(Exception): pass
 
-class PostgresError(StandardError):
+class PostgresError(Exception):
     def __init__(self, psycopgError):
-        StandardError.__init__(self, psycopgError.diag.message_primary)
+        Exception.__init__(self, psycopgError.diag.message_primary)
         self.__psycopgError = psycopgError
 
     def details(self):
