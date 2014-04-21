@@ -10,6 +10,8 @@ Dependencies
 * Psycopg2 2.5
 * Flask 0.10
 
+Use Python 3, if you need unicode support.
+
 Installation
 ------------
 
