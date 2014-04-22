@@ -137,7 +137,7 @@ def saveEmail(**kwargs):
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/remove', methods=['POST'])
 def removeEmail(**kwargs):
     with postgres.connection() as transaction:
-        if transaction.delete('Email', **kwargs):
+        if transaction.delete('Email', kwargs):
             kwargs['emailMessage'] = 'Email removed.'
         else:
             kwargs['emailMessage'] = 'Email could not be removed.'
@@ -162,7 +162,7 @@ def saveEmailVariation(**kwargs):
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>/remove', methods=['POST'])
 def removeEmailVariation(**kwargs):
     with postgres.connection() as transaction:
-        if transaction.delete('EmailVariation', **kwargs):
+        if transaction.delete('EmailVariation', kwargs):
             kwargs['removeEmailVariationMessage'] = 'Email Variation removed.'
         else:
             kwargs['removeEmailVariationMessage'] = 'Email Variation could not be removed.'
