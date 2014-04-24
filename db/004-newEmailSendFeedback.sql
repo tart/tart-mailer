@@ -1,5 +1,5 @@
 Create or replace function NewEmailSendFeedback(
-        emailHash text,
+        messageHash text,
         feedbackType EmailSendFeedbackType,
         iPAddress inet
     ) returns boolean
@@ -9,7 +9,7 @@ With NewEmailSendFeedback as (insert into EmailSendFeedback (fromAddress, toAddr
     select fromAddress, toAddress, emailId, NewEmailSendFeedback.feedbackType, NewEmailSendFeedback.iPAddress
         from EmailSend
             where sent
-                    and MessageHash(EmailSend) = NewEmailSendFeedback.emailHash
+                    and MessageHash(EmailSend) = NewEmailSendFeedback.messageHash
                     and not exists (select 1 from EmailSendFeedback
                                 where EmailSendFeedback.fromAddress = EmailSend.fromAddress
                                         and EmailSendFeedback.toAddress = EmailSend.toAddress
