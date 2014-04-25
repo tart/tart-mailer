@@ -92,7 +92,7 @@ def getEmail(data):
 @app.route('/subscriber', methods=['GET'])
 @databaseOperationViaAPI
 def listSubscribers(data):
-    return {'subscribers': postgres.connection().select('Subscriber', data)}
+    return paginate('Subscriber', data)
 
 @app.route('/subscriber/<string:toAddress>', methods=['GET'])
 @databaseOperationViaAPI
@@ -119,6 +119,13 @@ def sendToSubscriber(data):
         return postgres.connection().call('SendToSubscriber', data)
     except postgres.NoRow:
         raise NotAllowed('cannot send to this address')
+
+def paginate(tableName, whereConditions):
+    response = {'limit': flask.request.args.get('limit', 100)} # 100 is the default limit.
+    if 'offset' in flask.request.args:
+        response['offset'] = flask.request.args['offset']
+    response['records'] = postgres.connection().select(tableName, whereConditions, **response)
+    return response
 
 ##
 # Errors

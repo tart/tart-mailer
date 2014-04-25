@@ -106,17 +106,21 @@ class connection(psycopg2.extensions.connection):
     def callTable(self, *args):
         return self.call(*args, table=True)
 
-    def select(self, tableName, whereConditions={}, table=True):
+    def select(self, tableName, whereConditions={}, limit=None, offset=None, table=True):
         """Execute a select query from a single table."""
 
         query = 'Select * from ' + tableName
         if whereConditions:
             query += ' where ' + ' and '.join(k + ' = %s' for k in whereConditions.keys())
+        if limit:
+            query += ' limit ' + str(limit)
+        if offset:
+            query += ' offset ' + str(offset)
 
         return self.__execute(query, whereConditions.values(), table)
 
-    def selectOne(self, *args):
-        return self.select(*args, table=False)
+    def selectOne(self, *args, **kwargs):
+        return self.select(*args, table=False, **kwargs)
 
     def insert(self, tableName, newValues):
         """Execute an insert one row to a single table."""
@@ -147,8 +151,8 @@ class connection(psycopg2.extensions.connection):
 
         return self.__execute(query, parameters, table)
 
-    def updateOne(self, *args):
-        return self.update(*args, table=False)
+    def updateOne(self, *args, **kwargs):
+        return self.update(*args, table=False, **kwargs)
 
     def delete(self, tableName, whereConditions={}, table=True):
         """Execute a delete for a single table."""
