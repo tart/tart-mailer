@@ -88,3 +88,7 @@ Version 1.0
 Version 1.1
 
 * Allow filtering subscribers to send bulk emails
+* Split bulk email send page
+* Improve error handling of the API
+* Add more methods to the API
+* Add pagination to the API
