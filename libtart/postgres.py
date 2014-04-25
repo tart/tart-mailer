@@ -16,6 +16,8 @@
 
 from __future__ import absolute_import
 
+import re
+
 import psycopg2.extensions
 import psycopg2.extras
 
@@ -38,6 +40,19 @@ class connection(psycopg2.extensions.connection):
         self.set_client_encoding('utf8')
         self.autocommit = True
         psycopg2.extras.register_hstore(self)
+        self.__registerCompositeTypes()
+
+    def __registerCompositeTypes(self):
+        for row in self.__execute('''
+Select typname
+    from pg_type
+        where typcategory = 'C'
+                and (typnamespace in (select oid
+                            from pg_namespace
+                                where nspname !~ 'pg_*'
+                                        and nspname != 'information_schema')
+                        or typname = 'record')'''):
+            psycopg2.extras.register_composite(str(row['typname']), self, factory=OrderedCaseInsensitiveDictComposite)
 
     def __enter__(self):
         self.autocommit = False
@@ -51,7 +66,7 @@ class connection(psycopg2.extensions.connection):
         kwargs.setdefault('cursor_factory', OrderedCaseInsensitiveDictCursor)
         return psycopg2.extensions.connection.cursor(self, *args, **kwargs)
 
-    def __execute(self, query, parameters, table):
+    def __execute(self, query, parameters=[], table=True):
         """Execute a query on the database; return None, the value of the cell, the values in the row in
         a dictionary or the values of the rows in a list of dictionary."""
 
@@ -195,6 +210,10 @@ class OrderedCaseInsensitiveDictRow(psycopg2.extras.RealDictRow, OrderedCaseInse
         if type(name) == int:
             name = self._column_mapping[name]
         return OrderedCaseInsensitiveDict.__setitem__(self, name, value)
+
+class OrderedCaseInsensitiveDictComposite(psycopg2.extras.CompositeCaster, OrderedCaseInsensitiveDict):
+    def make(self, values):
+        return OrderedCaseInsensitiveDict(zip(self.attnames, values))
 
 class NoRow(Exception): pass
 

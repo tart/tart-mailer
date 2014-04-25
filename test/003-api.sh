@@ -45,6 +45,11 @@ curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X POS
 echo
 echo
 
+echo "Trying to get send messages..."
+curl -u tart-mailer@github.com:secret http://localhost:8080/email/send
+echo
+echo
+
 #
 # Errors
 #

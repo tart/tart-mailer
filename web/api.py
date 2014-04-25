@@ -120,6 +120,13 @@ def sendToSubscriber(data):
     except postgres.NoRow:
         raise NotAllowed('cannot send to this address')
 
+@app.route('/email/send', methods=['GET'])
+@app.route('/email/<int:emailId>/send', methods=['GET'])
+@app.route('/subscriber/<string:toAddress>/send', methods=['GET'])
+@databaseOperationViaAPI
+def listEmailSend(data):
+    return paginate('NestedEmailSend', data)
+
 def paginate(tableName, whereConditions):
     response = {'limit': flask.request.args.get('limit', 100)} # 100 is the default limit.
     if 'offset' in flask.request.args:
