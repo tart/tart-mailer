@@ -1,3 +1,13 @@
+Create or replace view NestedEmail as
+    with EmailVariations as (select fromAddress, emailId,
+                    array_agg(EmailVariation) as variations
+                from EmailVariation
+                group by fromAddress, emailId)
+    select Email.*,
+            coalesce(variations, '{}'::EmailVariation[]) as variations
+        from Email
+            left join EmailVariations using (fromAddress, emailId);
+
 Create or replace view NestedEmailSend as
     with EmailSendFeedbacks as (select fromAddress, toAddress, emailId,
                     array_agg(EmailSendFeedback) as feedbacks

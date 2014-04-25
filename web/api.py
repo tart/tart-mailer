@@ -81,13 +81,15 @@ def databaseOperationViaAPI(operation):
 
     return wrapped
 
+@app.route('/email', methods=['GET'])
+@databaseOperationViaAPI
+def listEmails(data):
+    return paginate('NestedEmail', data)
+
 @app.route('/email/<int:emailId>', methods=['GET'])
 @databaseOperationViaAPI
 def getEmail(data):
-    email = postgres.connection().selectOne('Email', data)
-    email['variations'] = postgres.connection().select('EmailVariation', data)
-
-    return email
+    return postgres.connection().selectOne('NestedEmail', data)
 
 @app.route('/subscriber', methods=['GET'])
 @databaseOperationViaAPI
