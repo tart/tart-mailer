@@ -185,7 +185,7 @@ def prepareBulkEmail(**kwargs):
     subscriberLocaleStats = postgres.connection().callTable('SubscriberLocaleStats', parameters)
     kwargs['subscriberlocalestats'] = subscriberLocaleStats
     kwargs['subscribercount'] = sum(s['total'] - s['send'] for s in subscriberLocaleStats)
-    kwargs['variationstats'] = postgres.connection().callTable('EmailVariationStats', parameters)
+    kwargs['emailVariations'] = postgres.connection().select('EmailVariationStatistics', parameters)
     kwargs['exampleproperties'] = postgres.connection().call('SubscriberExampleProperties', kwargs['fromaddress'])
     kwargs['propertyCount'] = 10
 

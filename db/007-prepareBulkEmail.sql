@@ -71,18 +71,3 @@ Select EmailVariation.variationId, coalesce(count(EmailSend), 0)
         group by EmailVariation.variationId
         order by EmailVariation.variationId
 $$;
-
-Create or replace function EmailVariationStats(integer)
-    returns table (
-        variationId smallint,
-        send bigint
-    )
-    language sql
-    as $$
-Select EmailVariation.variationId, coalesce(count(EmailSend), 0)
-    from EmailVariation
-        left join EmailSend using (fromAddress, emailId, variationId)
-        where EmailVariation.emailId = $1
-        group by EmailVariation.variationId
-        order by EmailVariation.variationId
-$$;
