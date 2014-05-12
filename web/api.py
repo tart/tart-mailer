@@ -111,6 +111,15 @@ def addEmailVariation(data):
 def getEmailVariation(data):
     return postgres.connection().selectOne('EmailVariation', data)
 
+@app.route('/email/<int:emailId>/variation/<int:variationId>', methods=['PUT'])
+@databaseOperationViaAPI
+def upsertEmailVariation(data):
+    try:
+        return postgres.connection().updateOne('EmailVariation', data, data.subset('fromAddress', 'emailId',
+                                                                                   'variationId'))
+    except postgres.NoRow:
+        return postgres.connection().insert('EmailVariation', data)
+
 @app.route('/subscriber', methods=['POST'])
 @databaseOperationViaAPI
 def addSubscriber(data):
