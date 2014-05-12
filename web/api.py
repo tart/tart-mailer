@@ -101,6 +101,11 @@ def listEmails(data):
 def getEmail(data):
     return postgres.connection().selectOne('NestedEmail', data)
 
+@app.route('/email/<int:emailId>/variation', methods=['POST'])
+@databaseOperationViaAPI
+def addEmailVariation(data):
+    return postgres.connection().insert('EmailVariation', data)
+
 @app.route('/email/<int:emailId>/variation/<int:variationId>', methods=['GET'])
 @databaseOperationViaAPI
 def getEmailVariation(data):

@@ -38,6 +38,15 @@ curl -u tart-mailer@github.com:secret http://localhost:8080/email/list
 echo
 echo
 
+echo "Trying to add a variation to the first email..."
+curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X POST -d '
+    {
+        "subject": "Extra Variation",
+        "plainBody": "This is the one."
+    }' http://localhost:8080/email/1/variation
+echo
+echo
+
 echo "Trying to get the first email..."
 curl -u tart-mailer@github.com:secret http://localhost:8080/email/1
 echo
