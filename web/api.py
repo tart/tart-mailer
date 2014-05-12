@@ -48,7 +48,7 @@ app.json_encoder = JSONEncoder
 
 def databaseOperationViaAPI(operation):
     """Wrapper for the API operations. Execute queries in a single database transaction. Authenticate senders.
-    Validate the request. Update kwargs with JSON POST data."""
+    Validate the request. Add fromAddress to the **kwargs."""
 
     @functools.wraps(operation)
     def wrapped(**kwargs):
@@ -66,15 +66,7 @@ def databaseOperationViaAPI(operation):
             if not postgres.connection().call('SenderAuthenticate', flask.request.authorization):
                 raise werkzeug.exceptions.Unauthorized('authentication failed')
 
-            data = collections.OrderedCaseInsensitiveDict(kwargs)
-            data['fromAddress'] = flask.request.authorization.username
-            if flask.request.json:
-                for key in flask.request.json.keys():
-                    if key in data:
-                        raise werkzeug.exceptions.BadRequest(key + ' already defined')
-                data.update(flask.request.json)
-
-            response = operation(data)
+            response = operation(fromAddress=flask.request.authorization.username, **kwargs)
             assert isinstance(response, dict)
 
             return flask.jsonify(response)
@@ -83,71 +75,70 @@ def databaseOperationViaAPI(operation):
 
 @app.route('/sender', methods=['GET'])
 @databaseOperationViaAPI
-def getSender(data):
-    return postgres.connection().selectOne('Sender', data)
+def getSender(**kwargs):
+    return postgres.connection().selectOne('Sender', kwargs)
 
 @app.route('/email', methods=['POST'])
 @databaseOperationViaAPI
-def addEmail(data):
-    return postgres.connection().insert('NestedEmail', data)
+def addEmail(**kwargs):
+    return postgres.connection().insert('NestedEmail', postData(kwargs))
 
 @app.route('/email/list', methods=['GET'])
 @databaseOperationViaAPI
-def listEmails(data):
-    return paginate('NestedEmail', data)
+def listEmails(**kwargs):
+    return paginate('NestedEmail', kwargs)
 
 @app.route('/email/<int:emailId>', methods=['GET'])
 @databaseOperationViaAPI
-def getEmail(data):
-    return postgres.connection().selectOne('NestedEmail', data)
+def getEmail(**kwargs):
+    return postgres.connection().selectOne('NestedEmail', kwargs)
 
 @app.route('/email/<int:emailId>/variation', methods=['POST'])
 @databaseOperationViaAPI
-def addEmailVariation(data):
-    return postgres.connection().insert('EmailVariation', data)
+def addEmailVariation(**kwargs):
+    return postgres.connection().insert('EmailVariation', postData(kwargs))
 
 @app.route('/email/<int:emailId>/variation/<int:variationId>', methods=['GET'])
 @databaseOperationViaAPI
-def getEmailVariation(data):
-    return postgres.connection().selectOne('EmailVariation', data)
+def getEmailVariation(**kwargs):
+    return postgres.connection().selectOne('EmailVariation', kwargs)
 
 @app.route('/email/<int:emailId>/variation/<int:variationId>', methods=['PUT'])
 @databaseOperationViaAPI
-def upsertEmailVariation(data):
+def upsertEmailVariation(**kwargs):
     try:
-        return postgres.connection().updateOne('EmailVariation', data, data.subset('fromAddress', 'emailId',
-                                                                                   'variationId'))
+        return postgres.connection().updateOne('EmailVariation', postData(), kwargs)
     except postgres.NoRow:
-        return postgres.connection().insert('EmailVariation', data)
+        return postgres.connection().insert('EmailVariation', postData(kwargs))
 
 @app.route('/subscriber', methods=['POST'])
 @databaseOperationViaAPI
-def addSubscriber(data):
-    return postgres.connection().insert('Subscriber', data)
+def addSubscriber(**kwargs):
+    return postgres.connection().insert('Subscriber', postData(kwargs))
 
 @app.route('/subscriber/list', methods=['GET'])
 @databaseOperationViaAPI
-def listSubscribers(data):
-    return paginate('Subscriber', data)
+def listSubscribers(**kwargs):
+    return paginate('Subscriber', kwargs)
 
 @app.route('/subscriber/<string:toAddress>', methods=['GET'])
 @databaseOperationViaAPI
-def getSubscriber(data):
-    return postgres.connection().selectOne('Subscriber', data)
+def getSubscriber(**kwargs):
+    return postgres.connection().selectOne('Subscriber', kwargs)
 
 @app.route('/subscriber/<string:toAddress>', methods=['PUT'])
 @databaseOperationViaAPI
-def upsertSubscriber(data):
+def upsertSubscriber(**kwargs):
     try:
-        return postgres.connection().updateOne('Subscriber', data, data.subset('fromAddress', 'toAddress'))
+        return postgres.connection().updateOne('Subscriber', postData(), kwargs)
     except postgres.NoRow:
-        return postgres.connection().insert('Subscriber', data)
+        return postgres.connection().insert('Subscriber', postData(kwargs))
 
 @app.route('/subscriber/<string:toAddress>/send', methods=['POST'])
 @databaseOperationViaAPI
-def sendToSubscriber(data):
+def sendToSubscriber(**kwargs):
     try:
-        return postgres.connection().call('SendToSubscriber', data)
+        return postgres.connection().call('SendToSubscriber', postData(kwargs))
     except postgres.NoRow:
         raise NotAllowed('cannot send to this address')
 
@@ -155,8 +146,18 @@ def sendToSubscriber(data):
 @app.route('/email/<int:emailId>/send/list', methods=['GET'])
 @app.route('/subscriber/<string:toAddress>/send/list', methods=['GET'])
 @databaseOperationViaAPI
-def listEmailSend(data):
-    return paginate('NestedEmailSend', data)
+def listEmailSend(**kwargs):
+    return paginate('NestedEmailSend', kwargs)
+
+##
+# Helper functions
+##
+
+def postData(data={}):
+    for key in flask.request.json.keys():
+        if key.lower() in (k.lower() for k in data.keys()):
+            raise werkzeug.exceptions.BadRequest(key + ' already defined')
+    return collections.OrderedCaseInsensitiveDict(data.items() + flask.request.json.items())
 
 def paginate(tableName, whereConditions):
     response = {'limit': flask.request.args.get('limit', 100)} # 100 is the default limit.
