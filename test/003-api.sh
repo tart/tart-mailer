@@ -38,6 +38,16 @@ curl -u tart-mailer@github.com:secret http://localhost:8080/email/list
 echo
 echo
 
+echo "Trying to get the first email..."
+curl -u tart-mailer@github.com:secret http://localhost:8080/email/1
+echo
+echo
+
+echo "Trying to get the first variation of the first email..."
+curl -u tart-mailer@github.com:secret http://localhost:8080/email/1/variation/1
+echo
+echo
+
 echo "Trying to add a subscriber..."
 curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X POST -d '
     {
