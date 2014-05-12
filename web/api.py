@@ -81,7 +81,12 @@ def databaseOperationViaAPI(operation):
 
     return wrapped
 
-@app.route('/email', methods=['GET'])
+@app.route('/email', methods=['POST'])
+@databaseOperationViaAPI
+def addEmail(data):
+    return postgres.connection().insert('NestedEmail', data)
+
+@app.route('/email/list', methods=['GET'])
 @databaseOperationViaAPI
 def listEmails(data):
     return paginate('NestedEmail', data)
@@ -91,12 +96,12 @@ def listEmails(data):
 def getEmail(data):
     return postgres.connection().selectOne('NestedEmail', data)
 
-@app.route('/email', methods=['POST'])
+@app.route('/subscriber', methods=['POST'])
 @databaseOperationViaAPI
-def addEmail(data):
-    return postgres.connection().insert('NestedEmail', data)
+def addSubscriber(data):
+    return postgres.connection().insert('Subscriber', data)
 
-@app.route('/subscriber', methods=['GET'])
+@app.route('/subscriber/list', methods=['GET'])
 @databaseOperationViaAPI
 def listSubscribers(data):
     return paginate('Subscriber', data)
@@ -105,11 +110,6 @@ def listSubscribers(data):
 @databaseOperationViaAPI
 def getSubscriber(data):
     return postgres.connection().selectOne('Subscriber', data)
-
-@app.route('/subscriber', methods=['POST'])
-@databaseOperationViaAPI
-def addSubscriber(data):
-    return postgres.connection().insert('Subscriber', data)
 
 @app.route('/subscriber/<string:toAddress>', methods=['PUT'])
 @databaseOperationViaAPI
@@ -127,9 +127,9 @@ def sendToSubscriber(data):
     except postgres.NoRow:
         raise NotAllowed('cannot send to this address')
 
-@app.route('/email/send', methods=['GET'])
-@app.route('/email/<int:emailId>/send', methods=['GET'])
-@app.route('/subscriber/<string:toAddress>/send', methods=['GET'])
+@app.route('/email/send/list', methods=['GET'])
+@app.route('/email/<int:emailId>/send/list', methods=['GET'])
+@app.route('/subscriber/<string:toAddress>/send/list', methods=['GET'])
 @databaseOperationViaAPI
 def listEmailSend(data):
     return paginate('NestedEmailSend', data)

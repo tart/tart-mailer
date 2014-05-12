@@ -29,7 +29,7 @@ echo
 echo
 
 echo "Trying to list the emails..."
-curl -u tart-mailer@github.com:secret http://localhost:8080/email
+curl -u tart-mailer@github.com:secret http://localhost:8080/email/list
 echo
 echo
 
@@ -45,16 +45,16 @@ curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X POS
 echo
 echo
 
+echo "Trying to list the subscribers..."
+curl -u tart-mailer@github.com:secret http://localhost:8080/subscriber/list
+echo
+echo
+
 echo "Trying to update the subscriber..."
 curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X PUT -d '
     {
        "locale": "tr_TR"
     }' http://localhost:8080/subscriber/osman@spam.bo
-echo
-echo
-
-echo "Trying to list the subscribers..."
-curl -u tart-mailer@github.com:secret http://localhost:8080/subscriber
 echo
 echo
 
@@ -70,7 +70,7 @@ echo
 echo
 
 echo "Trying to get send messages..."
-curl -u tart-mailer@github.com:secret http://localhost:8080/email/send
+curl -u tart-mailer@github.com:secret http://localhost:8080/email/send/list
 echo
 echo
 
