@@ -9,6 +9,11 @@ echo
 # Methods
 #
 
+echo "Trying to get the sender..."
+curl -u tart-mailer@github.com:secret http://localhost:8080/sender
+echo
+echo
+
 echo "Trying to list add an emails..."
 curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X POST -d '
     {

@@ -81,6 +81,11 @@ def databaseOperationViaAPI(operation):
 
     return wrapped
 
+@app.route('/sender', methods=['GET'])
+@databaseOperationViaAPI
+def getSender(data):
+    return postgres.connection().selectOne('Sender', data)
+
 @app.route('/email', methods=['POST'])
 @databaseOperationViaAPI
 def addEmail(data):
