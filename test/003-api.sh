@@ -9,6 +9,25 @@ echo
 # Methods
 #
 
+echo "Trying to list add an emails..."
+curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X POST -d '
+    {
+        "bulk": true,
+        "redirectURL": "http://tr.wikipedia.org",
+        "variations": [
+            {
+                "subject": "Wiki",
+                "plainbody": "Check out Wikipedia."
+            },
+            {
+                "subject": "Wikipedia",
+                "plainbody": "Try Wikipedia."
+            }
+        ]
+    }' http://localhost:8080/email
+echo
+echo
+
 echo "Trying to list the emails..."
 curl -u tart-mailer@github.com:secret http://localhost:8080/email
 echo

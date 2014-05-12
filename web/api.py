@@ -91,6 +91,11 @@ def listEmails(data):
 def getEmail(data):
     return postgres.connection().selectOne('NestedEmail', data)
 
+@app.route('/email', methods=['POST'])
+@databaseOperationViaAPI
+def addEmail(data):
+    return postgres.connection().insert('NestedEmail', data)
+
 @app.route('/subscriber', methods=['GET'])
 @databaseOperationViaAPI
 def listSubscribers(data):
