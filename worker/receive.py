@@ -77,12 +77,12 @@ def main():
             report = {}
             if returnedOriginal.is_multipart():
                 report['body'] = message.get_payload(0).plainest()
-                report['originalHeaders'] = dict(returnedOriginal.get_payload(0).headers())
+                report['original'] = str(returnedOriginal.get_payload(0))
             else:
                 splitMessage = returnedOriginal.splitSubmessage()
                 if splitMessage:
                     report['body'], submessage = splitMessage
-                    report['originalHeaders'] = dict(submessage.headers())
+                    report['original'] = str(submessage)
                 else:
                     report['body'] = returnedOriginal.plainestWithoutQuote()
 

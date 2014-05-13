@@ -106,7 +106,6 @@ Create table EmailSendResponseReport (
     emailId Identifier not null,
     createdAt timestamptz not null default now(),
     fields hstore default ''::hstore not null,
-    originalHeaders hstore default ''::hstore not null,
     body text,
     constraint EmailSendResponseReportPK primary key (fromAddress, toAddress, emailId),
     constraint EmailSendResponseReportFK foreign key (fromAddress, toAddress, emailId)

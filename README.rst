@@ -68,11 +68,6 @@ rule should be kept even the dictionary is not return from the database, for con
 also mapped to dictionaries. Input names on the forms should also be lower-case as they will be the keys
 of the dictionaries.
 
-Known Issues
-------------
-
-Duplicate headers of the response reports are not saved to the database.
-
 Changelog
 ---------
 
