@@ -18,6 +18,7 @@
 import os
 import flask
 import jinja2
+import collections
 
 os.sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 from libtart import postgres
@@ -230,6 +231,22 @@ def report(**kwargs):
     kwargs['rows'] = postgres.connection().select('DMARCReportRow', parameters)
 
     return flask.render_template('report.html', **kwargs)
+
+@app.route('/documentation')
+def documentation(**kwargs):
+    import api
+
+    aPIMethods = []
+    for rule in sorted(api.app.url_map.iter_rules(), key=lambda r: str(r)):
+        for method in ('GET', 'POST', 'PUT', 'DELETE'):
+            if method in rule.methods:
+                aPIMethod = collections.OrderedDict()
+                aPIMethod['name'] = method + ' ' + rule.rule
+                aPIMethod['endpoint'] = rule.endpoint
+                aPIMethod['methods'] = ', '.join(rule.methods)
+                aPIMethods.append(aPIMethod)
+
+    return flask.render_template('documentation.html', aPIMethods=aPIMethods)
 
 ##
 # Helper functions

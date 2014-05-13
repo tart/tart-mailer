@@ -1,0 +1,9 @@
+{% extends 'layout.html' %}
+
+{% from 'tables.html' import table %}
+
+{% block body %}
+    <h3>API Methods</h3>
+
+    {{ table(aPIMethods) }}
+{% endblock %}

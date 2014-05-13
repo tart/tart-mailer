@@ -3,6 +3,10 @@
 {% from 'tables.html' import linkTable %}
 
 {% block body %}
+    <p>
+        <a href="{{ url_for('documentation') }}">Documentation</a>
+    </p>
+
     <h2>Domains</h2>
 
     {{ linkTable(domains, {'domainStatistics': 'statistics'}) }}
