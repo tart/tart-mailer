@@ -195,6 +195,10 @@ def clientError(error):
 # by: https://github.com/mitsuhiko/flask/pull/839
 app.error_handler_spec[None].update(dict((code, clientError) for code in range(400, 499) if code != 401))
 
+@app.errorhandler(postgres.NoRow)
+def postgresNoRow(error):
+    return flask.jsonify({'error': str(error), 'type': type(error).__name__}), 404
+
 @app.errorhandler(postgres.PostgresError)
 def postgresError(error):
     return flask.jsonify({'error': str(error), 'type': type(error).__name__, 'details': error.details()}), 406
