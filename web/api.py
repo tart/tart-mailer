@@ -135,7 +135,10 @@ def getSubscriber(**kwargs):
 @databaseOperationViaAPI
 def upsertSubscriber(**kwargs):
     try:
-        return postgres.connection().updateOne('Subscriber', postData(), kwargs)
+        data = postData()
+        if data:
+            return postgres.connection().updateOne('Subscriber', data, kwargs)
+        return postgres.connection().selectOne('Subscriber', kwargs)
     except postgres.NoRow:
         return postgres.connection().insert('Subscriber', postData(kwargs))
 
