@@ -22,7 +22,7 @@ curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X PUT
 echo
 echo
 
-echo "Trying to list add an emails..."
+echo "Trying to add an email..."
 curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X POST -d '
     {
         "bulk": true,
