@@ -87,3 +87,7 @@ Version 1.1
 * Improve error handling of the API
 * Add more methods to the API
 * Add pagination to the API
+
+Version 1.2
+
+* Allow filtering on the API

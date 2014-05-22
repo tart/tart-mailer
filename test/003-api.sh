@@ -91,6 +91,21 @@ curl -u tart-mailer@github.com:secret http://localhost:8080/subscriber/list
 echo
 echo
 
+echo "Trying to get the subscribers in Turkey..."
+curl -u tart-mailer@github.com:secret http://localhost:8080/subscriber/list\?locale\=tr_TR
+echo
+echo
+
+echo "Trying to get the subscribers named Osman..."
+curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X POST -d '
+    {
+        "properties": {
+            "firstname": "Osman"
+        }
+    }' http://localhost:8080/subscriber/list
+echo
+echo
+
 echo "Trying to update the subscriber..."
 curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X PUT -d '
     {

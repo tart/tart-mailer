@@ -88,10 +88,10 @@ def setSender(**kwargs):
 def addEmail(**kwargs):
     return postgres.connection().insert('NestedEmail', postData(kwargs))
 
-@app.route('/email/list', methods=['GET'])
+@app.route('/email/list', methods=['GET', 'POST'])
 @databaseOperationViaAPI
 def listEmails(**kwargs):
-    return paginate('NestedEmail', kwargs)
+    return paginate('NestedEmail', postData(getData(kwargs)))
 
 @app.route('/email/<int:emailId>', methods=['GET'])
 @databaseOperationViaAPI
@@ -121,10 +121,10 @@ def upsertEmailVariation(**kwargs):
 def addSubscriber(**kwargs):
     return postgres.connection().insert('Subscriber', postData(kwargs))
 
-@app.route('/subscriber/list', methods=['GET'])
+@app.route('/subscriber/list', methods=['GET', 'POST'])
 @databaseOperationViaAPI
 def listSubscribers(**kwargs):
-    return paginate('Subscriber', kwargs)
+    return paginate('Subscriber', postData(getData(kwargs)))
 
 @app.route('/subscriber/<string:toAddress>', methods=['GET'])
 @databaseOperationViaAPI
@@ -150,28 +150,40 @@ def sendToSubscriber(**kwargs):
     except postgres.NoRow:
         raise NotAllowed('cannot send to this address')
 
-@app.route('/email/send/list', methods=['GET'])
-@app.route('/email/<int:emailId>/send/list', methods=['GET'])
-@app.route('/subscriber/<string:toAddress>/send/list', methods=['GET'])
+@app.route('/email/send/list', methods=['GET', 'POST'])
+@app.route('/email/<int:emailId>/send/list', methods=['GET', 'POST'])
+@app.route('/subscriber/<string:toAddress>/send/list', methods=['GET', 'POST'])
 @databaseOperationViaAPI
 def listEmailSend(**kwargs):
-    return paginate('NestedEmailSend', kwargs)
+    return paginate('NestedEmailSend', postData(getData(kwargs)))
 
 ##
 # Helper functions
 ##
 
+def getData(data={}):
+    for key in flask.request.args.keys():
+        if key.lower() in (k.lower() for k in data.keys()):
+            raise werkzeug.exceptions.BadRequest(key + ' already defined')
+    return collections.OrderedCaseInsensitiveDict(data.items() + flask.request.args.items())
+
 def postData(data={}):
+    if not flask.request.json:
+        return data
     for key in flask.request.json.keys():
         if key.lower() in (k.lower() for k in data.keys()):
             raise werkzeug.exceptions.BadRequest(key + ' already defined')
     return collections.OrderedCaseInsensitiveDict(data.items() + flask.request.json.items())
 
-def paginate(tableName, whereConditions):
-    response = {'limit': flask.request.args.get('limit', 100)} # 100 is the default limit.
-    if 'offset' in flask.request.args:
-        response['offset'] = flask.request.args['offset']
-    response['records'] = postgres.connection().select(tableName, whereConditions, **response)
+def paginate(tableName, conditions):
+    response = {}
+    if 'limit' in conditions:
+        response['limit'] = conditions.pop('limit')
+    else:
+        response['limit'] = 100 # The default limit.
+    if 'offset' in conditions:
+        response['offset'] = conditions.pop('offset')
+    response['records'] = postgres.connection().select(tableName, conditions, **response)
     return response
 
 ##

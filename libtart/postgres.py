@@ -124,9 +124,7 @@ Select typname
     def select(self, tableName, whereConditions={}, limit=None, offset=None, table=True):
         """Execute a select query from a single table."""
 
-        query = 'Select * from ' + tableName
-        if whereConditions:
-            query += ' where ' + ' and '.join(k + ' = %s' for k in whereConditions.keys())
+        query = 'Select * from ' + tableName + self.whereClause(whereConditions)
         if limit:
             query += ' limit ' + str(limit)
         if offset:
@@ -157,14 +155,9 @@ Select typname
 
         assert setColumns
         query = 'Update ' + tableName + ' set ' + ', '.join(k + ' = %s' for k in setColumns.keys())
-        parameters = setColumns.values()
+        query += self.whereClause(whereConditions) + ' returning *'
 
-        if whereConditions:
-            query += ' where ' + ' and '.join(k + ' = %s' for k in whereConditions.keys())
-            parameters += whereConditions.values()
-        query += ' returning *'
-
-        return self.__execute(query, parameters, table)
+        return self.__execute(query, setColumns.values() + whereConditions.values(), table)
 
     def updateOne(self, *args, **kwargs):
         return self.update(*args, table=False, **kwargs)
@@ -172,14 +165,25 @@ Select typname
     def delete(self, tableName, whereConditions={}, table=True):
         """Execute a delete for a single table."""
 
-        query = 'Delete from ' + tableName
-        parameters = []
-        if whereConditions:
-            query += ' where ' + ' and '.join(k + ' = %s' for k in whereConditions.keys())
-            parameters += whereConditions.values()
+        query = 'Delete from ' + tableName + self.whereClause(whereConditions)
         query += ' returning *'
 
-        return self.__execute(query, parameters, table)
+        return self.__execute(query, whereConditions.values(), table)
+
+    def whereClause(self, conditions):
+        query = ''
+        for key, value in conditions.items():
+            if not query:
+                query += ' where'
+            else:
+                query += ' and'
+            query += ' ' + key
+            if isinstance(value, dict):
+                query += ' @>'
+            else:
+                query += ' ='
+            query += ' %s'
+        return query
 
     def truncate(self, tableName):
         """Execute a truncate."""

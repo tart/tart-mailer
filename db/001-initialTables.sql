@@ -34,6 +34,7 @@ Create table Subscriber (
 );
 
 Create index SubscriberLocaleI on Subscriber (fromAddress, locale);
+Create index SubscriberPropertiesI on Subscriber using gin (properties);
 
 Create table Email (
     fromAddress EmailAddress not null,
