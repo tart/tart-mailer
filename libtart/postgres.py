@@ -180,6 +180,8 @@ Select typname
             query += ' ' + key
             if isinstance(value, dict):
                 query += ' @>'
+            elif value is None:
+                query += ' is not distinct from'
             else:
                 query += ' ='
             query += ' %s'
