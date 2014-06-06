@@ -91,3 +91,10 @@ Version 1.1
 Version 1.2
 
 * Allow filtering on the API
+
+Version 1.3
+
+* Add locales to email variations
+* Improve email variation distribution method
+* Fix slow query on the bulk send page with a lot of subscribers
+* Show email statistics by subscriber locale
