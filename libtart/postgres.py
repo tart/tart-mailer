@@ -121,16 +121,21 @@ Select typname
     def callTable(self, *args):
         return self.call(*args, table=True)
 
-    def select(self, tableName, whereConditions={}, limit=None, offset=None, table=True):
+    def select(self, tableName, where={}, orderBy=None, limit=None, offset=None, table=True):
         """Execute a select query from a single table."""
 
-        query = 'Select * from ' + tableName + self.whereClause(whereConditions)
+        query = 'Select * from ' + tableName + self.whereClause(where)
+        if orderBy:
+            if isinstance(orderBy, tuple):
+                query += ' order by ' + ', '.join(orderBy)
+            else:
+                query += ' order by ' + str(orderBy)
         if limit:
             query += ' limit ' + str(limit)
         if offset:
             query += ' offset ' + str(offset)
 
-        return self.__execute(query, whereConditions.values(), table)
+        return self.__execute(query, where.values(), table)
 
     def selectOne(self, *args, **kwargs):
         return self.select(*args, table=False, **kwargs)
@@ -150,25 +155,25 @@ Select typname
 
         return self.__execute(query, [v[c] for v in newValues for c in columns if c in v], len(newValues) > 1)
 
-    def update(self, tableName, setColumns, whereConditions={}, table=True):
+    def update(self, tableName, setColumns, where={}, table=True):
         """Execute an update for a single table."""
 
         assert setColumns
         query = 'Update ' + tableName + ' set ' + ', '.join(k + ' = %s' for k in setColumns.keys())
-        query += self.whereClause(whereConditions) + ' returning *'
+        query += self.whereClause(where) + ' returning *'
 
-        return self.__execute(query, setColumns.values() + whereConditions.values(), table)
+        return self.__execute(query, setColumns.values() + where.values(), table)
 
     def updateOne(self, *args, **kwargs):
         return self.update(*args, table=False, **kwargs)
 
-    def delete(self, tableName, whereConditions={}, table=True):
+    def delete(self, tableName, where={}, table=True):
         """Execute a delete for a single table."""
 
-        query = 'Delete from ' + tableName + self.whereClause(whereConditions)
+        query = 'Delete from ' + tableName + self.whereClause(where)
         query += ' returning *'
 
-        return self.__execute(query, whereConditions.values(), table)
+        return self.__execute(query, where.values(), table)
 
     def whereClause(self, conditions):
         query = ''
