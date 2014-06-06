@@ -28,32 +28,6 @@ With UpdatedEmailSend as (update EmailSend
                     (select * from InsertedEmailSend))
 $$;
 
-Create function SubscriberLocaleStats(
-        fromAddress varchar(200),
-        emailId integer
-    ) returns table (
-        locale char(5),
-        total bigint,
-        send bigint
-    )
-    language sql
-    as $$
-With FilteredEmailSend as (select * from EmailSend
-            where emailId = SubscriberLocaleStats.emailId),
-    Unsubscribe as (select * from EmailSendFeedback
-            where feedbackType = 'unsubscribe')
-    select Subscriber.locale, coalesce(count(*), 0), coalesce(count(FilteredEmailSend), 0)
-        from Subscriber
-            left join FilteredEmailSend using (fromAddress, toAddress)
-            left join Unsubscribe using (fromAddress, toAddress)
-            left join EmailSendResponseReport using (fromAddress, toAddress)
-            where Subscriber.fromAddress = SubscriberLocaleStats.fromAddress
-                    and Unsubscribe is null
-                    and EmailSendResponseReport is null
-            group by Subscriber.locale
-            order by Subscriber.locale
-$$;
-
 Create or replace function EmailVariationStats(
         fromAddress varchar(200),
         emailId integer

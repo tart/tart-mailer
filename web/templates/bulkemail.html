@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 
-{% from 'tables.html' import checkboxTable, dictionaryInputTable %}
+{% from 'tables.html' import table, checkboxTable, dictionaryInputTable %}
 
 {% block body %}
     <h1>{{ emailid }}. Email from {{ fromaddress }}</h1>
@@ -10,44 +10,40 @@
     <form method="POST" action="{{ url_for('sendBulkEmail') }}">
         <table>
             <tr>
-                <td>Variations:</td>
+                <td>Locales:</td>
 
-                <td>{{ checkboxTable(emailVariations, 'variationid') }}</td>
+                <td>{{ table(subscriberLocales, ('fromaddress', 'emailid')) }}</td>
             </tr>
 
             <tr>
-                <td>Locales:</td>
+                <td>Variations:</td>
 
-                <td>{{ checkboxTable(subscriberlocalestats, 'locale') }}</td>
+                <td>{{ checkboxTable(emailVariations, 'variationid', ('fromaddress', 'emailid'), (),
+                                     maxSubscriber == 0) }}</td>
             </tr>
 
             <tr>
                 <td>Example Properies:</td>
 
-                <td>{{ exampleproperties }}</td>
+                <td>{{ exampleProperties }}</td>
             </tr>
 
             <tr>
                 <td>Properties:</td>
 
-                <td>{{ dictionaryInputTable('properties', propertyCount) }}</td>
+                <td>{{ dictionaryInputTable('properties', propertyCount, maxSubscriber == 0) }}</td>
             </tr>
 
             <tr>
                 <td>Maximum Subscriber Count:</td>
 
                 <td>
-                    <input type="text" name="subscribercount" maxlength="20" required
-                           pattern="[0-9]*" title="must be a number"
-                           value="{{ subscribercount }}" {{ 'disabled ' if subscribercount == 0 }} />
+                    <input type="text" name="maxSubscriber" maxlength="20" pattern="[0-9]*"
+                           title="must be a number" value="{{ maxSubscriber }}" required
+                           {{ 'disabled' if maxSubscriber == 0 }} />
                 </td>
             </tr>
         </table>
-
-        <p>
-            Counts does not include unsubscribed or response report sent subscribers but emails may have been
-            sent to them, before.
-        </p>
 
         <p>
             The current subscribers will be added to the queue. Emails will be send asynchronously. Adding many
@@ -57,7 +53,7 @@
         <strong>{{ message }}</strong>
 
         <p>
-            <input type="submit" value="Send Bulk Email" {{ 'disabled ' if subscribercount == 0 }} />
+            <input type="submit" value="Send Bulk Email" {{ 'disabled' if maxSubscriber == 0 }} />
         </p>
     </form>
 

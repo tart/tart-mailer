@@ -108,15 +108,16 @@ def editEmail(**kwargs):
 
     kwargs.update(postgres.connection().selectOne('Email', parameters))
 
-    kwargs['variations'] = postgres.connection().select('EmailVariation', parameters)
+    kwargs['emailVariations'] = postgres.connection().select('EmailVariation', parameters)
     if 'force' in flask.request.args:
         kwargs['draft'] = True
-        for variation in kwargs['variations']:
+        for variation in kwargs['emailVariations']:
             variation['draft'] = True
     else:
-        kwargs['draft'] = all(variation['draft'] for variation in kwargs['variations'])
+        kwargs['draft'] = all(variation['draft'] for variation in kwargs['emailVariations'])
 
-    kwargs['exampleproperties'] = postgres.connection().call('SubscriberExampleProperties', kwargs['fromaddress'])
+    kwargs['subscriberLocales'] = postgres.connection().select('EmailSubscriberLocaleStatistics', parameters)
+    kwargs['exampleProperties'] = postgres.connection().call('SubscriberExampleProperties', kwargs['fromaddress'])
 
     return flask.render_template('email.html', **kwargs)
 
@@ -183,11 +184,11 @@ def sendTestEmail(**kwargs):
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/sendBulk')
 def prepareBulkEmail(**kwargs):
     parameters = dict((k, v) for k, v in kwargs.items() if k in ('fromaddress', 'emailid'))
-    subscriberLocaleStats = postgres.connection().callTable('SubscriberLocaleStats', parameters)
-    kwargs['subscriberlocalestats'] = subscriberLocaleStats
-    kwargs['subscribercount'] = sum(s['total'] - s['send'] for s in subscriberLocaleStats)
+
+    kwargs['subscriberLocales'] = postgres.connection().select('EmailSubscriberLocaleStatistics', parameters)
+    kwargs['maxSubscriber'] = sum(row['remaining'] for row in kwargs['subscriberLocales'])
     kwargs['emailVariations'] = postgres.connection().select('EmailVariationStatistics', parameters)
-    kwargs['exampleproperties'] = postgres.connection().call('SubscriberExampleProperties', kwargs['fromaddress'])
+    kwargs['exampleProperties'] = postgres.connection().call('SubscriberExampleProperties', kwargs['fromaddress'])
     kwargs['propertyCount'] = 10
 
     return flask.render_template('bulkemail.html', **kwargs)

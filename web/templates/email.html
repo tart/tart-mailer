@@ -1,5 +1,7 @@
 {% extends 'layout.html' %}
 
+{% from 'tables.html' import checkboxTable %}
+
 {% block body %}
     <h1>{{ emailid ~ '.' if emailid else 'New' }} Email from {{ fromaddress }}</h1>
 
@@ -46,7 +48,7 @@
             <tr>
                 <td>Example Properies:</td>
 
-                <td>{{ exampleproperties }}</td>
+                <td>{{ exampleProperties }}</td>
             </tr>
         </table>
 
@@ -64,7 +66,7 @@
             </p>
         </form>
 
-        {% for emailVariation in variations %}
+        {% for emailVariation in emailVariations %}
             <h3>{{ emailVariation['variationid'] }}. Variation</h3>
 
             <form method="POST" action="{{ url_for('saveEmailVariation', **emailVariation) }}">
@@ -107,6 +109,13 @@
                                 <a href="{{ url_for('preview', **emailVariation) }}">preview</a>
                             {% endif %}
                         </td>
+                    </tr>
+
+                    <tr>
+                        <td>Locales:</td>
+
+                        <td>{{ checkboxTable(subscriberLocales, 'locale', ('fromaddress', 'emailid'),
+                                             emailVariation['locale'], not emailVariation['draft']) }}</td>
                     </tr>
                 </table>
 
@@ -190,6 +199,12 @@
                         <textarea name="htmlbody" rows="10" cols="100"></textarea>
                     </td>
                 </tr>
+
+                <tr>
+                    <td>Locales:</td>
+
+                    <td>{{ checkboxTable(subscriberLocales, 'locale', ('fromaddress', 'emailid')) }}</td>
+                </tr>
             </table>
 
             <p>
@@ -197,7 +212,7 @@
             </p>
         </form>
 
-        {% if bulk and variations %}
+        {% if bulk and emailVariations %}
             <p>
                 <a href="{{ url_for('prepareBulkEmail') }}">Send</a>
             </p>

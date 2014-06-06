@@ -8,20 +8,24 @@
     {% endif %}
 {% endmacro %}
 
-{% macro table(tableData) %}
+{% macro table(tableData, hiddenColumns=()) %}
     <table border="1" >
         {% if tableData %}
             <tr>
-                {% for header in tableData[0].keys() %}
-                    <th>{{ header }}</th>
+                {% for key in tableData[0].keys() %}
+                    {% if key not in hiddenColumns %}
+                        <th>{{ key }}</th>
+                    {% endif %}
                 {% endfor %}
             </tr>
         {% endif %}
 
         {% for row in tableData %}
             <tr>
-                {% for value in row.values() %}
-                    <td>{{ cell(value) }}</td>
+                {% for key, value in row.items() %}
+                    {% if key not in hiddenColumns %}
+                        <td>{{ cell(value) }}</td>
+                    {% endif %}
                 {% endfor %}
             </tr>
         {% endfor %}
@@ -32,8 +36,8 @@
     <table border="1" >
         {% if tableData %}
             <tr>
-                {% for header in tableData[0].keys() %}
-                    <th>{{ header }}</th>
+                {% for key in tableData[0].keys() %}
+                    <th>{{ key }}</th>
                 {% endfor %}
 
                 <th></th>
@@ -56,14 +60,16 @@
     </table>
 {% endmacro %}
 
-{% macro checkboxTable(tableData, checkboxColumn) %}
+{% macro checkboxTable(tableData, checkboxColumn, hiddenColumns=(), checkedRows=(), disabled=False) %}
     <table border="1" >
         {% if tableData %}
             <tr>
                 <th></th>
 
-                {% for header in tableData[0].keys() %}
-                    <th>{{ header }}</th>
+                {% for key in tableData[0].keys() %}
+                    {% if key not in hiddenColumns %}
+                        <th>{{ key }}</th>
+                    {% endif %}
                 {% endfor %}
             </tr>
         {% endif %}
@@ -71,27 +77,30 @@
         {% for row in tableData %}
             <tr>
                 <td>
-                    <input type="checkbox" name="{{ checkboxColumn }}[]" value="{{ row[checkboxColumn] }}" />
+                    <input type="checkbox" name="{{ checkboxColumn }}[]" value="{{ row[checkboxColumn] }}"
+                            {{ 'checked' if row[checkboxColumn] in checkedRows }} {{ 'disabled' if disabled }} />
                  </td>
 
-                {% for header, value in row.items() %}
-                    <td>{{ cell(value) }}</td>
+                {% for key, value in row.items() %}
+                    {% if key not in hiddenColumns %}
+                        <td>{{ cell(value) }}</td>
+                    {% endif %}
                 {% endfor %}
             </tr>
         {% endfor %}
     </table>
 {% endmacro %}
 
-{% macro dictionaryInputTable(name, rowCount) %}
+{% macro dictionaryInputTable(name, rowCount, disabled=False) %}
     <table border="1" >
         {% for row in range(rowCount) %}
             <tr>
                 <td>
-                    <input type="text" name="{{ name }}[{{ row }}][key]" />
+                    <input type="text" name="{{ name }}[{{ row }}][key]" {{ 'disabled' if disabled }} />
                  </td>
 
                 <td>
-                    <input type="text" name="{{ name }}[{{ row }}][value]" />
+                    <input type="text" name="{{ name }}[{{ row }}][value]" {{ 'disabled' if disabled }} />
                  </td>
             </tr>
         {% endfor %}
