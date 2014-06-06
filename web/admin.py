@@ -214,9 +214,10 @@ def preview(**kwargs):
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/statistics')
 def senderStatistics(**kwargs):
     return flask.render_template('senderstatistics.html',
-                                 emailSentDates=postgres.connection().select('EmailSentDateStatistics', kwargs),
-                                 emailVariations=postgres.connection().select('EmailVariationStatistics', kwargs),
-                                 **kwargs)
+            emailSentDates=postgres.connection().select('EmailSentDateStatistics', kwargs),
+            emailVariations=postgres.connection().select('EmailVariationStatistics', kwargs),
+            emailSubscriberLocales=postgres.connection().select('EmailSubscriberLocaleStatistics', kwargs),
+            **kwargs)
 
 @app.route('/domain/statistics')
 @app.route('/domain/<string:domain>/statistics')
