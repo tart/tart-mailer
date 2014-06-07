@@ -225,11 +225,17 @@ def preview(**kwargs):
 @app.route('/sender/<string:fromaddress>/statistics')
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/statistics')
 def senderStatistics(**kwargs):
-    return flask.render_template('senderstatistics.html',
-            emailSentDates=postgres.connection().select('EmailSentDateStatistics', kwargs),
-            emailVariations=postgres.connection().select('EmailVariationStatistics', kwargs),
-            emailSubscriberLocales=postgres.connection().select('EmailSubscriberLocaleStatistics', kwargs),
-            **kwargs)
+    with postgres.connection() as transaction:
+        data = dict(kwargs)
+
+        if 'emailid' not in kwargs:
+            data['emails'] = transaction.select('EmailStatistics', kwargs)
+
+        data['emailSentDates'] = transaction.select('EmailSentDateStatistics', kwargs)
+        data['emailVariations'] = transaction.select('EmailVariationStatistics', kwargs)
+        data['emailSubscriberLocales'] = transaction.select('EmailSubscriberLocaleStatistics', kwargs)
+
+    return flask.render_template('senderstatistics.html', **data)
 
 @app.route('/domain/statistics')
 @app.route('/domain/<string:domain>/statistics')

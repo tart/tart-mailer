@@ -5,6 +5,12 @@
 {% block body %}
     <h1>Sender Statistics</h1>
 
+    {% if emails %}
+        <h2>Emails</h2>
+
+        {{ table(emails) }}
+    {% endif %}
+
     <h2>Email Sent Dates</h2>
 
     {{ table(emailSentDates) }}
