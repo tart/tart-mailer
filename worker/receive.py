@@ -62,7 +62,6 @@ def main():
     for messageId in messageIds[:options['amount']]:
         message = email.message_from_string(server.execute('fetch', messageId, '(RFC822)')[0][1], Message)
         message.check()
-        returnedOriginal = None
 
         ##
         # Messages will be classified by the last payload. It may be returned original or DMARC report.
@@ -73,6 +72,9 @@ def main():
 
             if message.get_content_type() != 'multipart/report':
                 warning('Unexpected message will be processed as returned original:', message)
+
+            # In all the different cases, the returned original is always in the last payload.
+            returnedOriginal = message.lastPayload()
 
             report = {}
             if returnedOriginal.is_multipart():
