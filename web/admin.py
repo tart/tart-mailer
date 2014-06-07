@@ -36,8 +36,8 @@ app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == '
 @app.route('/')
 def index(**kwargs):
     kwargs['domains'] = postgres.connection().select('DomainDetail')
-    kwargs['senders'] = postgres.connection().select('SenderDetail')
-    kwargs['bulkEmails'] = postgres.connection().select('BulkEmailDetail')
+    kwargs['senders'] = postgres.connection().select('SenderStatistics')
+    kwargs['bulkEmails'] = postgres.connection().select('EmailStatistics', {'bulk': True})
 
     return flask.render_template('index.html', **kwargs)
 

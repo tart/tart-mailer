@@ -1,3 +1,19 @@
+Create or replace view SenderStatistics as
+    with SubscriberStats as (select fromAddress, count(*) as count
+            from Subscriber
+            group by fromAddress),
+        EmailStats as (select fromAddress, count(*) as totalCount, sum(bulk::int) as bulkCount
+            from Email
+            group by fromAddress)
+        select Sender.fromAddress, Sender.fromName, Sender.createdAt,
+                coalesce(SubscriberStats.count, 0) as subscribers,
+                coalesce(EmailStats.bulkCount, 0) as bulkEmails,
+                coalesce(EmailStats.totalCount, 0) as totalEmails
+            from Sender
+                left join SubscriberStats using (fromAddress)
+                left join EmailStats using (fromAddress)
+            order by Sender.fromAddress;
+
 Create or replace view EmailSentDateStatistics as
     select EmailSend.fromAddress,
             EmailSend.emailId,

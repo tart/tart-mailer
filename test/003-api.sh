@@ -25,8 +25,9 @@ echo
 echo "Trying to add an email..."
 curl -H "Content-type: application/json" -u tart-mailer@github.com:secret -X POST -d '
     {
-        "bulk": true,
+        "name": "My Bulk Email",
         "redirectURL": "http://tr.wikipedia.org",
+        "bulk": true,
         "variations": [
             {
                 "subject": "Wiki",

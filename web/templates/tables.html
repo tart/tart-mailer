@@ -32,12 +32,14 @@
     </table>
 {% endmacro %}
 
-{% macro linkTable(tableData, endpoints) %}
+{% macro linkTable(tableData, endpoints, hiddenColumns=()) %}
     <table border="1" >
         {% if tableData %}
             <tr>
                 {% for key in tableData[0].keys() %}
-                    <th>{{ key }}</th>
+                    {% if key not in hiddenColumns %}
+                        <th>{{ key }}</th>
+                    {% endif %}
                 {% endfor %}
 
                 <th></th>
@@ -46,8 +48,10 @@
 
         {% for row in tableData %}
             <tr>
-                {% for value in row.values() %}
-                    <td>{{ cell(value) }}</td>
+                {% for key, value in row.items() %}
+                    {% if key not in hiddenColumns %}
+                        <td>{{ cell(value) }}</td>
+                    {% endif %}
                 {% endfor %}
 
                 <td>

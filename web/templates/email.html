@@ -3,7 +3,7 @@
 {% from 'tables.html' import checkboxTable %}
 
 {% block body %}
-    <h1>{{ emailid ~ '.' if emailid else 'New' }} Email from {{ fromaddress }}</h1>
+    <h1>{{ name or 'New Email' }} from {{ fromaddress }}</h1>
 
     {% if not draft %}
         <p>
@@ -14,6 +14,18 @@
 
     <form method="POST" action="{{ url_for('saveEmail') }}">
         <table>
+            <tr>
+                <td>Name:</td>
+
+                <td>
+                    <input type="text" name="name" size="100" maxlength="200"
+                           pattern=".{3,}" title="must be at least 3 characters"
+                           value="{{ name }}" {{ 'disabled ' if not draft }} {{ 'required' if name }} />
+
+                    <!-- A name will be generated on insert if it is not given. It must be set on update. -->
+                </td>
+            </tr>
+
             <tr>
                 <td>Redirect URL:</td>
 

@@ -1,20 +1,43 @@
-Create or replace view SenderDetail as
-    with SubscriberStats as (select fromAddress, count(*) as count
-            from Subscriber
-            group by fromAddress),
-        EmailStats as (select fromAddress, count(*) as totalCount, sum(bulk::int) as bulkCount
-            from Email
-            group by fromAddress)
-        select Sender.fromAddress, Sender.fromName, Sender.createdAt,
-                coalesce(SubscriberStats.count, 0) as subscribers,
-                coalesce(EmailStats.bulkCount, 0) as bulkEmails,
-                coalesce(EmailStats.totalCount, 0) as totalEmails
-            from Sender
-                left join SubscriberStats using (fromAddress)
-                left join EmailStats using (fromAddress)
-            order by Sender.fromAddress;
+Create domain Name varchar(200)
+    constraint NameC check (length(value) > 2);
 
-Create or replace view BulkEmailDetail as
+Alter table Email
+    add column name Name;
+
+Update Email set name = emailId::text || '. Email';
+
+Alter table Email
+    alter column name set not null,
+    add constraint EmailNameUK unique (name, fromAddress);
+
+Alter trigger SubscriberUpdateRevisedAtT on Subscriber rename to SubscriberUpdateT000;
+
+Alter trigger EmailVariationUpdateRevisedAtT on EmailVariation rename to EmailVariationUpdateT000;
+
+Alter trigger EmailSendUpdateRevisedAtT on EmailSend rename to EmailSendUpdateT000;
+
+Alter trigger EmailInsertEmailIdT on Email rename to EmailInsertT000;
+
+Alter trigger EmailVariationInsertVariationIdT on EmailVariation rename to EmailVariationInsertT000;
+
+Alter trigger NestedEmailInsertT on NestedEmail rename to NestedEmailT;
+
+Create or replace function SetNameFromEmailId()
+    returns trigger
+    language plpgsql
+    as $$
+Begin
+    new.name = new.emailId::text || '. Email';
+    return new;
+End;
+$$;
+
+Create trigger EmailInsertT001 before insert on Email
+    for each row
+    when (new.name is null)
+    execute procedure SetNameFromEmailId();
+
+Create or replace view EmailStatistics as
     with EmailVariationStats as (select fromAddress, emailId, count(*) as count
             from EmailVariation
             group by fromAddress, emailId),
@@ -31,8 +54,12 @@ Create or replace view BulkEmailDetail as
                 sum((feedbackType = 'unsubscribe')::int) as unsubscribeCount
             from EmailSendFeedback
             group by fromAddress, emailId)
-        select Email.fromAddress, Email.emailId, Email.createdAt,
-                EmailVariationStats.count as variations,
+        select Email.fromAddress,
+                Email.emailId,
+                Email.name,
+                Email.createdAt,
+                Email.bulk,
+                coalesce(EmailVariationStats.count, 0) as variations,
                 coalesce(EmailSendStats.totalCount, 0) as totalMessages,
                 coalesce(EmailSendStats.sentCount, 0) as sentMessages,
                 coalesce(EmailSendResponseReportStats.count, 0) as responseReports,
@@ -45,5 +72,4 @@ Create or replace view BulkEmailDetail as
                 left join EmailSendStats using (fromAddress, emailId)
                 left join EmailSendResponseReportStats using (fromAddress, emailId)
                 left join EmailSendFeedbackStats using (fromAddress, emailId)
-                where Email.bulk
                 order by Email.fromAddress, Email.emailId;
