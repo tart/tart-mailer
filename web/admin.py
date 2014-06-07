@@ -173,12 +173,24 @@ def removeEmailVariation(**kwargs):
 
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>/sendTest', methods=['POST'])
 def sendTestEmail(**kwargs):
-    with postgres.connection() as transaction:
-        if transaction.call('SendTestEmail', formData(**kwargs)):
-            kwargs['sendTestEmailMessage'] = 'Test email message added to the queue.'
-        else:
-            kwargs['sendTestEmailMessage'] = 'Test email message could not send.'
+    kwargs = formData(**kwargs)
 
+    with postgres.connection() as transaction:
+        transaction.insertIfNotExists('Subscriber', {
+           'fromAddress': kwargs['fromaddress'],
+           'toAddress': kwargs['toaddress'],
+        })
+
+        transaction.upsert('EmailSend', {
+            'sent': False,
+            'variationId': kwargs['variationid'],
+        }, {
+            'fromAddress': kwargs['fromaddress'],
+            'toAddress': kwargs['toaddress'],
+            'emailId': kwargs['emailid'],
+        })
+
+        kwargs['sendTestEmailMessage'] = 'Test email message added to the queue.'
         return editEmail(**kwargs)
 
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/sendBulk')

@@ -140,20 +140,39 @@ Select typname
     def selectOne(self, *args, **kwargs):
         return self.select(*args, table=False, **kwargs)
 
-    def insert(self, tableName, newValues):
-        """Execute an insert one row to a single table."""
+    def exists(self, tableName, where={}):
+        """Execute a select exists() query for a single table."""
 
-        if isinstance(newValues, dict):
-            columns = newValues.keys()
-            newValues = (newValues,)
+        query = 'Select exists(select 1 from ' + tableName + self.whereClause(where) + ')'
+        return self.__execute(query, where.values(), False)
+
+    def insert(self, tableName, values):
+        """Execute an insert one row or several rows to a single table."""
+
+        if isinstance(values, dict):
+            columns = values.keys()
+            values = (values,)
         else:
-            columns = set(k.lower() for n in newValues for k in n.keys())
+            columns = set(k.lower() for n in values for k in n.keys())
 
         query = 'Insert into ' + tableName + ' (' + ', '.join(columns) + ') values '
-        query += ', '.join('(' + ', '.join('%s' if c in v else 'default' for c in columns) + ')' for v in newValues)
+        query += ', '.join('(' + ', '.join('%s' if c in v else 'default' for c in columns) + ')' for v in values)
         query += ' returning *'
 
-        return self.__execute(query, [v[c] for v in newValues for c in columns if c in v], len(newValues) > 1)
+        return self.__execute(query, [v[c] for v in values for c in columns if c in v], len(values) > 1)
+
+    def insertIfNotExists(self, tableName, values):
+        """Execute an insert into select query to insert a single row to a single table."""
+
+        query = 'Insert into ' + tableName + ' (' + ', '.join(values.keys()) + ')'
+        query += ' select ' + ', '.join('%s' for v in values)
+        query += ' where not exists(select 1 from ' + tableName + self.whereClause(values) + ')'
+        query += ' returning *'
+
+        try:
+            return self.__execute(query, values.values() * 2, False)
+        except NoRow:
+            return None
 
     def update(self, tableName, setColumns, where={}, table=True):
         """Execute an update for a single table."""
@@ -166,6 +185,12 @@ Select typname
 
     def updateOne(self, *args, **kwargs):
         return self.update(*args, table=False, **kwargs)
+
+    def upsert(self, tableName, setColumns, where={}):
+        try:
+            return self.updateOne(tableName, setColumns, where)
+        except NoRow:
+            return self.insert(tableName, OrderedCaseInsensitiveDict(setColumns.items() + where.items()))
 
     def delete(self, tableName, where={}, table=True):
         """Execute a delete for a single table."""

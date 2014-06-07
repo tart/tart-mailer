@@ -20,6 +20,7 @@ Create temp table TempEmailVariation (subject varchar(1000), plainBody text, hTM
 Insert into EmailVariation (fromAddress, emailId, subject, plainBody, hTMLBody)
     select Email.fromAddress, Email.emailId, TempEmailVariation.*
         from Email, TempEmailVariation;
-Select SendTestEmail(Subscriber.fromAddress, Subscriber.toAddress, EmailVariation.emailId, EmailVariation.variationId)
-    from Subscriber, EmailVariation;" | psql
+Insert into EmailSend (fromAddress, toAddress, emailId, variationId)
+    select Subscriber.fromAddress, Subscriber.toAddress, EmailVariation.emailId, EmailVariation.variationId
+        from Subscriber, EmailVariation;" | psql
 echo
