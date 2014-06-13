@@ -99,3 +99,5 @@ Version 1.3
 * Fix slow query on the bulk send page with a lot of subscribers
 * Show email statistics by subscriber locale
 * Add name to emails
+* Send messages in random order
+* Allow multiple send workers to operate together

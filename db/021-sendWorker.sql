@@ -25,6 +25,8 @@ Delete from EmailSend
     returning *
 $$;
 
+Create index EmailSendQueueI on EmailSend (fromAddress) where not sent;
+
 Create or replace function NextEmailToSend(fromAddress varchar(200) default null)
     returns table (
         fromName varchar(200),
@@ -42,7 +44,8 @@ With FirstWaitingEmail as (select EmailSend.*
         from EmailSend
             where not sent
                     and (NextEmailToSend.fromAddress is null or fromAddress = NextEmailToSend.fromAddress)
-        limit 1
+        order by random()
+            limit 1
         for update),
     UpdatedEmailSend as (update EmailSend
             set sent = true
