@@ -200,6 +200,9 @@ Select typname
 
         return self.__execute(query, where.values(), table)
 
+    def deleteOne(self, *args, **kwargs):
+        return self.delete(*args, table=False, **kwargs)
+
     def whereClause(self, conditions):
         query = ''
         for key, value in conditions.items():

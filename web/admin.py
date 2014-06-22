@@ -65,20 +65,16 @@ def saveSender(**kwargs):
             kwargs = transaction.insert('Sender', formData())
             kwargs['senderMessage'] = 'Sender created.'
         else:
-            if transaction.updateOne('Sender', formData(), kwargs):
-                kwargs['saveMessage'] = 'Sender updated.'
-            else:
-                kwargs['saveMessage'] = 'Sender could not found.'
+            transaction.updateOne('Sender', formData(), kwargs)
+            kwargs['saveMessage'] = 'Sender updated.'
 
         return editSender(**kwargs)
 
 @app.route('/sender/<string:fromaddress>/remove', methods=['POST'])
 def removeSender(**kwargs):
     with postgres.connection() as transaction:
-        if transaction.delete('Sender', kwargs):
-            kwargs['senderMessage'] = 'Sender removed.'
-        else:
-            kwargs['senderMessage'] = 'Sender could not be removed.'
+        transaction.deleteOne('Sender', kwargs)
+        kwargs['senderMessage'] = 'Sender removed.'
 
         return index(**kwargs)
 
@@ -129,20 +125,16 @@ def saveEmail(**kwargs):
             kwargs.update(transaction.insert('Email', formData(**kwargs)))
             kwargs['saveMessage'] = 'Email created.'
         else:
-            if transaction.update('Email', formData(), kwargs):
-                kwargs['saveMessage'] = 'Email updated.'
-            else:
-                kwargs['saveMessage'] = 'Email could not found.'
+            transaction.updateOne('Email', formData(), kwargs)
+            kwargs['saveMessage'] = 'Email updated.'
 
         return editEmail(**kwargs)
 
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/remove', methods=['POST'])
 def removeEmail(**kwargs):
     with postgres.connection() as transaction:
-        if transaction.delete('Email', kwargs):
-            kwargs['emailMessage'] = 'Email removed.'
-        else:
-            kwargs['emailMessage'] = 'Email could not be removed.'
+        transaction.deleteOne('Email', kwargs)
+        kwargs['emailMessage'] = 'Email removed.'
 
         return index(**kwargs)
 
@@ -154,20 +146,16 @@ def saveEmailVariation(**kwargs):
             transaction.insert('EmailVariation', formData(**kwargs))
             kwargs['saveEmailVariationMessage'] = 'Email Variation created.'
         else:
-            if transaction.update('EmailVariation', formData(), kwargs):
-                kwargs['saveEmailVariationMessage'] = 'Email Variation updated.'
-            else:
-                kwargs['saveEmailVariationMessage'] = 'Email Variation could not found.'
+            transaction.updateOne('EmailVariation', formData(), kwargs)
+            kwargs['saveEmailVariationMessage'] = 'Email variation updated.'
 
         return editEmail(**kwargs)
 
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>/remove', methods=['POST'])
 def removeEmailVariation(**kwargs):
     with postgres.connection() as transaction:
-        if transaction.delete('EmailVariation', kwargs):
-            kwargs['removeEmailVariationMessage'] = 'Email Variation removed.'
-        else:
-            kwargs['removeEmailVariationMessage'] = 'Email Variation could not be removed.'
+        transaction.deleteOne('EmailVariation', kwargs)
+        kwargs['removeEmailVariationMessage'] = 'Email Variation removed.'
 
         return editEmail(**kwargs)
 
