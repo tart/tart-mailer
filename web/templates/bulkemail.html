@@ -56,8 +56,4 @@
             <input type="submit" value="Send Bulk Email" {{ 'disabled' if maxSubscriber == 0 }} />
         </p>
     </form>
-
-    <p>
-        <a href="{{ url_for('newEmail') }}">Add New Email</a>
-    </p>
 {% endblock %}

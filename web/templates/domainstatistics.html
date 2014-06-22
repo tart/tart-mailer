@@ -8,10 +8,4 @@
     <h2>DMARC Reports</h2>
 
     {{ linkTable(dMARCReports, {'report': 'report'}) }}
-
-    {% if domain %}
-        <p>
-            <a href="{{ url_for('domainStatistics', domain=None) }}">Statistics for All Domains</a>
-        </p>
-    {% endif %}
 {% endblock %}
