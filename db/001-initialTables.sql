@@ -26,6 +26,16 @@ Create table Sender (
     constraint SenderPK primary key (fromAddress)
 );
 
+Create type SubscriberState as enum (
+    'new',
+    'sent',
+    'responseReport',
+    'trackerImage',
+    'view',
+    'redirect',
+    'unsubscribe'
+);
+
 Create table Subscriber (
     fromAddress EmailAddress not null,
     toAddress EmailAddress not null,
@@ -33,6 +43,7 @@ Create table Subscriber (
     revisedAt timestamptz not null default now(),
     locale LocaleCode,
     properties hstore default ''::hstore not null,
+    state SubscriberState default 'new',
     constraint SubscriberPK primary key (fromAddress, toAddress),
     constraint SubscriberFK foreign key (fromAddress)
             references Sender on update cascade,
@@ -92,6 +103,9 @@ Create type EmailSendFeedbackType as enum (
     'redirect',
     'unsubscribe'
 );
+
+Create cast (EmailSendFeedbackType as SubscriberState)
+    with inout as implicit;
 
 Create table EmailSendFeedback (
     fromAddress EmailAddress not null,

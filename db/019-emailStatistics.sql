@@ -1,5 +1,7 @@
 Create or replace view SenderStatistics as
-    with SubscriberStats as (select fromAddress, count(*) as count
+    with SubscriberStats as (select fromAddress,
+                count(*) as count,
+                sum((Subscriber.state not in ('responseReport', 'unsubscribe'))::int) as allowed
             from Subscriber
             group by fromAddress),
         EmailStats as (select fromAddress, count(*) as totalCount, sum(bulk::int) as bulkCount
@@ -7,6 +9,7 @@ Create or replace view SenderStatistics as
             group by fromAddress)
         select Sender.fromAddress, Sender.fromName, Sender.createdAt,
                 coalesce(SubscriberStats.count, 0) as subscribers,
+                coalesce(SubscriberStats.allowed, 0) as allowed,
                 coalesce(EmailStats.bulkCount, 0) as bulkEmails,
                 coalesce(EmailStats.totalCount, 0) as totalEmails
             from Sender
@@ -51,28 +54,23 @@ Create or replace view EmailVariationStatistics as
             order by 1, 2, 3;
 
 Create or replace view EmailSubscriberLocaleStatistics as
-    with SubscriberUnsubscribed as (select fromAddress, toAddress from EmailSendFeedback
-                where feedbackType = 'unsubscribe'),
-        SubscriberWithResponseReport as (select distinct fromAddress, toAddress from EmailSendResponseReport)
-        select Email.fromAddress,
-                Email.emailId,
-                Subscriber.locale,
-                count(*) as subscribers,
-                count(SubscriberUnsubscribed) as unsubscribed,
-                count(SubscriberWithResponseReport) as responseReported,
-                sum((SubscriberUnsubscribed is null
-                        and SubscriberWithResponseReport is null)::int) as allowed,
-                count(EmailSend) as send,
-                sum((SubscriberUnsubscribed is null
-                        and SubscriberWithResponseReport is null
-                        and EmailSend is null)::int) as remaining
-            from Email
-                join Subscriber using (fromAddress)
-                    left join SubscriberUnsubscribed using (fromAddress, toAddress)
-                    left join SubscriberWithResponseReport using (fromAddress, toAddress)
-                    left join EmailSend using (fromAddress, toAddress, emailId)
-                group by 1, 2, 3
-                order by 1, 2, 3;
+    select Email.fromAddress,
+            Email.emailId,
+            Subscriber.locale,
+            count(*) as subscribers,
+            count((Subscriber.state = 'responseReport')::int) as responseReported,
+            count((Subscriber.state = 'unsubscribe')::int) as unsubscribed,
+            count((Subscriber.state != 'responseReport'
+                    and Subscriber.state != 'unsubscribe')::int) as allowed,
+            count(EmailSend) as send,
+            count((Subscriber.state != 'responseReport'
+                    and Subscriber.state != 'unsubscribe'
+                    and EmailSend is null)::int) as remaining
+        from Email
+            join Subscriber using (fromAddress)
+                left join EmailSend using (fromAddress, toAddress, emailId)
+            group by 1, 2, 3
+            order by 1, 2, 3;
 
 Create or replace view EmailStatistics as
     with EmailVariationStats as (select fromAddress, emailId, count(*) as count

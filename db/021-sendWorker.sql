@@ -4,9 +4,9 @@ Create or replace function RemoveNotAllowedEmailSend()
     as $$
 Delete from EmailSend
     where not sent
-            and (toAddress in (select toAddress from EmailSendFeedback
-                        where feedbackType = 'unsubscribe')
-                    or toAddress in (select toAddress from EmailSendResponseReport))
+            and (fromAddress, toAddress) in (select fromAddress, toAddress
+                        from Subscriber
+                            where state in ('responseReport', 'unsubscribe'))
     returning *
 $$;
 
@@ -17,11 +17,9 @@ Create or replace function RemoveNotAllowedEmailSend(fromAddress varchar(200))
 Delete from EmailSend
     where not sent
             and fromAddress = RemoveNotAllowedEmailSend.fromAddress
-            and (toAddress in (select toAddress from EmailSendFeedback
-                        where fromAddress = RemoveNotAllowedEmailSend.fromAddress
-                                and feedbackType = 'unsubscribe')
-                    or toAddress in (select toAddress from EmailSendResponseReport
-                        where fromAddress = RemoveNotAllowedEmailSend.fromAddress))
+            and (fromAddress, toAddress) in (select fromAddress, toAddress
+                        from Subscriber
+                            where state in ('responseReport', 'unsubscribe'))
     returning *
 $$;
 

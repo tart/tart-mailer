@@ -64,3 +64,61 @@ Create trigger EmailInsertT001 before insert on Email
     for each row
     when (new.name is null)
     execute procedure SetNameFromEmailId();
+
+Create or replace function SetFeedbackTypeToSubscriberState()
+    returns trigger
+    language plpgsql
+    as $$
+Begin
+    Update Subscriber
+        set state = new.feedbackType
+        where fromAddress = new.fromAddress
+                and toAddress = new.toAddress
+                and state < new.feedbackType;
+
+    return new;
+End;
+$$;
+
+Create trigger EmailSendFeedbackInsertT000 before insert on EmailSendFeedback
+    for each row
+    execute procedure SetFeedbackTypeToSubscriberState();
+
+Create or replace function SetResponseReportToSubscriberState()
+    returns trigger
+    language plpgsql
+    as $$
+Begin
+    Update Subscriber
+        set state = 'responseReport'
+        where fromAddress = new.fromAddress
+                and toAddress = new.toAddress
+                and state < 'responseReport';
+
+    return new;
+End;
+$$;
+
+Create trigger EmailSendResponseReportInsertT000 before update on EmailSendResponseReport
+    for each row
+    execute procedure SetResponseReportToSubscriberState();
+
+Create or replace function SetSentToSubscriberState()
+    returns trigger
+    language plpgsql
+    as $$
+Begin
+    Update Subscriber
+        set state = 'sent'
+        where fromAddress = new.fromAddress
+                and toAddress = new.toAddress
+                and state < 'sent';
+
+    return new;
+End;
+$$;
+
+Create trigger EmailSendUpdateT001 before update on EmailSend
+    for each row
+    when (new.sent)
+    execute procedure SetSentToSubscriberState();
