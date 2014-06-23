@@ -3,9 +3,11 @@
 {% from 'tables.html' import linkTable %}
 
 {% block body %}
-    <h1>Domain Statistics</h1>
+    {% if 'domain' in identifiers %}
+        <h1>DMARC Reports of {{ identifiers['domain'] }}</h1>
+    {% else %}
+        <h1>DMARC Reports</h1>
+    {% endif %}
 
-    <h2>DMARC Reports</h2>
-
-    {{ linkTable(dMARCReports, {'editReport': 'show'}) }}
+    {{ linkTable(dMARCReports, {'editReport': 'show'}, identifiers.keys())) }}
 {% endblock %}

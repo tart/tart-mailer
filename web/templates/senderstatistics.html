@@ -3,23 +3,29 @@
 {% from 'tables.html' import table %}
 
 {% block body %}
-    <h1>Sender Statistics</h1>
+    {% if email %}
+        <h1>Statistics of {{ email['name'] }} from {{ email['fromaddress'] }}</h1>
+    {% elif 'fromaddress' in identifiers %}
+        <h1>Statistics of All Emails from {{ identifiers['fromaddress'] }}</h1>
+    {% else %}
+        <h1>Statistics of All Emails</h1>
+    {% endif %}
 
     {% if emails %}
         <h2>Emails</h2>
 
-        {{ table(emails) }}
+        {{ table(emails, identifiers.keys()) }}
     {% endif %}
 
     <h2>Email Sent Dates</h2>
 
-    {{ table(emailSentDates) }}
+    {{ table(emailSentDates, identifiers.keys()) }}
 
     <h2>Email Variations</h2>
 
-    {{ table(emailVariations) }}
+    {{ table(emailVariations, identifiers.keys()) }}
 
     <h2>Email Subscriber Locales</h2>
 
-    {{ table(emailSubscriberLocales) }}
+    {{ table(emailSubscriberLocales, identifiers.keys()) }}
 {% endblock %}

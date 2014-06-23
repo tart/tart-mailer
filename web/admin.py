@@ -233,23 +233,29 @@ def preview(**kwargs):
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/statistics')
 def senderStatistics(**kwargs):
     with postgres.connection() as transaction:
-        context = {}
+        context = {
+            'identifiers': kwargs,
+            'emailSentDates': transaction.select('EmailSentDateStatistics', kwargs),
+            'emailVariations': transaction.select('EmailVariationStatistics', kwargs),
+            'emailSubscriberLocales': transaction.select('EmailSubscriberLocaleStatistics', kwargs),
+        }
 
-        if 'emailid' not in kwargs:
+        if 'emailid' in kwargs:
+            context['email'] = transaction.selectOne('Email', kwargs)
+        else:
             context['emails'] = transaction.select('EmailStatistics', kwargs)
-
-        context['emailSentDates'] = transaction.select('EmailSentDateStatistics', kwargs)
-        context['emailVariations'] = transaction.select('EmailVariationStatistics', kwargs)
-        context['emailSubscriberLocales'] = transaction.select('EmailSubscriberLocaleStatistics', kwargs)
 
     return flask.render_template('senderstatistics.html', **context)
 
 @app.route('/domain/statistics')
 @app.route('/domain/<string:domain>/statistics')
 def domainStatistics(**kwargs):
-    dMARCReports = postgres.connection().select('DMARCReportDetail', kwargs)
+    context = {
+        'identifiers': kwargs,
+        'dMARCReports': postgres.connection().select('DMARCReportDetail', kwargs),
+    }
 
-    return flask.render_template('domainstatistics.html', dMARCReports=dMARCReports)
+    return flask.render_template('domainstatistics.html', **context)
 
 @app.route('/reporter/<string:reporteraddress>/report/<string:reportid>')
 def editReport(**kwargs):

@@ -3,9 +3,7 @@
 {% from 'tables.html' import table, checkboxTable, dictionaryInputTable %}
 
 {% block body %}
-    <h1>{{ email['name'] }} from {{ email['fromaddress'] }}</h1>
-
-    <h3>Send Bulk Email</h3>
+    <h1>Send {{ email['name'] }} from {{ email['fromaddress'] }}</h1>
 
     <form method="POST" action="{{ url_for('sendBulkEmail', **email) }}">
         <table>
