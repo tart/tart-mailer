@@ -9,6 +9,9 @@ Create domain HTTPURL varchar(1000) collate "C"
 Create domain LocaleCode char(5) collate "C"
     constraint LocaleCodeC check (value ~ '^[a-z]{2}_[A-Z]{2}$');
 
+Create domain LocaleCodeArray char(5)[] collate "C" not null default array[]::char(5)[]
+    constraint LocaleCodeArrayC check ('^[a-z]{2}_[A-Z]{2}$' ^~ all(value));
+
 Create domain Identifier smallint
     constraint IdentifierC check (value > 0);
 
@@ -36,9 +39,6 @@ Create table Subscriber (
     constraint SubscriberRevisedAtC check (revisedAt >= createdAt)
 );
 
-Create index SubscriberLocaleI on Subscriber (fromAddress, locale);
-Create index SubscriberPropertiesI on Subscriber using gin (properties);
-
 Create table Email (
     fromAddress EmailAddress not null,
     emailId Identifier not null,
@@ -62,6 +62,7 @@ Create table EmailVariation (
     plainBody text,
     hTMLBody text,
     draft boolean not null default false,
+    locale LocaleCodeArray,
     constraint EmailVariationPK primary key (fromAddress, emailId, variationId),
     constraint EmailVariationFK foreign key (fromAddress, emailId)
             references Email on delete cascade on update cascade,
@@ -105,6 +106,9 @@ Create table EmailSendFeedback (
 );
 
 Create index EmailSendFeedbackEmailFKI on EmailSendFeedback (fromAddress, emailId, feedbackType);
+
+Create unique index EmailSendFeedbackUnsubscribeUK on EmailSendFeedback (fromAddress, toAddress)
+    where feedbackType = 'unsubscribe';
 
 Create table EmailSendResponseReport (
     fromAddress EmailAddress not null,

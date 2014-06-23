@@ -1,27 +1,4 @@
-Create domain LocaleCodeArray char(5)[] collate "C" not null default array[]::char(5)[]
-    constraint LocaleCodeArrayC check ('^[a-z]{2}_[A-Z]{2}$' ^~ all(value));
-
-Alter table EmailVariation
-    add column locale LocaleCodeArray;
-
-Create index EmailVariationLocalesI on EmailVariation using gin (locale);
-
-Create unique index EmailSendFeedbackUnsubscribe on EmailSendFeedback (fromAddress, toAddress)
-    where feedbackType = 'unsubscribe';
-
-Create or replace view EmailVariationSubscriberStatistics as
-    with SubscriberUnsubscribed as (select fromAddress, toAddress from EmailSendFeedback
-            where feedbackType = 'unsubscribe'),
-        SubscriberWithResponseReport as (select distinct fromAddress, toAddress from EmailSendResponseReport)
-        select EmailVariation.fromAddress,
-                EmailVariation.emailId,
-                EmailVariation.variationId,
-                EmailVariation.locale,
-                coalesce(count(EmailSend), 0) as send
-            from EmailVariation
-                left join EmailSend using (fromAddress, emailId, variationId)
-                group by 1, 2, 3
-                order by 1, 2, 3;
+Create index SubscriberSendBulkEmailI on Subscriber (fromAddress, locale, revisedAt);
 
 Create or replace function SendBulkEmail(
         fromAddress varchar(200),
