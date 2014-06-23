@@ -1,14 +1,3 @@
-Create or replace function textregexreveq(text, text)
-    returns boolean
-    language sql
-    as 'select textregexeq($2, $1)';
-
-Create operator ^~ (
-    procedure = textregexreveq,
-    leftarg = text,
-    rightarg = text
-);
-
 Create domain LocaleCodeArray char(5)[] collate "C" not null default array[]::char(5)[]
     constraint LocaleCodeArrayC check ('^[a-z]{2}_[A-Z]{2}$' ^~ all(value));
 
