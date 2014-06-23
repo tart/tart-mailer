@@ -73,3 +73,40 @@ Create or replace view EmailSubscriberLocaleStatistics as
                     left join EmailSend using (fromAddress, toAddress, emailId)
                 group by 1, 2, 3
                 order by 1, 2, 3;
+
+Create or replace view EmailStatistics as
+    with EmailVariationStats as (select fromAddress, emailId, count(*) as count
+            from EmailVariation
+            group by fromAddress, emailId),
+        EmailSendStats as (select fromAddress, emailId, count(*) as totalCount, sum(sent::int) as sentCount
+            from EmailSend
+            group by fromAddress, emailId),
+        EmailSendResponseReportStats as (select fromAddress, emailId, count(*) as count
+            from EmailSendResponseReport
+            group by fromAddress, emailId),
+        EmailSendFeedbackStats as (select fromAddress, emailId,
+                sum((feedbackType = 'trackerImage')::int) as trackerImageCount,
+                sum((feedbackType = 'view')::int) as viewCount,
+                sum((feedbackType = 'redirect')::int) as redirectCount,
+                sum((feedbackType = 'unsubscribe')::int) as unsubscribeCount
+            from EmailSendFeedback
+            group by fromAddress, emailId)
+        select Email.fromAddress,
+                Email.emailId,
+                Email.name,
+                Email.createdAt,
+                Email.bulk,
+                coalesce(EmailVariationStats.count, 0) as variations,
+                coalesce(EmailSendStats.totalCount, 0) as totalMessages,
+                coalesce(EmailSendStats.sentCount, 0) as sentMessages,
+                coalesce(EmailSendResponseReportStats.count, 0) as responseReports,
+                coalesce(EmailSendFeedbackStats.trackerImageCount, 0) as trackerImages,
+                coalesce(EmailSendFeedbackStats.viewCount, 0) as views,
+                coalesce(EmailSendFeedbackStats.redirectCount, 0) as redirects,
+                coalesce(EmailSendFeedbackStats.unsubscribeCount, 0) as unsubscribes
+            from Email
+                left join EmailVariationStats using (fromAddress, emailId)
+                left join EmailSendStats using (fromAddress, emailId)
+                left join EmailSendResponseReportStats using (fromAddress, emailId)
+                left join EmailSendFeedbackStats using (fromAddress, emailId)
+                order by 1, 2;

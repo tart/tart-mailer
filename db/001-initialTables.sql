@@ -12,6 +12,9 @@ Create domain LocaleCode char(5) collate "C"
 Create domain Identifier smallint
     constraint IdentifierC check (value > 0);
 
+Create domain Name varchar(200)
+    constraint NameC check (length(value) > 2);
+
 Create table Sender (
     fromAddress EmailAddress not null,
     fromName varchar(200) not null,
@@ -39,10 +42,12 @@ Create index SubscriberPropertiesI on Subscriber using gin (properties);
 Create table Email (
     fromAddress EmailAddress not null,
     emailId Identifier not null,
+    name Name not null,
     createdAt timestamptz not null default now(),
     bulk boolean not null default false,
     redirectURL HTTPURL,
     constraint EmailPK primary key (fromAddress, emailId),
+    constraint EmailNameUK unique (name, fromAddress),
     constraint EmailFK foreign key (fromAddress)
             references Sender on update cascade
 );

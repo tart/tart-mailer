@@ -8,14 +8,14 @@ Begin
 End;
 $$;
 
-Create trigger SubscriberUpdateRevisedAtT before update on Subscriber
+Create trigger SubscriberUpdateT000 before update on Subscriber
     for each row execute procedure SetRevisedAt();
 
-Create trigger EmailVariationUpdateRevisedAtT before update on EmailVariation
+Create trigger EmailVariationUpdateT000 before update on EmailVariation
     for each row
     execute procedure SetRevisedAt();
 
-Create trigger EmailSendUpdateRevisedAtT before update on EmailSend
+Create trigger EmailSendUpdateT000 before update on EmailSend
     for each row
     execute procedure SetRevisedAt();
 
@@ -29,7 +29,7 @@ Begin
 End;
 $$;
 
-Create trigger EmailInsertEmailIdT before insert on Email
+Create trigger EmailInserT000 before insert on Email
     for each row
     when (new.emailId is null)
     execute procedure SetNextEmailId();
@@ -45,7 +45,22 @@ Begin
 End;
 $$;
 
-Create trigger EmailVariationInsertVariationIdT before insert on EmailVariation
+Create trigger EmailVariationInsertT000 before insert on EmailVariation
     for each row
     when (new.variationId is null)
     execute procedure SetNextVariationId();
+
+Create or replace function SetNameFromEmailId()
+    returns trigger
+    language plpgsql
+    as $$
+Begin
+    new.name = new.emailId::text || '. Email';
+    return new;
+End;
+$$;
+
+Create trigger EmailInsertT001 before insert on Email
+    for each row
+    when (new.name is null)
+    execute procedure SetNameFromEmailId();

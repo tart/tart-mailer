@@ -37,7 +37,7 @@ Begin
 End;
 $$;
 
-Create trigger NestedEmailInsertT instead of insert on NestedEmail
+Create trigger NestedEmailT000 instead of insert on NestedEmail
     for each row
     execute procedure InsertNestedEmail();
 
