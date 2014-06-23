@@ -113,6 +113,7 @@ Create table EmailSendResponseReport (
     createdAt timestamptz not null default now(),
     fields hstore default ''::hstore not null,
     body text,
+    original text,
     constraint EmailSendResponseReportPK primary key (fromAddress, toAddress, emailId),
     constraint EmailSendResponseReportFK foreign key (fromAddress, toAddress, emailId)
             references EmailSend on delete cascade on update cascade
