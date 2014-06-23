@@ -44,16 +44,19 @@ def index(**kwargs):
 @app.route('/sender/new')
 def newSender(**kwargs):
     parts = parseURL(flask.request.url_root)
-    kwargs['returnurlroot'] = parts['protocol'] + '//' + parts['root'] + '/'
-    kwargs['password'] = postgres.connection().call('GeneratePassword')
+    kwargs['sender'] = {
+        'returnurlroot': parts['protocol'] + '//' + parts['root'] + '/',
+        'password': postgres.connection().call('GeneratePassword'),
+    }
 
     return flask.render_template('sender.html', **kwargs)
 
 @app.route('/sender/<string:fromaddress>')
 def editSender(**kwargs):
-    parameters = {'fromaddress': kwargs['fromaddress']}
+    identifiers = {key: kwargs.pop(key) for key in ('fromaddress',)}
 
-    kwargs.update(postgres.connection().selectOne('Sender', parameters))
+    if 'sender' not in kwargs:
+        kwargs['sender'] = postgres.connection().selectOne('Sender', identifiers)
 
     return flask.render_template('sender.html', **kwargs)
 
@@ -62,10 +65,11 @@ def editSender(**kwargs):
 def saveSender(**kwargs):
     with postgres.connection() as transaction:
         if 'fromaddress' not in kwargs:
-            kwargs = transaction.insert('Sender', formData())
+            kwargs['sender'] = transaction.insert('Sender', formData())
+            kwargs['fromaddress'] = kwargs['sender']['fromaddress']
             kwargs['senderMessage'] = 'Sender created.'
         else:
-            transaction.updateOne('Sender', formData(), kwargs)
+            kwargs['sender'] = transaction.updateOne('Sender', formData(), kwargs)
             kwargs['saveMessage'] = 'Sender updated.'
 
         return editSender(**kwargs)
@@ -80,6 +84,8 @@ def removeSender(**kwargs):
 
 @app.route('/sender/<string:fromaddress>/subscriber/new')
 def newSubscriber(**kwargs):
+    identifiers = {key: kwargs.pop(key) for key in ('fromaddress',)}
+    kwargs['subscriber'] = {'fromaddress': identifiers['fromaddress']}
     kwargs['propertyCount'] = 10
 
     return flask.render_template('subscriber.html', **kwargs)
@@ -94,26 +100,28 @@ def saveSubscriber(**kwargs):
 
 @app.route('/sender/<string:fromaddress>/email/new')
 def newEmail(**kwargs):
+    identifiers = {key: kwargs.pop(key) for key in ('fromaddress',)}
+    kwargs['email'] = {'fromaddress': identifiers['fromaddress']}
     kwargs['draft'] = True
 
     return flask.render_template('email.html', **kwargs)
 
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>')
 def editEmail(**kwargs):
-    parameters = dict((k, v) for k, v in kwargs.items() if k in ('fromaddress', 'emailid'))
+    identifiers = {key: kwargs.pop(key) for key in ('fromaddress', 'emailid')}
 
-    kwargs.update(postgres.connection().selectOne('Email', parameters))
+    if 'email' not in kwargs:
+        kwargs['email'] = postgres.connection().selectOne('Email', identifiers)
 
-    kwargs['emailVariations'] = postgres.connection().select('EmailVariation', parameters, 'variationId')
+    kwargs['emailVariations'] = postgres.connection().select('EmailVariation', identifiers, 'variationId')
+
     if 'force' in flask.request.args:
-        kwargs['draft'] = True
         for variation in kwargs['emailVariations']:
             variation['draft'] = True
-    else:
-        kwargs['draft'] = all(variation['draft'] for variation in kwargs['emailVariations'])
 
-    kwargs['subscriberLocales'] = postgres.connection().select('EmailSubscriberLocaleStatistics', parameters)
-    kwargs['exampleProperties'] = postgres.connection().call('SubscriberExampleProperties', kwargs['fromaddress'])
+    kwargs['draft'] = all(variation['draft'] for variation in kwargs['emailVariations'])
+    kwargs['subscriberLocales'] = postgres.connection().select('EmailSubscriberLocaleStatistics', identifiers)
+    kwargs['exampleProperties'] = postgres.connection().call('SubscriberExampleProperties', identifiers['fromaddress'])
 
     return flask.render_template('email.html', **kwargs)
 
@@ -122,10 +130,11 @@ def editEmail(**kwargs):
 def saveEmail(**kwargs):
     with postgres.connection() as transaction:
         if 'emailid' not in kwargs:
-            kwargs.update(transaction.insert('Email', formData(**kwargs)))
+            kwargs['email'] = transaction.insert('Email', formData(**kwargs))
+            kwargs['emailid'] = kwargs['email']['emailid']
             kwargs['saveMessage'] = 'Email created.'
         else:
-            transaction.updateOne('Email', formData(), kwargs)
+            kwargs['email'] = transaction.updateOne('Email', formData(), kwargs)
             kwargs['saveMessage'] = 'Email updated.'
 
         return editEmail(**kwargs)
@@ -161,12 +170,12 @@ def removeEmailVariation(**kwargs):
 
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/variation/<int:variationid>/sendTest', methods=['POST'])
 def sendTestEmail(**kwargs):
-    kwargs = formData(**kwargs)
+    toAddress = formData()['toaddress']
 
     with postgres.connection() as transaction:
         transaction.insertIfNotExists('Subscriber', {
            'fromAddress': kwargs['fromaddress'],
-           'toAddress': kwargs['toaddress'],
+           'toAddress': toaddress,
         })
 
         transaction.upsert('EmailSend', {
@@ -174,7 +183,7 @@ def sendTestEmail(**kwargs):
             'variationId': kwargs['variationid'],
         }, {
             'fromAddress': kwargs['fromaddress'],
-            'toAddress': kwargs['toaddress'],
+            'toAddress': toaddress,
             'emailId': kwargs['emailid'],
         })
 
@@ -183,10 +192,11 @@ def sendTestEmail(**kwargs):
 
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/sendBulk')
 def prepareBulkEmail(**kwargs):
-    parameters = dict((k, v) for k, v in kwargs.items() if k in ('fromaddress', 'emailid'))
+    identifiers = {key: kwargs.pop(key) for key in ('fromaddress', 'emailid')}
 
-    kwargs['subscriberLocales'] = postgres.connection().select('EmailSubscriberLocaleStatistics', parameters)
-    kwargs['emailVariations'] = postgres.connection().select('EmailVariationStatistics', parameters)
+    kwargs['email'] = postgres.connection().selectOne('Email', identifiers)
+    kwargs['subscriberLocales'] = postgres.connection().select('EmailSubscriberLocaleStatistics', identifiers)
+    kwargs['emailVariations'] = postgres.connection().select('EmailVariationStatistics', identifiers)
 
     locales = []
     for variation in kwargs['emailVariations']:
@@ -197,7 +207,7 @@ def prepareBulkEmail(**kwargs):
 
     kwargs['maxSubscriber'] = sum(row['remaining'] for row in kwargs['subscriberLocales']
                                   if not locales or row['locale'] in locales)
-    kwargs['exampleProperties'] = postgres.connection().call('SubscriberExampleProperties', kwargs['fromaddress'])
+    kwargs['exampleProperties'] = postgres.connection().call('SubscriberExampleProperties', identifiers['fromaddress'])
     kwargs['propertyCount'] = 10
 
     return flask.render_template('bulkemail.html', **kwargs)
@@ -223,31 +233,32 @@ def preview(**kwargs):
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/statistics')
 def senderStatistics(**kwargs):
     with postgres.connection() as transaction:
-        data = dict(kwargs)
+        context = {}
 
         if 'emailid' not in kwargs:
-            data['emails'] = transaction.select('EmailStatistics', kwargs)
+            context['emails'] = transaction.select('EmailStatistics', kwargs)
 
-        data['emailSentDates'] = transaction.select('EmailSentDateStatistics', kwargs)
-        data['emailVariations'] = transaction.select('EmailVariationStatistics', kwargs)
-        data['emailSubscriberLocales'] = transaction.select('EmailSubscriberLocaleStatistics', kwargs)
+        context['emailSentDates'] = transaction.select('EmailSentDateStatistics', kwargs)
+        context['emailVariations'] = transaction.select('EmailVariationStatistics', kwargs)
+        context['emailSubscriberLocales'] = transaction.select('EmailSubscriberLocaleStatistics', kwargs)
 
-    return flask.render_template('senderstatistics.html', **data)
+    return flask.render_template('senderstatistics.html', **context)
 
 @app.route('/domain/statistics')
 @app.route('/domain/<string:domain>/statistics')
 def domainStatistics(**kwargs):
-    return flask.render_template('domainstatistics.html',
-                                 dMARCReports=postgres.connection().select('DMARCReportDetail', kwargs),
-                                 **kwargs)
+    dMARCReports = postgres.connection().select('DMARCReportDetail', kwargs)
+
+    return flask.render_template('domainstatistics.html', dMARCReports=dMARCReports)
 
 @app.route('/reporter/<string:reporteraddress>/report/<string:reportid>')
-def report(**kwargs):
-    parameters = dict(kwargs)
-    kwargs.update(postgres.connection().selectOne('DMARCReport', parameters))
-    kwargs['rows'] = postgres.connection().select('DMARCReportRow', parameters)
+def editReport(**kwargs):
+    context = {
+        'report': postgres.connection().selectOne('DMARCReport', kwargs),
+        'dMARCReportRows': postgres.connection().select('DMARCReportRow', kwargs),
+    }
 
-    return flask.render_template('report.html', **kwargs)
+    return flask.render_template('report.html', **context)
 
 @app.route('/documentation')
 def documentation(**kwargs):
@@ -269,16 +280,9 @@ def documentation(**kwargs):
 # Helper functions
 ##
 
-@jinja2.contextfunction
-def uRLFor(context, *args, **kwargs):
-    """Override the default url_for() view helper with a magical one. The magic is to use the context variables
-    as the default kwargs. It will also change the default behavior not to add unknown parameters to the URL
-    with an ugly split() hack."""
-
-    values = dict(context)
-    values.update(kwargs)
-
-    return flask.helpers.url_for(*args, **values).split('?')[0]
+def uRLFor(*args, **kwargs):
+    """Override the default url_for() view helper to remove unknown parameters on the URL."""
+    return flask.helpers.url_for(*args, **kwargs).split('?')[0]
 app.jinja_env.globals.update(url_for=uRLFor)
 
 def formData(**kwargs):

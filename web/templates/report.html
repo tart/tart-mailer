@@ -3,14 +3,15 @@
 {% from 'tables.html' import table %}
 
 {% block body %}
-    <h1>Report {{ reportid }} from {{ reporteraddress }}</h1>
+    <h1>Report {{ report['reportid'] }} from {{ report['reporteraddress'] }}</h1>
 
     <table>
         <tr>
             <td>Domain:</td>
 
             <td>
-                <input type="text" name="subject" size="100" maxlength="200" value="{{ domain }}" disabled />
+                <input type="text" name="subject" size="100" maxlength="200" value="{{ report['domain'] }}"
+                       disabled />
             </td>
         </tr>
 
@@ -18,7 +19,8 @@
             <td>Start:</td>
 
             <td>
-                <input type="text" name="period" size="100" maxlength="25" value="{{ period.lower }}" disabled />
+                <input type="text" name="period" size="100" maxlength="25" value="{{ report['period'].lower }}"
+                       disabled />
             </td>
         </tr>
 
@@ -26,7 +28,8 @@
             <td>End:</td>
 
             <td>
-                <input type="text" name="period" size="100" maxlength="25" value="{{ period.upper }}" disabled />
+                <input type="text" name="period" size="100" maxlength="25" value="{{ report['period'].upper }}"
+                       disabled />
             </td>
         </tr>
 
@@ -34,12 +37,12 @@
             <td>Body:</td>
 
             <td>
-                <textarea name="body" rows="10" cols="100" disabled >{{ body }}</textarea>
+                <textarea name="body" rows="10" cols="100" disabled >{{ report['body'] }}</textarea>
             </td>
         </tr>
     </table>
 
     <h2>DMARC Report Rows</h2>
 
-    {{ table(rows) }}
+    {{ table(dMARCReportRows) }}
 {% endblock %}

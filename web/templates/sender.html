@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block body %}
-    <form method="POST" action="{{ url_for('saveSender') }}">
+    <form method="POST" action="{{ url_for('saveSender', **sender) }}">
         <table>
             <tr>
                 <td>From Address:</td>
@@ -9,7 +9,7 @@
                     <input type="text" name="fromaddress" size="100" maxlength="200" required
                            pattern="[a-z0-9._\-+!']+@[a-z0-9.\-]+.[a-z0-9]+"
                            title="must be a valid email address"
-                           value="{{ fromaddress }}" {{ 'disabled' if fromaddress }} />
+                           value="{{ sender['fromaddress'] }}" {{ 'disabled' if sender['fromaddress'] }} />
                 </td>
             </tr>
 
@@ -18,7 +18,7 @@
                 <td>
                     <input type="text" name="password" size="100" maxlength="100" required
                            pattern="[A-Za-z0-9]{16,}" title="minimum 16 alpha-numeric characters"
-                           value="{{ password }}" />
+                           value="{{ sender['password'] }}" />
                 </td>
             </tr>
 
@@ -26,7 +26,7 @@
                 <td>From Name:</td>
                 <td>
                     <input type="text" name="fromname" size="100" maxlength="200" required
-                           value="{{ fromname }}" />
+                           value="{{ sender['fromname'] }}" />
                 </td>
             </tr>
 
@@ -35,7 +35,7 @@
                 <td>
                     <input type="text" name="returnurlroot" size="100" maxlength="1000" required
                            pattern="(http|https)://.*" title="must be a HTTP URL"
-                           value="{{ returnurlroot }}" />
+                           value="{{ sender['returnurlroot'] }}" />
                 </td>
             </tr>
         </table>
@@ -47,8 +47,8 @@
         </p>
     </form>
 
-    {% if fromaddress %}
-        <form method="POST" action="{{ url_for('removeSender') }}">
+    {% if sender['fromaddress'] %}
+        <form method="POST" action="{{ url_for('removeSender', **sender) }}">
             <p>
                 <input type="submit" value="Remove" />
             </p>

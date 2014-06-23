@@ -3,7 +3,7 @@
 {% from 'tables.html' import checkboxTable %}
 
 {% block body %}
-    <h1>{{ name or 'New Email' }} from {{ fromaddress }}</h1>
+    <h1>{{ email['name'] or 'New Email' }} from {{ email['fromaddress'] }}</h1>
 
     {% if not draft %}
         <p>
@@ -12,7 +12,7 @@
         </p>
     {% endif %}
 
-    <form method="POST" action="{{ url_for('saveEmail') }}">
+    <form method="POST" action="{{ url_for('saveEmail', **email) }}">
         <table>
             <tr>
                 <td>Name:</td>
@@ -20,7 +20,8 @@
                 <td>
                     <input type="text" name="name" size="100" maxlength="200"
                            pattern=".{3,}" title="must be at least 3 characters"
-                           value="{{ name }}" {{ 'disabled ' if not draft }} {{ 'required' if name }} />
+                           value="{{ email['name'] }}" {{ 'disabled ' if not draft }}
+                           {{ 'required' if email['name'] }} />
 
                     <!-- A name will be generated on insert if it is not given. It must be set on update. -->
                 </td>
@@ -32,7 +33,7 @@
                 <td>
                     <input type="text" name="redirecturl" size="100" maxlength="1000"
                            pattern="(http|https)://.*" title="must be a HTTP URL"
-                           value="{{ redirecturl or '' }}" {{ 'disabled ' if not draft }} />
+                           value="{{ email['redirecturl'] or '' }}" {{ 'disabled ' if not draft }} />
                 </td>
             </tr>
 
@@ -40,7 +41,7 @@
                 <td>Bulk:</td>
 
                 <td>
-                    <input type="checkbox" name="bulk" value="True" {{ 'checked' if bulk }}
+                    <input type="checkbox" name="bulk" value="True" {{ 'checked' if email['bulk'] }}
                            {{ 'disabled ' if not draft }} />
 
                     <input type="hidden" name="bulk" value="False" /> <!-- The default value -->
@@ -55,7 +56,7 @@
         </p>
     </form>
 
-    {% if emailid %}
+    {% if 'emailid' in email %}
         <table>
             <tr>
                 <td>Example Properies:</td>
@@ -71,7 +72,7 @@
             a brace character in the literal text, it can be escaped by doubling: {{ '{{ and }}' }}.
         </p>
 
-        <form method="POST" action="{{ url_for('removeEmail') }}">
+        <form method="POST" action="{{ url_for('removeEmail', **email) }}">
             <p>
                 <input type="submit" value="Remove"
                        {{ 'disabled' if not draft }} />
@@ -186,7 +187,7 @@
 
         <h3>New Variation</h3>
 
-        <form method="POST" action="{{ url_for('saveEmailVariation') }}">
+        <form method="POST" action="{{ url_for('saveEmailVariation', **email) }}">
             <table>
                 <tr>
                     <td>Subject:</td>
@@ -224,9 +225,9 @@
             </p>
         </form>
 
-        {% if bulk and emailVariations %}
+        {% if email['bulk'] and emailVariations %}
             <p>
-                <a href="{{ url_for('prepareBulkEmail') }}">Send</a>
+                <a href="{{ url_for('prepareBulkEmail', **email) }}">Send</a>
             </p>
         {% endif %}
     {% endif %}
