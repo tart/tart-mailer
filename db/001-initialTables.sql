@@ -9,7 +9,7 @@ Create domain HTTPURL varchar(1000) collate "C"
 Create domain LocaleCode varchar(5) collate "C" not null default 'C'
     constraint LocaleCodeFormatC check (value ~ '^([a-z]{2}_[A-Z]{2}|C)$');
 
-Create domain LocaleCodeArray varchar(5)[] collate "C" not null default array[]::char(5)[]
+Create domain LocaleCodeArray varchar(5)[] collate "C" not null default '{C}'
     constraint LocaleCodeArrayNullC check (null !== all (value))
     constraint LocaleCodeArrayFormatC check ('^([a-z]{2}_[A-Z]{2}|C)$' ^~ all (value));
 
