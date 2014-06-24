@@ -70,7 +70,11 @@ def main():
 
     for messageId in range(amount):
         with postgres.connection() as transaction:
-            email = transaction.call('NextEmailToSend', sender)
+            try:
+                email = transaction.call('NextEmailToSend', sender)
+            except postgres.NoRow:
+                print('No messages left to send. Probably another worker had sent them.')
+                break
 
             if email['plainbody'] and email['htmlbody']:
                 message = MIMEMultipart('alternative')
