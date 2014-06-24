@@ -6,11 +6,12 @@ Create domain EmailAddress varchar(200) collate "C"
 Create domain HTTPURL varchar(1000) collate "C"
     constraint HTTPURLC check (value ~ '^(http|https)://');
 
-Create domain LocaleCode char(5) collate "C"
-    constraint LocaleCodeC check (value ~ '^[a-z]{2}_[A-Z]{2}$');
+Create domain LocaleCode varchar(5) collate "C" not null default 'C'
+    constraint LocaleCodeFormatC check (value ~ '^([a-z]{2}_[A-Z]{2}|C)$');
 
-Create domain LocaleCodeArray char(5)[] collate "C" not null default array[]::char(5)[]
-    constraint LocaleCodeArrayC check ('^[a-z]{2}_[A-Z]{2}$' ^~ all(value));
+Create domain LocaleCodeArray varchar(5)[] collate "C" not null default array[]::char(5)[]
+    constraint LocaleCodeArrayNullC check (null !== all (value))
+    constraint LocaleCodeArrayFormatC check ('^([a-z]{2}_[A-Z]{2}|C)$' ^~ all (value));
 
 Create domain Identifier smallint
     constraint IdentifierC check (value > 0);
