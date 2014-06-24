@@ -29,7 +29,7 @@ app.config.update(**dict((k[6:], v) for k, v in os.environ.items() if k[:6] == '
 ##
 # Routes
 #
-# Only POST and GET used on the routes because HTML forms does not accept other methods. Database transactions
+# Only POST and GET used on the routes because HTML forms does not accept other methods. Database transactions are
 # used for data modification operations.
 ##
 
@@ -172,7 +172,7 @@ def sendTestEmail(**kwargs):
     with postgres.connection() as transaction:
         transaction.insertIfNotExists('Subscriber', {
            'fromAddress': kwargs['fromaddress'],
-           'toAddress': toaddress,
+           'toAddress': toAddress,
         })
 
         transaction.upsert('EmailSend', {
@@ -180,7 +180,7 @@ def sendTestEmail(**kwargs):
             'variationId': kwargs['variationid'],
         }, {
             'fromAddress': kwargs['fromaddress'],
-            'toAddress': toaddress,
+            'toAddress': toAddress,
             'emailId': kwargs['emailid'],
         })
 
