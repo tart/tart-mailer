@@ -101,3 +101,12 @@ Version 1.3
 * Add name to emails
 * Send messages in random order
 * Allow multiple send workers to operate together
+
+Version 2.0
+
+* Improve send bulk email performance
+* Move locales to emails
+* Store subscriber status
+* Add email and email variation status
+* Decide variations while sending messages
+* Do not allow null on locale, use C as the default locale
