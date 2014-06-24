@@ -16,8 +16,7 @@
             <tr>
                 <td>Variations:</td>
 
-                <td>{{ table(emailVariations, 'variationid', ('fromaddress', 'emailid'), (),
-                             maxSubscriber == 0) }}</td>
+                <td>{{ table(emailVariations, ('fromaddress', 'emailid')) }}</td>
             </tr>
 
             <tr>
@@ -29,7 +28,7 @@
             <tr>
                 <td>Properties:</td>
 
-                <td>{{ dictionaryInputTable('properties', propertyCount, maxSubscriber == 0) }}</td>
+                <td>{{ dictionaryInputTable('properties', propertyCount, not canSend) }}</td>
             </tr>
 
             <tr>
@@ -38,7 +37,7 @@
                 <td>
                     <input type="text" name="maxSubscriber" maxlength="20" pattern="[0-9]*"
                            title="must be a number" value="{{ maxSubscriber }}" required
-                           {{ 'disabled' if maxSubscriber == 0 }} />
+                           {{ 'disabled' if not canSend }} />
                 </td>
             </tr>
         </table>
@@ -51,7 +50,7 @@
         <strong>{{ message }}</strong>
 
         <p>
-            <input type="submit" value="Send Bulk Email" {{ 'disabled' if maxSubscriber == 0 }} />
+            <input type="submit" value="Send Bulk Email" {{ 'disabled' if not canSend }} />
         </p>
     </form>
 {% endblock %}

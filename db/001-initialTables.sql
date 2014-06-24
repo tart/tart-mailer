@@ -51,6 +51,12 @@ Create table Subscriber (
     constraint SubscriberRevisedAtC check (revisedAt >= createdAt)
 );
 
+Create type EmailState as enum (
+    'new',
+    'send',
+    'cancel'
+);
+
 Create table Email (
     fromAddress EmailAddress not null,
     emailId Identifier not null,
@@ -59,6 +65,7 @@ Create table Email (
     bulk boolean not null default false,
     redirectURL HTTPURL,
     locale LocaleCodeArray,
+    state EmailState not null default 'new',
     constraint EmailPK primary key (fromAddress, emailId),
     constraint EmailNameUK unique (name, fromAddress),
     constraint EmailFK foreign key (fromAddress)
@@ -74,7 +81,7 @@ Create table EmailVariation (
     subject varchar(1000) not null,
     plainBody text,
     hTMLBody text,
-    draft boolean not null default false,
+    state EmailState not null default 'new',
     constraint EmailVariationPK primary key (fromAddress, emailId, variationId),
     constraint EmailVariationFK foreign key (fromAddress, emailId)
             references Email on delete cascade on update cascade,

@@ -23,7 +23,7 @@ Delete from EmailSend
     returning *
 $$;
 
-Create index EmailSendQueueI on EmailSend (fromAddress) where not sent;
+Create index EmailSendQueueI on EmailSend (fromAddress, emailId) where not sent;
 
 Create or replace function NextEmailToSend(fromAddress varchar(200) default null)
     returns table (
@@ -38,45 +38,46 @@ Create or replace function NextEmailToSend(fromAddress varchar(200) default null
     )
     language sql
     as $$
-With FirstWaitingEmail as (select fromAddress, toAddress, emailId
+With FirstWaitingEmail as (select EmailSend.fromAddress,
+                EmailSend.toAddress,
+                EmailSend.emailId,
+                EmailVariation.variationId,
+                EmailVariation.subject,
+                EmailVariation.plainBody,
+                EmailVariation.hTMLBody,
+                Email.bulk
             from EmailSend
-                where not sent
-                        and (NextEmailToSend.fromAddress is null or fromAddress = NextEmailToSend.fromAddress)
+                join EmailVariation using (fromAddress, emailId)
+                join Email using (fromAddress)
+                where not EmailSend.sent
+                        and Email.state = 'send'
+                        and EmailVariation.state = 'send'
+                        and (NextEmailToSend.fromAddress is null
+                                or EmailSend.fromAddress = NextEmailToSend.fromAddress)
             order by random()
                 limit 1
             for update),
-    FirstWaitingEmailWithVariation as (select FirstWaitingEmail.fromAddress,
-                FirstWaitingEmail.toAddress,
-                FirstWaitingEmail.emailId,
-                first(variationId order by random()) as variationId
-            from FirstWaitingEmail
-                join EmailVariation using (fromAddress, emailId)
-                where not EmailVariation.draft
-                group by FirstWaitingEmail.fromAddress,
-                        FirstWaitingEmail.toAddress,
-                        FirstWaitingEmail.emailId),
-    UpdatedEmailSend as (update EmailSend
+    EmailToSend as (update EmailSend
             set sent = true,
-                    variationId = FirstWaitingEmailWithVariation.variationId
-            from FirstWaitingEmailWithVariation
-                where EmailSend.fromAddress = FirstWaitingEmailWithVariation.fromAddress
-                        and EmailSend.toAddress = FirstWaitingEmailWithVariation.toAddress
-                        and EmailSend.emailId = FirstWaitingEmailWithVariation.emailId
-            returning EmailSend.*)
+                    variationId = FirstWaitingEmail.variationId
+            from FirstWaitingEmail
+                where EmailSend.fromAddress = FirstWaitingEmail.fromAddress
+                        and EmailSend.toAddress = FirstWaitingEmail.toAddress
+                        and EmailSend.emailId = FirstWaitingEmail.emailId
+            returning FirstWaitingEmail.*,
+                    EmailSend)
     select Sender.fromName,
             Sender.fromAddress,
             Subscriber.toAddress,
-            FormatEmailToSend(EmailVariation.subject, Subscriber.properties),
-            FormatEmailToSend(EmailVariation.plainBody, Subscriber.properties, Sender.returnURLRoot,
-                              MessageHash(UpdatedEmailSend)),
-            FormatEmailToSend(EmailVariation.hTMLBody, Subscriber.properties, Sender.returnURLRoot,
-                              MessageHash(UpdatedEmailSend)),
-            Sender.returnURLRoot || 'unsubscribe/' || MessageHash(UpdatedEmailSend),
-            Email.bulk
-        from UpdatedEmailSend
+            FormatEmailToSend(EmailToSend.subject, Subscriber.properties),
+            FormatEmailToSend(EmailToSend.plainBody, Subscriber.properties, Sender.returnURLRoot,
+                              MessageHash(EmailToSend.EmailSend)),
+            FormatEmailToSend(EmailToSend.hTMLBody, Subscriber.properties, Sender.returnURLRoot,
+                              MessageHash(EmailToSend.EmailSend)),
+            Sender.returnURLRoot || 'unsubscribe/' || MessageHash(EmailToSend.EmailSend),
+            EmailToSend.bulk
+        from EmailToSend
             join Sender using (fromAddress)
-            join Email using (fromAddress, emailId)
-            join EmailVariation using (fromAddress, emailId, variationId)
             join Subscriber using (fromAddress, toAddress)
 $$;
 
@@ -84,12 +85,27 @@ Create or replace function EmailToSendCount()
     returns bigint
     language sql
     as $$
-Select count(*) from EmailSend where not sent
+Select count(*)
+    from EmailSend
+        join Email using (fromAddress)
+        where not EmailSend.sent
+                and Email.state = 'send'
+                and (EmailSend.fromAddress, EmailSend.emailId) in (select fromAddress, emailId
+                            from EmailVariation
+                                where state = 'send')
 $$;
 
 Create or replace function EmailToSendCount(fromAddress varchar(200))
     returns bigint
     language sql
     as $$
-Select count(*) from EmailSend where not sent and fromAddress = EmailToSendCount.fromAddress
+Select count(*)
+    from EmailSend
+        join Email using (fromAddress)
+        where not EmailSend.sent
+                and EmailSend.fromAddress = EmailToSendCount.fromAddress
+                and Email.state = 'send'
+                and (EmailSend.fromAddress, EmailSend.emailId) in (select fromAddress, emailId
+                            from EmailVariation
+                                where state = 'send')
 $$;

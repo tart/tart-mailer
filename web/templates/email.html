@@ -5,7 +5,7 @@
 {% block body %}
     <h1>{{ email['name'] or 'New Email' }} from {{ email['fromaddress'] }}</h1>
 
-    {% if not draft %}
+    {% if email['state'] != 'new' %}
         <p>
             Fields for emails which have sent to the subscribers, are disabled. Add ?force parameter to to URL
             to enable editing these fields, if you know what you are doing.
@@ -20,7 +20,8 @@
                 <td>
                     <input type="text" name="name" size="100" maxlength="200"
                            pattern=".{3,}" title="must be at least 3 characters"
-                           value="{{ email['name'] }}" {{ 'disabled ' if not draft and not force }}
+                           value="{{ email['name'] }}"
+                           {{ 'disabled ' if email['state'] != 'new' and not force }}
                            {{ 'required' if email['name'] }} />
 
                     <!-- A name will be generated on insert if it is not given. It must be set on update. -->
@@ -33,7 +34,8 @@
                 <td>
                     <input type="text" name="redirecturl" size="100" maxlength="1000"
                            pattern="(http|https)://.*" title="must be a HTTP URL"
-                           value="{{ email['redirecturl'] or '' }}" {{ 'disabled ' if not draft and not force }} />
+                           value="{{ email['redirecturl'] or '' }}"
+                           {{ 'disabled ' if email['state'] != 'new' and not force }} />
                 </td>
             </tr>
 
@@ -42,7 +44,7 @@
 
                 <td>
                     <input type="checkbox" name="bulk" value="True" {{ 'checked' if email['bulk'] }}
-                           {{ 'disabled ' if not draft and not force }} />
+                           {{ 'disabled ' if email['state'] != 'new' and not force }} />
 
                     <input type="hidden" name="bulk" value="False" /> <!-- The default value -->
                 </td>
@@ -52,14 +54,31 @@
                 <td>Locales:</td>
 
                 <td>{{ checkboxTable(subscriberLocales, 'locale', ('fromaddress', 'emailid'),
-                                     email['locale'], not draft and not force) }}</td>
+                                     email['locale'], email['state'] != 'new' and not force) }}</td>
+            </tr>
+
+            <tr>
+                <td>State:</td>
+
+                <td>
+                    <select name="state">
+                        <option value="new" {{ 'selected' if email['state'] == 'new' }}
+                                {{ 'disabled' if email['state'] != 'new' and not force }} >new</option>
+
+                        <option value="send" {{ 'selected' if email['state'] == 'send' }}
+                                {{ 'disabled' if email['state'] == 'cancel' and not force }} >send</option>
+
+                        <option value="cancel" {{ 'selected' if email['state'] == 'cancel' }}
+                                {{ 'disabled' if email['state'] == 'new' and not force }} >cancel</option>
+                    </select>
+                </td>
             </tr>
         </table>
 
         <strong>{{ saveMessage }}</strong>
 
         <p>
-            <input type="submit" value="Save" {{ 'disabled ' if not draft and not force }} />
+            <input type="submit" value="Save"/>
         </p>
     </form>
 
@@ -82,7 +101,7 @@
         <form method="POST" action="{{ url_for('removeEmail', **email) }}">
             <p>
                 <input type="submit" value="Remove"
-                       {{ 'disabled' if not draft and not force }} />
+                       {{ 'disabled' if not email['state'] != 'new' and not force }} />
             </p>
         </form>
 
@@ -97,7 +116,7 @@
                         <td>
                             <input type="text" name="subject" size="100" maxlength="1000"
                                    required value="{{ emailVariation['subject'] }}" 
-                                   {{ 'disabled' if not emailVariation['draft'] and not force }} />
+                                   {{ 'disabled' if emailVariation['state'] != 'new' and not force }} />
                         </td>
 
                         <td></td>
@@ -108,7 +127,7 @@
 
                         <td>
                             <textarea name="plainbody" rows="10" cols="100"
-                                      {{ 'disabled' if not emailVariation['draft'] and not force }}
+                                      {{ 'disabled' if emailVariation['state'] != 'new' and not force }}
                                       >{{ emailVariation['plainbody'] or '' }}</textarea>
                         </td>
 
@@ -120,7 +139,7 @@
 
                         <td>
                             <textarea name="htmlbody" rows="10" cols="100"
-                                      {{ 'disabled' if not emailVariation['draft'] and not force }}
+                                      {{ 'disabled' if emailVariation['state'] != 'new' and not force }}
                                       >{{ emailVariation['htmlbody'] or '' }}</textarea>
                         </td>
 
@@ -132,12 +151,22 @@
                     </tr>
 
                     <tr>
-                        <td>Draft:</td>
+                        <td>State:</td>
 
                         <td>
-                            <input type="checkbox" name="draft" value="True"
-                                   {{ 'disabled' if not emailVariation['draft'] and not force }}
-                                   {{ 'checked' if emailVariation['draft'] }} />
+                            <select name="state">
+                                <option value="new" {{ 'selected' if email['state'] == 'new' }}
+                                        {{ 'disabled' if emailVariation['state'] != 'new' and
+                                                         not force }} >new</option>
+
+                                <option value="send" {{ 'selected' if email['state'] == 'send' }}
+                                        {{ 'disabled' if emailVariation['state'] == 'cancel' and
+                                                         not force }} >send</option>
+
+                                <option value="cancel" {{ 'selected' if email['state'] == 'cancel' }}
+                                        {{ 'disabled' if emailVariation['state'] == 'new' and
+                                                         not force }} >cancel</option>
+                            </select>
                         </td>
                     </tr>
                 </table>
@@ -147,7 +176,7 @@
                 {% endif %}
 
                 <p>
-                    <input type="submit" value="Save" {{ 'disabled' if not emailVariation['draft'] and not force }} />
+                    <input type="submit" value="Save" />
                 </p>
             </form>
 
@@ -158,7 +187,8 @@
                 {% endif %}
 
                 <p>
-                    <input type="submit" value="Remove" {{ 'disabled' if not emailVariation['draft'] and not force }} />
+                    <input type="submit" value="Remove"
+                           {{ 'disabled' if emailVariation['state'] != 'new' and not force }} />
                 </p>
             </form>
 
@@ -224,10 +254,16 @@
                 </tr>
 
                 <tr>
-                    <td>Bulk:</td>
+                    <td>State:</td>
 
                     <td>
-                        <input type="checkbox" name="draft" value="True" checked />
+                        <select name="state">
+                            <option value="new" selected>new</option>
+
+                            <option value="send">send</option>
+
+                            <option value="cancel" disabled>cancel</option>
+                        </select>
                     </td>
                 </tr>
             </table>
@@ -237,7 +273,7 @@
             </p>
         </form>
 
-        {% if email['bulk'] and emailVariations %}
+        {% if email['bulk'] and email['state'] == 'send' and emailVariations %}
             <p>
                 <a href="{{ url_for('prepareBulkEmail', **email) }}">Send</a>
             </p>

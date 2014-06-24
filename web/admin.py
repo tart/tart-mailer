@@ -101,8 +101,10 @@ def saveSubscriber(**kwargs):
 @app.route('/sender/<string:fromaddress>/email/new')
 def newEmail(**kwargs):
     identifiers = {key: kwargs.pop(key) for key in ('fromaddress',)}
-    kwargs['email'] = {'fromaddress': identifiers['fromaddress']}
-    kwargs['draft'] = True
+    kwargs['email'] = {
+        'fromaddress': identifiers['fromaddress'],
+        'state': 'new',
+    }
 
     return flask.render_template('email.html', **kwargs)
 
@@ -114,10 +116,9 @@ def editEmail(**kwargs):
         kwargs['email'] = postgres.connection().selectOne('Email', identifiers)
 
     kwargs['emailVariations'] = postgres.connection().select('EmailVariation', identifiers, 'variationId')
-    kwargs['force'] = flask.request.args
-    kwargs['draft'] = all(variation['draft'] for variation in kwargs['emailVariations'])
     kwargs['subscriberLocales'] = postgres.connection().select('EmailSubscriberLocaleStatistics', identifiers)
     kwargs['exampleProperties'] = postgres.connection().call('SubscriberExampleProperties', identifiers['fromaddress'])
+    kwargs['force'] = flask.request.args
 
     return flask.render_template('email.html', **kwargs)
 
@@ -197,6 +198,11 @@ def prepareBulkEmail(**kwargs):
                                   if row['locale'] in kwargs['email']['locale'])
     kwargs['exampleProperties'] = postgres.connection().call('SubscriberExampleProperties', identifiers['fromaddress'])
     kwargs['propertyCount'] = 10
+    kwargs['canSend'] = (kwargs['email']['bulk'] and
+                         kwargs['email']['state'] == 'send' and
+                         len(kwargs['email']['locale']) > 0 and
+                         kwargs['maxSubscriber'] > 0 and
+                         any(v['state'] == 'send' for v in kwargs['emailVariations']))
 
     return flask.render_template('bulkemail.html', **kwargs)
 

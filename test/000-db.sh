@@ -14,10 +14,10 @@ echo
 echo "Adding data..."
 echo "\Copy Sender (fromAddress, password, fromName, returnURLRoot) from '${0%/*}/sender.data';
 \Copy Subscriber (fromAddress, toAddress, properties) from '${0%/*}/subscriber.data';
-\Copy Email (fromAddress, name, redirectURL) from '${0%/*}/email.data';
-Create temp table TempEmailVariation (subject varchar(1000), plainBody text, hTMLBody text);
+\Copy Email (fromAddress, name, redirectURL, state) from '${0%/*}/email.data';
+Create temp table TempEmailVariation (subject varchar(1000), plainBody text, hTMLBody text, state EmailState);
 \Copy TempEmailVariation from '${0%/*}/emailvariation.data';
-Insert into EmailVariation (fromAddress, emailId, subject, plainBody, hTMLBody)
+Insert into EmailVariation (fromAddress, emailId, subject, plainBody, hTMLBody, state)
     select Email.fromAddress, Email.emailId, TempEmailVariation.*
         from Email, TempEmailVariation;
 Insert into EmailSend (fromAddress, toAddress, emailId, variationId)
