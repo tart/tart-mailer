@@ -155,15 +155,15 @@
 
                         <td>
                             <select name="state">
-                                <option value="new" {{ 'selected' if email['state'] == 'new' }}
+                                <option value="new" {{ 'selected' if emailVariation['state'] == 'new' }}
                                         {{ 'disabled' if emailVariation['state'] != 'new' and
                                                          not force }} >new</option>
 
-                                <option value="send" {{ 'selected' if email['state'] == 'send' }}
+                                <option value="send" {{ 'selected' if emailVariation['state'] == 'send' }}
                                         {{ 'disabled' if emailVariation['state'] == 'cancel' and
                                                          not force }} >send</option>
 
-                                <option value="cancel" {{ 'selected' if email['state'] == 'cancel' }}
+                                <option value="cancel" {{ 'selected' if emailVariation['state'] == 'cancel' }}
                                         {{ 'disabled' if emailVariation['state'] == 'new' and
                                                          not force }} >cancel</option>
                             </select>
