@@ -38,7 +38,6 @@ Create or replace view EmailVariationStatistics as
     select EmailVariation.fromAddress,
             EmailVariation.emailId,
             EmailVariation.variationId,
-            EmailVariation.locale,
             count(EmailSend) as send,
             coalesce(sum((EmailSend.sent)::integer), 0) as sent,
             count(EmailSendResponseReport) as responseReports,

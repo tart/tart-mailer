@@ -22,7 +22,7 @@ With NewEmailSend as (insert into EmailSend (fromAddress, toAddress, emailId, va
                         and Email.emailId = SendBulkEmail.emailId
                         and Email.bulk
                         and EmailVariation.variationId = any(SendBulkEmail.variationId::smallint[])
-                        and Subscriber.locale = any (EmailVariation.locale)
+                        and Subscriber.locale = any (Email.locale)
                         and Subscriber.properties @> SendBulkEmail.properties
                         and Subscriber.state in ('new', 'sent', 'trackerImage', 'view', 'redirect')
                         and EmailSend.fromAddress is null

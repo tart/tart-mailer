@@ -197,16 +197,8 @@ def prepareBulkEmail(**kwargs):
     kwargs['email'] = postgres.connection().selectOne('Email', identifiers)
     kwargs['subscriberLocales'] = postgres.connection().select('EmailSubscriberLocaleStatistics', identifiers)
     kwargs['emailVariations'] = postgres.connection().select('EmailVariationStatistics', identifiers)
-
-    locales = []
-    for variation in kwargs['emailVariations']:
-        if not variation['locale']:
-            locales = []
-            break
-        locales += variation['locale']
-
     kwargs['maxSubscriber'] = sum(row['remaining'] for row in kwargs['subscriberLocales']
-                                  if not locales or row['locale'] in locales)
+                                  if row['locale'] in kwargs['email']['locale'])
     kwargs['exampleProperties'] = postgres.connection().call('SubscriberExampleProperties', identifiers['fromaddress'])
     kwargs['propertyCount'] = 10
 

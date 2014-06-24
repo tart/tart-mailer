@@ -47,6 +47,13 @@
                     <input type="hidden" name="bulk" value="False" /> <!-- The default value -->
                 </td>
             </tr>
+
+            <tr>
+                <td>Locales:</td>
+
+                <td>{{ checkboxTable(subscriberLocales, 'locale', ('fromaddress', 'emailid'),
+                                     email['locale'], not draft) }}</td>
+            </tr>
         </table>
 
         <strong>{{ saveMessage }}</strong>
@@ -122,13 +129,6 @@
                                 <a href="{{ url_for('preview', **emailVariation) }}">preview</a>
                             {% endif %}
                         </td>
-                    </tr>
-
-                    <tr>
-                        <td>Locales:</td>
-
-                        <td>{{ checkboxTable(subscriberLocales, 'locale', ('fromaddress', 'emailid'),
-                                             emailVariation['locale'], not emailVariation['draft']) }}</td>
                     </tr>
                 </table>
 
@@ -211,12 +211,6 @@
                     <td>
                         <textarea name="htmlbody" rows="10" cols="100"></textarea>
                     </td>
-                </tr>
-
-                <tr>
-                    <td>Locales:</td>
-
-                    <td>{{ checkboxTable(subscriberLocales, 'locale', ('fromaddress', 'emailid')) }}</td>
                 </tr>
             </table>
 

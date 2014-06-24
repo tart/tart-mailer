@@ -58,6 +58,7 @@ Create table Email (
     createdAt timestamptz not null default now(),
     bulk boolean not null default false,
     redirectURL HTTPURL,
+    locale LocaleCodeArray,
     constraint EmailPK primary key (fromAddress, emailId),
     constraint EmailNameUK unique (name, fromAddress),
     constraint EmailFK foreign key (fromAddress)
@@ -74,7 +75,6 @@ Create table EmailVariation (
     plainBody text,
     hTMLBody text,
     draft boolean not null default false,
-    locale LocaleCodeArray,
     constraint EmailVariationPK primary key (fromAddress, emailId, variationId),
     constraint EmailVariationFK foreign key (fromAddress, emailId)
             references Email on delete cascade on update cascade,
