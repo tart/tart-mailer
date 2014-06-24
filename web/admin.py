@@ -194,14 +194,13 @@ def prepareBulkEmail(**kwargs):
     kwargs['email'] = postgres.connection().selectOne('Email', identifiers)
     kwargs['subscriberLocales'] = postgres.connection().select('EmailSubscriberLocaleStatistics',
                                   dict(list(identifiers.items()) + [('locale', kwargs['email']['locale'])]))
-    kwargs['emailVariations'] = postgres.connection().select('EmailVariationStatistics', identifiers)
+    kwargs['emailVariations'] = postgres.connection().select('EmailVariationStatistics',
+                                dict(list(identifiers.items()) + [('state', 'send')]))
     kwargs['maxSubscriber'] = sum(row['remaining'] for row in kwargs['subscriberLocales'])
     kwargs['exampleProperties'] = postgres.connection().call('SubscriberExampleProperties', identifiers['fromaddress'])
     kwargs['propertyCount'] = 10
-    kwargs['canSend'] = (kwargs['email']['bulk'] and
-                         kwargs['email']['state'] == 'send' and
-                         kwargs['maxSubscriber'] > 0 and
-                         any(v['state'] == 'send' for v in kwargs['emailVariations']))
+    kwargs['canSend'] = (kwargs['email']['bulk'] and kwargs['email']['state'] == 'send' and
+                         kwargs['maxSubscriber'] > 0 and kwargs['emailVariations'])
 
     return flask.render_template('bulkemail.html', **kwargs)
 
