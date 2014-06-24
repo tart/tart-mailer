@@ -212,12 +212,13 @@ Select typname
                 query += ' and'
             query += ' ' + key
             if isinstance(value, dict):
-                query += ' @>'
+                query += ' @> %s'
+            elif isinstance(value, list):
+                query += ' = any (%s)'
             elif value is None:
-                query += ' is not distinct from'
+                query += ' is not distinct from %s'
             else:
-                query += ' ='
-            query += ' %s'
+                query += ' = %s'
         return query
 
     def truncate(self, tableName):

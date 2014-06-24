@@ -192,15 +192,14 @@ def prepareBulkEmail(**kwargs):
     identifiers = {key: kwargs.pop(key) for key in ('fromaddress', 'emailid')}
 
     kwargs['email'] = postgres.connection().selectOne('Email', identifiers)
-    kwargs['subscriberLocales'] = postgres.connection().select('EmailSubscriberLocaleStatistics', identifiers)
+    kwargs['subscriberLocales'] = postgres.connection().select('EmailSubscriberLocaleStatistics',
+                                  dict(list(identifiers.items()) + [('locale', kwargs['email']['locale'])]))
     kwargs['emailVariations'] = postgres.connection().select('EmailVariationStatistics', identifiers)
-    kwargs['maxSubscriber'] = sum(row['remaining'] for row in kwargs['subscriberLocales']
-                                  if row['locale'] in kwargs['email']['locale'])
+    kwargs['maxSubscriber'] = sum(row['remaining'] for row in kwargs['subscriberLocales'])
     kwargs['exampleProperties'] = postgres.connection().call('SubscriberExampleProperties', identifiers['fromaddress'])
     kwargs['propertyCount'] = 10
     kwargs['canSend'] = (kwargs['email']['bulk'] and
                          kwargs['email']['state'] == 'send' and
-                         len(kwargs['email']['locale']) > 0 and
                          kwargs['maxSubscriber'] > 0 and
                          any(v['state'] == 'send' for v in kwargs['emailVariations']))
 
