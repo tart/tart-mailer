@@ -65,8 +65,7 @@
                         <option value="new" {{ 'selected' if email['state'] == 'new' }}
                                 {{ 'disabled' if email['state'] != 'new' and not force }} >new</option>
 
-                        <option value="send" {{ 'selected' if email['state'] == 'send' }}
-                                {{ 'disabled' if email['state'] == 'cancel' and not force }} >send</option>
+                        <option value="send" {{ 'selected' if email['state'] == 'send' }} >send</option>
 
                         <option value="cancel" {{ 'selected' if email['state'] == 'cancel' }}
                                 {{ 'disabled' if email['state'] == 'new' and not force }} >cancel</option>
@@ -159,9 +158,8 @@
                                         {{ 'disabled' if emailVariation['state'] != 'new' and
                                                          not force }} >new</option>
 
-                                <option value="send" {{ 'selected' if emailVariation['state'] == 'send' }}
-                                        {{ 'disabled' if emailVariation['state'] == 'cancel' and
-                                                         not force }} >send</option>
+                                <option value="send"
+                                        {{ 'selected' if emailVariation['state'] == 'send' }} >send</option>
 
                                 <option value="cancel" {{ 'selected' if emailVariation['state'] == 'cancel' }}
                                         {{ 'disabled' if emailVariation['state'] == 'new' and
