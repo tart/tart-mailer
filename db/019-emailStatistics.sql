@@ -53,17 +53,17 @@ Create or replace view EmailVariationStatistics as
             group by 1, 2, 3
             order by 1, 2, 3;
 
-Create or replace view EmailSubscriberLocaleStatistics as
+Create replace view EmailSubscriberLocaleStatistics as
     select Email.fromAddress,
             Email.emailId,
             Subscriber.locale,
             count(*) as subscribers,
-            count((Subscriber.state = 'responseReport')::int) as responseReported,
-            count((Subscriber.state = 'unsubscribe')::int) as unsubscribed,
-            count((Subscriber.state != 'responseReport'
+            sum((Subscriber.state = 'responseReport')::int) as responseReported,
+            sum((Subscriber.state = 'unsubscribe')::int) as unsubscribed,
+            sum((Subscriber.state != 'responseReport'
                     and Subscriber.state != 'unsubscribe')::int) as allowed,
             count(EmailSend) as send,
-            count((Subscriber.state != 'responseReport'
+            sum((Subscriber.state != 'responseReport'
                     and Subscriber.state != 'unsubscribe'
                     and EmailSend is null)::int) as remaining
         from Email
