@@ -38,17 +38,30 @@ Create or replace function NextEmailToSend(fromAddress varchar(200) default null
     )
     language sql
     as $$
-With FirstWaitingEmail as (select EmailSend.*
-        from EmailSend
-            where not sent
-                    and (NextEmailToSend.fromAddress is null or fromAddress = NextEmailToSend.fromAddress)
-        order by random()
-            limit 1
-        for update),
-    UpdatedEmailSend as (update EmailSend
-            set sent = true
+With FirstWaitingEmail as (select fromAddress, toAddress, emailId
+            from EmailSend
+                where not sent
+                        and (NextEmailToSend.fromAddress is null or fromAddress = NextEmailToSend.fromAddress)
+            order by random()
+                limit 1
+            for update),
+    FirstWaitingEmailWithVariation as (select FirstWaitingEmail.fromAddress,
+                FirstWaitingEmail.toAddress,
+                FirstWaitingEmail.emailId,
+                first(variationId order by random()) as variationId
             from FirstWaitingEmail
-                where EmailSend = FirstWaitingEmail
+                join EmailVariation using (fromAddress, emailId)
+                where not EmailVariation.draft
+                group by FirstWaitingEmail.fromAddress,
+                        FirstWaitingEmail.toAddress,
+                        FirstWaitingEmail.emailId),
+    UpdatedEmailSend as (update EmailSend
+            set sent = true,
+                    variationId = FirstWaitingEmailWithVariation.variationId
+            from FirstWaitingEmailWithVariation
+                where EmailSend.fromAddress = FirstWaitingEmailWithVariation.fromAddress
+                        and EmailSend.toAddress = FirstWaitingEmailWithVariation.toAddress
+                        and EmailSend.emailId = FirstWaitingEmailWithVariation.emailId
             returning EmailSend.*)
     select Sender.fromName,
             Sender.fromAddress,

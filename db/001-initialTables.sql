@@ -86,14 +86,20 @@ Create table EmailSend (
     fromAddress EmailAddress not null,
     toAddress EmailAddress not null,
     emailId Identifier not null,
-    variationId Identifier not null,
+    variationId Identifier,
     revisedAt timestamptz not null default now(),
     sent boolean not null default false,
     constraint EmailSendPK primary key (fromAddress, toAddress, emailId),
+    constraint EmailSendFK foreign key (fromAddress, emailId)
+            references Email on delete cascade on update cascade, -- This foreign key is not required when variationId
+                                                                  -- is not null. See the note below
+                                                                  -- on EmailSendEmailVariationFK.
     constraint EmailSendSubscriberFK foreign key (fromAddress, toAddress)
             references Subscriber on update cascade,
     constraint EmailSendEmailVariationFK foreign key (fromAddress, emailId, variationId)
-            references EmailVariation
+            references EmailVariation -- This foreign key should be set as "match partial" because we want it to match
+                                      -- any of the rows on EmailVariation, but "match partial" is not implemented to
+                                      -- PostgreSQL, yet.
 );
 
 Create index EmailSendEmailVariationFKI on EmailSend (fromAddress, emailId, variationId);

@@ -114,11 +114,7 @@ def editEmail(**kwargs):
         kwargs['email'] = postgres.connection().selectOne('Email', identifiers)
 
     kwargs['emailVariations'] = postgres.connection().select('EmailVariation', identifiers, 'variationId')
-
-    if 'force' in flask.request.args:
-        for variation in kwargs['emailVariations']:
-            variation['draft'] = True
-
+    kwargs['force'] = flask.request.args
     kwargs['draft'] = all(variation['draft'] for variation in kwargs['emailVariations'])
     kwargs['subscriberLocales'] = postgres.connection().select('EmailSubscriberLocaleStatistics', identifiers)
     kwargs['exampleProperties'] = postgres.connection().call('SubscriberExampleProperties', identifiers['fromaddress'])

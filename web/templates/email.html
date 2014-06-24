@@ -20,7 +20,7 @@
                 <td>
                     <input type="text" name="name" size="100" maxlength="200"
                            pattern=".{3,}" title="must be at least 3 characters"
-                           value="{{ email['name'] }}" {{ 'disabled ' if not draft }}
+                           value="{{ email['name'] }}" {{ 'disabled ' if not draft and not force }}
                            {{ 'required' if email['name'] }} />
 
                     <!-- A name will be generated on insert if it is not given. It must be set on update. -->
@@ -33,7 +33,7 @@
                 <td>
                     <input type="text" name="redirecturl" size="100" maxlength="1000"
                            pattern="(http|https)://.*" title="must be a HTTP URL"
-                           value="{{ email['redirecturl'] or '' }}" {{ 'disabled ' if not draft }} />
+                           value="{{ email['redirecturl'] or '' }}" {{ 'disabled ' if not draft and not force }} />
                 </td>
             </tr>
 
@@ -42,7 +42,7 @@
 
                 <td>
                     <input type="checkbox" name="bulk" value="True" {{ 'checked' if email['bulk'] }}
-                           {{ 'disabled ' if not draft }} />
+                           {{ 'disabled ' if not draft and not force }} />
 
                     <input type="hidden" name="bulk" value="False" /> <!-- The default value -->
                 </td>
@@ -52,14 +52,14 @@
                 <td>Locales:</td>
 
                 <td>{{ checkboxTable(subscriberLocales, 'locale', ('fromaddress', 'emailid'),
-                                     email['locale'], not draft) }}</td>
+                                     email['locale'], not draft and not force) }}</td>
             </tr>
         </table>
 
         <strong>{{ saveMessage }}</strong>
 
         <p>
-            <input type="submit" value="Save" {{ 'disabled ' if not draft }} />
+            <input type="submit" value="Save" {{ 'disabled ' if not draft and not force }} />
         </p>
     </form>
 
@@ -82,7 +82,7 @@
         <form method="POST" action="{{ url_for('removeEmail', **email) }}">
             <p>
                 <input type="submit" value="Remove"
-                       {{ 'disabled' if not draft }} />
+                       {{ 'disabled' if not draft and not force }} />
             </p>
         </form>
 
@@ -97,7 +97,7 @@
                         <td>
                             <input type="text" name="subject" size="100" maxlength="1000"
                                    required value="{{ emailVariation['subject'] }}" 
-                                   {{ 'disabled' if not emailVariation['draft'] }} />
+                                   {{ 'disabled' if not emailVariation['draft'] and not force }} />
                         </td>
 
                         <td></td>
@@ -108,7 +108,7 @@
 
                         <td>
                             <textarea name="plainbody" rows="10" cols="100"
-                                      {{ 'disabled' if not emailVariation['draft'] }}
+                                      {{ 'disabled' if not emailVariation['draft'] and not force }}
                                       >{{ emailVariation['plainbody'] or '' }}</textarea>
                         </td>
 
@@ -120,7 +120,7 @@
 
                         <td>
                             <textarea name="htmlbody" rows="10" cols="100"
-                                      {{ 'disabled' if not emailVariation['draft'] }}
+                                      {{ 'disabled' if not emailVariation['draft'] and not force }}
                                       >{{ emailVariation['htmlbody'] or '' }}</textarea>
                         </td>
 
@@ -130,6 +130,16 @@
                             {% endif %}
                         </td>
                     </tr>
+
+                    <tr>
+                        <td>Draft:</td>
+
+                        <td>
+                            <input type="checkbox" name="draft" value="True"
+                                   {{ 'disabled' if not emailVariation['draft'] and not force }}
+                                   {{ 'checked' if emailVariation['draft'] }} />
+                        </td>
+                    </tr>
                 </table>
 
                 {% if emailVariation['variationid'] == variationid %}
@@ -137,7 +147,7 @@
                 {% endif %}
 
                 <p>
-                    <input type="submit" value="Save" {{ 'disabled' if not emailVariation['draft'] }} />
+                    <input type="submit" value="Save" {{ 'disabled' if not emailVariation['draft'] and not force }} />
                 </p>
             </form>
 
@@ -148,7 +158,7 @@
                 {% endif %}
 
                 <p>
-                    <input type="submit" value="Remove" {{ 'disabled' if not emailVariation['draft'] }} />
+                    <input type="submit" value="Remove" {{ 'disabled' if not emailVariation['draft'] and not force }} />
                 </p>
             </form>
 
@@ -210,6 +220,14 @@
 
                     <td>
                         <textarea name="htmlbody" rows="10" cols="100"></textarea>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>Bulk:</td>
+
+                    <td>
+                        <input type="checkbox" name="draft" value="True" checked />
                     </td>
                 </tr>
             </table>
