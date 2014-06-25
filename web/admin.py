@@ -105,6 +105,7 @@ def newEmail(**kwargs):
         'fromaddress': identifiers['fromaddress'],
         'state': 'new',
     }
+    kwargs['subscriberLocales'] = postgres.connection().select('SubscriberLocaleStatistics', identifiers)
 
     return flask.render_template('email.html', **kwargs)
 
@@ -116,7 +117,8 @@ def editEmail(**kwargs):
         kwargs['email'] = postgres.connection().selectOne('Email', identifiers)
 
     kwargs['emailVariations'] = postgres.connection().select('EmailVariation', identifiers, 'variationId')
-    kwargs['subscriberLocales'] = postgres.connection().select('EmailSubscriberLocaleStatistics', identifiers)
+    kwargs['subscriberLocales'] = postgres.connection().select('SubscriberLocaleStatistics',
+                                                               {'fromAddress': identifiers['fromaddress']})
     kwargs['exampleProperties'] = postgres.connection().call('SubscriberExampleProperties', identifiers['fromaddress'])
     kwargs['force'] = flask.request.args
 
