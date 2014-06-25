@@ -71,7 +71,7 @@ def main():
     for messageId in range(amount):
         with postgres.connection() as transaction:
             try:
-                email = transaction.call('NextEmailToSend', sender)
+                email = transaction.call('NextEmailToSend', (min(amount, count - messageId), sender))
             except postgres.NoRow:
                 print('No messages left to send. Probably another worker had sent them.')
                 break

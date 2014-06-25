@@ -23,10 +23,12 @@ Delete from EmailSend
     returning *
 $$;
 
-Create index EmailSendQueueI on EmailSend (fromAddress, emailId) where not sent;
+Create index EmailSendQueueI on EmailSend (toAddress) where not sent;
 
-Create or replace function NextEmailToSend(fromAddress varchar(200) default null)
-    returns table (
+Create or replace function NextEmailToSend(
+        messageFrame int default 1,
+        fromAddress varchar(200) default null
+    ) returns table (
         fromName varchar(200),
         fromAddress varchar(200),
         toAddress varchar(200),
@@ -54,9 +56,9 @@ With FirstWaitingEmail as (select EmailSend.fromAddress,
                         and EmailVariation.state = 'send'
                         and (NextEmailToSend.fromAddress is null
                                 or EmailSend.fromAddress = NextEmailToSend.fromAddress)
-            order by random()
-                limit 1
-            for update),
+                order by EmailSend.toAddress
+                    limit 1
+                    offset random() * NextEmailToSend.messageFrame),
     EmailToSend as (update EmailSend
             set sent = true,
                     variationId = FirstWaitingEmail.variationId
