@@ -57,10 +57,12 @@ Create type EmailState as enum (
     'cancel'
 );
 
+Create sequence EmailId;
+
 Create table Email (
     fromAddress EmailAddress not null,
-    emailId Identifier not null,
-    name Name not null,
+    emailId Identifier not null default nextval('EmailId'::regclass),
+    name Name not null default currval('EmailId'::regclass)::text || '. Name',
     createdAt timestamptz not null default now(),
     bulk boolean not null default false,
     redirectURL HTTPURL,
