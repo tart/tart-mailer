@@ -1,3 +1,12 @@
+/*
+ * NestedEmail view for the API
+ *
+ * The view supplies nested email documents to the API. Update and insert function will be added by "instead of"
+ * triggers. Cast from hstore to EmailVariation is also required, because the API does not know about the custom
+ * types on the database. Hstore is the registered typed of the API for allkinds of dictionary structures. It will
+ * be handled by the implicit cast.
+ */
+
 Create or replace view NestedEmail as
     with EmailVariations as (select fromAddress, emailId,
                     array_agg(EmailVariation) as variations
@@ -38,7 +47,7 @@ Begin
 End;
 $$;
 
-Create trigger NestedEmailT000 instead of insert on NestedEmail
+Create trigger NestedEmailInsertT instead of insert on NestedEmail
     for each row
     execute procedure InsertNestedEmail();
 
