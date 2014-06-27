@@ -27,9 +27,10 @@ Create table Sender (
     constraint SenderPK primary key (fromAddress)
 );
 
-Create type SubscriberState as enum (
+Create type EmailState as enum (
     'new',
     'sent',
+    'cancel',
     'responseReport',
     'trackerImage',
     'view',
@@ -44,17 +45,11 @@ Create table Subscriber (
     revisedAt timestamptz not null default now(),
     locale LocaleCode,
     properties hstore default ''::hstore not null,
-    state SubscriberState default 'new',
+    state EmailState default 'new',
     constraint SubscriberPK primary key (fromAddress, toAddress),
     constraint SubscriberFK foreign key (fromAddress)
             references Sender on update cascade,
     constraint SubscriberRevisedAtC check (revisedAt >= createdAt)
-);
-
-Create type EmailState as enum (
-    'new',
-    'send',
-    'cancel'
 );
 
 Create sequence EmailId;
@@ -117,32 +112,23 @@ Create table EmailSend (
 
 Create index EmailSendEmailVariationFKI on EmailSend (fromAddress, emailId, variationId);
 
-Create type EmailSendFeedbackType as enum (
-    'trackerImage',
-    'view',
-    'redirect',
-    'unsubscribe'
-);
-
-Create cast (EmailSendFeedbackType as SubscriberState)
-    with inout as implicit;
-
 Create table EmailSendFeedback (
     fromAddress EmailAddress not null,
     toAddress EmailAddress not null,
     emailId Identifier not null,
-    feedbackType EmailSendFeedbackType not null,
+    state EmailState not null,
     createdAt timestamptz not null default now(),
     iPAddress inet not null,
-    constraint EmailSendFeedbackPK primary key (fromAddress, toAddress, emailId, feedbackType),
+    constraint EmailSendFeedbackPK primary key (fromAddress, toAddress, emailId, state),
     constraint EmailSendFeedbackFK foreign key (fromAddress, toAddress, emailId)
-            references EmailSend on delete cascade on update cascade
+            references EmailSend on delete cascade on update cascade,
+    constraint EmailSendFeedbackStateC check (state between 'trackerImage' and 'unsubscribe')
 );
 
-Create index EmailSendFeedbackEmailFKI on EmailSendFeedback (fromAddress, emailId, feedbackType);
+Create index EmailSendFeedbackEmailFKI on EmailSendFeedback (fromAddress, emailId, state);
 
 Create unique index EmailSendFeedbackUnsubscribeUK on EmailSendFeedback (fromAddress, toAddress)
-    where feedbackType = 'unsubscribe';
+    where state = 'unsubscribe';
 
 Create table EmailSendResponseReport (
     fromAddress EmailAddress not null,

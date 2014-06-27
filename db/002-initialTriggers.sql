@@ -113,10 +113,10 @@ Create or replace function SetFeedbackTypeToSubscriberState()
     as $$
 Begin
     Update Subscriber
-        set state = new.feedbackType
+        set state = new.state
         where fromAddress = new.fromAddress
                 and toAddress = new.toAddress
-                and state < new.feedbackType::SubscriberState;
+                and state < new.state;
 
     return new;
 End;

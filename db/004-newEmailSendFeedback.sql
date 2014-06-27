@@ -1,19 +1,19 @@
 Create or replace function NewEmailSendFeedback(
         messageHash text,
-        feedbackType EmailSendFeedbackType,
+        state EmailState,
         iPAddress inet
     ) returns boolean
     language sql
     as $$
-With NewEmailSendFeedback as (insert into EmailSendFeedback (fromAddress, toAddress, emailId, feedbackType, iPAddress)
-    select fromAddress, toAddress, emailId, NewEmailSendFeedback.feedbackType, NewEmailSendFeedback.iPAddress
+With NewEmailSendFeedback as (insert into EmailSendFeedback (fromAddress, toAddress, emailId, state, iPAddress)
+    select fromAddress, toAddress, emailId, NewEmailSendFeedback.state, NewEmailSendFeedback.iPAddress
         from EmailSend
             where sent
                     and MessageHash(EmailSend) = NewEmailSendFeedback.messageHash
                     and not exists (select 1 from EmailSendFeedback
                                 where EmailSendFeedback.fromAddress = EmailSend.fromAddress
                                         and EmailSendFeedback.toAddress = EmailSend.toAddress
-                                        and EmailSendFeedback.feedbackType = NewEmailSendFeedback.feedbackType)
+                                        and EmailSendFeedback.state = NewEmailSendFeedback.state)
     returning *)
     select exists (select 1 from NewEmailSendFeedback)
 $$;

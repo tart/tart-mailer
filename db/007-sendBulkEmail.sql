@@ -18,7 +18,7 @@ With NewEmailSend as (insert into EmailSend (fromAddress, toAddress, emailId)
                 where Email.fromAddress = SendBulkEmail.fromAddress
                         and Email.emailId = SendBulkEmail.emailId
                         and Email.bulk
-                        and Email.state = 'send'
+                        and Email.state = 'sent'
                         and Subscriber.locale = any (Email.locale)
                         and Subscriber.properties @> SendBulkEmail.properties
                         and Subscriber.state in ('new', 'sent', 'trackerImage', 'view', 'redirect')

@@ -15,12 +15,7 @@ With InsertedEmail as (insert into Email (fromAddress, redirectURL)
                 from Subscriber
                     where fromAddress = SendToSubscriber.fromAddress
                             and toAddress = SendToSubscriber.toAddress
-                            and not exists (select 1 from EmailSendFeedback
-                                        where EmailSendFeedback.fromAddress = Subscriber.fromAddress
-                                                and EmailSendFeedback.toAddress = Subscriber.toAddress
-                                                and EmailSendFeedback.feedbackType = 'unsubscribe')
-                            and not exists (select 1 from EmailSendResponseReport
-                                        where EmailSendResponseReport.toAddress = Subscriber.toAddress)
+                            and state in ('new', 'sent', 'trackerImage', 'view', 'redirect')
             returning *),
         InsertedEmailVariation as (insert into EmailVariation (fromAddress, emailId, subject, plainBody, hTMLBody)
             select fromAddress, emailId, subject, plainBody, hTMLBody

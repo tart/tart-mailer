@@ -65,7 +65,7 @@
                         <option value="new" {{ 'selected' if email['state'] == 'new' }}
                                 {{ 'disabled' if email['state'] != 'new' and not force }} >new</option>
 
-                        <option value="send" {{ 'selected' if email['state'] == 'send' }} >send</option>
+                        <option value="sent" {{ 'selected' if email['state'] == 'sent' }} >sent</option>
 
                         <option value="cancel" {{ 'selected' if email['state'] == 'cancel' }}
                                 {{ 'disabled' if email['state'] == 'new' and not force }} >cancel</option>
@@ -158,8 +158,8 @@
                                         {{ 'disabled' if emailVariation['state'] != 'new' and
                                                          not force }} >new</option>
 
-                                <option value="send"
-                                        {{ 'selected' if emailVariation['state'] == 'send' }} >send</option>
+                                <option value="sent"
+                                        {{ 'selected' if emailVariation['state'] == 'sent' }} >sent</option>
 
                                 <option value="cancel" {{ 'selected' if emailVariation['state'] == 'cancel' }}
                                         {{ 'disabled' if emailVariation['state'] == 'new' and
@@ -258,7 +258,7 @@
                         <select name="state">
                             <option value="new" selected>new</option>
 
-                            <option value="send">send</option>
+                            <option value="sent">sent</option>
 
                             <option value="cancel" disabled>cancel</option>
                         </select>
@@ -271,7 +271,7 @@
             </p>
         </form>
 
-        {% if email['bulk'] and email['state'] == 'send' and emailVariations %}
+        {% if email['bulk'] and email['state'] == 'sent' and emailVariations %}
             <p>
                 <a href="{{ url_for('prepareBulkEmail', **email) }}">Send</a>
             </p>

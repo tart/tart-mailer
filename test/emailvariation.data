@@ -1,1 +1,1 @@
-Test Email	Hi {firstname} {lastname},\nClick {redirecturl}	\N	send
+Test Email	Hi {firstname} {lastname},\nClick {redirecturl}	\N	sent

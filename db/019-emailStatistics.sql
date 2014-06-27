@@ -23,10 +23,10 @@ Create or replace view EmailSentDateStatistics as
             EmailSend.revisedAt::date as sentDate,
             count(*) as total,
             count(EmailSendResponseReport) as responseReports,
-            coalesce(sum((EmailSendFeedback.feedbackType = 'trackerImage')::integer), 0) as trackerImages,
-            coalesce(sum((EmailSendFeedback.feedbackType = 'view')::integer), 0) as views,
-            coalesce(sum((EmailSendFeedback.feedbackType = 'redirect')::integer), 0) as redirects,
-            coalesce(sum((EmailSendFeedback.feedbackType = 'unsubscribe')::integer), 0) as unsubscribes
+            coalesce(sum((EmailSendFeedback.state = 'trackerImage')::integer), 0) as trackerImages,
+            coalesce(sum((EmailSendFeedback.state = 'view')::integer), 0) as views,
+            coalesce(sum((EmailSendFeedback.state = 'redirect')::integer), 0) as redirects,
+            coalesce(sum((EmailSendFeedback.state = 'unsubscribe')::integer), 0) as unsubscribes
         from EmailSend
             left join EmailSendResponseReport using (fromAddress, toAddress, emailId)
             left join EmailSendFeedback using (fromAddress, toAddress, emailId)
@@ -42,10 +42,10 @@ Create or replace view EmailVariationStatistics as
             count(EmailSend) as send,
             coalesce(sum((EmailSend.sent)::integer), 0) as sent,
             count(EmailSendResponseReport) as responseReports,
-            coalesce(sum((EmailSendFeedback.feedbackType = 'trackerImage')::integer), 0) as trackerImages,
-            coalesce(sum((EmailSendFeedback.feedbackType = 'view')::integer), 0) as views,
-            coalesce(sum((EmailSendFeedback.feedbackType = 'redirect')::integer), 0) as redirects,
-            coalesce(sum((EmailSendFeedback.feedbackType = 'unsubscribe')::integer), 0) as unsubscribes
+            coalesce(sum((EmailSendFeedback.state = 'trackerImage')::integer), 0) as trackerImages,
+            coalesce(sum((EmailSendFeedback.state = 'view')::integer), 0) as views,
+            coalesce(sum((EmailSendFeedback.state = 'redirect')::integer), 0) as redirects,
+            coalesce(sum((EmailSendFeedback.state = 'unsubscribe')::integer), 0) as unsubscribes
         from EmailVariation
             left join EmailSend using (fromAddress, emailId, variationId)
                 left join EmailSendResponseReport using (fromAddress, toAddress, emailId)
@@ -95,10 +95,10 @@ Create or replace view EmailStatistics as
             from EmailSendResponseReport
             group by fromAddress, emailId),
         EmailSendFeedbackStats as (select fromAddress, emailId,
-                sum((feedbackType = 'trackerImage')::int) as trackerImageCount,
-                sum((feedbackType = 'view')::int) as viewCount,
-                sum((feedbackType = 'redirect')::int) as redirectCount,
-                sum((feedbackType = 'unsubscribe')::int) as unsubscribeCount
+                sum((state = 'trackerImage')::int) as trackerImageCount,
+                sum((state = 'view')::int) as viewCount,
+                sum((state = 'redirect')::int) as redirectCount,
+                sum((state = 'unsubscribe')::int) as unsubscribeCount
             from EmailSendFeedback
             group by fromAddress, emailId)
         select Email.fromAddress,
