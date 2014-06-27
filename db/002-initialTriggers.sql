@@ -78,7 +78,12 @@ Begin
 End;
 $$;
 
-Create trigger EmailSendSetSubscriberStateT before update on EmailSend
+Create trigger EmailSendSetSubscriberStateOnInsertT before insert on EmailSend
+    for each row
+    when (new.sent)
+    execute procedure SetSentToSubscriberState();
+
+Create trigger EmailSendSetSubscriberStateOnUpdateT before update on EmailSend
     for each row
     when (new.sent)
     execute procedure SetSentToSubscriberState();
@@ -98,7 +103,7 @@ Begin
 End;
 $$;
 
-Create trigger EmailSendResponseReportSetSubscriberStateT before update on EmailSendResponseReport
+Create trigger EmailSendResponseReportSetSubscriberStateT before insert on EmailSendResponseReport
     for each row
     execute procedure SetResponseReportToSubscriberState();
 
