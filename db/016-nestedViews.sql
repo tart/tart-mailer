@@ -22,10 +22,16 @@ Create or replace function InsertNestedEmail()
     language plpgsql
     as $$
 Begin
-    with NewEmail as (insert into Email (fromAddress, emailId, bulk, redirectURL, locale, state)
-            values (new.fromAddress, new.emailId, new.bulk, new.redirectURL,
-                    coalesce(new.locale, '{}'::LocaleCodeArray), coalesce(new.state, 'new'))
-            returning *),
+    with NewEmail as (insert into Email (fromAddress, emailId, bulk, redirectURL, name, locale, state)
+            values (
+                    new.fromAddress,
+                    coalesce(new.emailId, nextval('EmailId'::regclass)),
+                    new.bulk,
+                    new.redirectURL,
+                    coalesce(new.name, new.emailId || '. Email', currval('EmailId'::regclass) || '. Email'),
+                    coalesce(new.locale, '{C}'::LocaleCodeArray),
+                    coalesce(new.state, 'new')
+            ) returning *),
         NewEmailVariation as (insert into EmailVariation (fromAddress, emailId, variationId, subject,
                 plainBody, hTMLBody, state)
             select NewEmail.fromAddress, NewEmail.emailId, Variation.variationId, Variation.subject,
