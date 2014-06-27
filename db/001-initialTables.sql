@@ -13,7 +13,7 @@ Create domain LocaleCodeArray varchar(5)[] collate "C" not null default '{C}'
     constraint LocaleCodeArrayNullC check (null !== all (value))
     constraint LocaleCodeArrayFormatC check ('^([a-z]{2}_[A-Z]{2}|C)$' ^~ all (value));
 
-Create domain Identifier smallint
+Create domain Identifier integer
     constraint IdentifierC check (value > 0);
 
 Create domain Name varchar(200)
