@@ -91,6 +91,8 @@ Create table EmailVariation (
     constraint EmailVariationBodyC check (((plainBody is not null) or (hTMLBody is not null)))
 );
 
+Create sequence EmailSendOrder;
+
 Create table EmailSend (
     fromAddress EmailAddress not null,
     toAddress EmailAddress not null,
@@ -98,17 +100,19 @@ Create table EmailSend (
     variationId Identifier,
     revisedAt timestamptz not null default now(),
     sent boolean not null default false,
+    sendOrder Identifier default nextval('EmailSendOrder'::regclass),
     constraint EmailSendPK primary key (fromAddress, toAddress, emailId),
     constraint EmailSendFK foreign key (fromAddress, emailId)
-            references Email on delete cascade on update cascade, -- This foreign key is not required when variationId
-                                                                  -- is not null. See the note below
-                                                                  -- on EmailSendEmailVariationFK.
+            references Email on delete cascade on update cascade,
+            -- This foreign key is not required when variationId is not null. See the note below
+            -- on EmailSendEmailVariationFK.
     constraint EmailSendSubscriberFK foreign key (fromAddress, toAddress)
             references Subscriber on update cascade,
     constraint EmailSendEmailVariationFK foreign key (fromAddress, emailId, variationId)
-            references EmailVariation -- This foreign key should be set as "match partial" because we want it to match
-                                      -- any of the rows on EmailVariation, but "match partial" is not implemented to
-                                      -- PostgreSQL, yet.
+            references EmailVariation,
+            -- This foreign key should be set as "match partial" because we want it to match any of the rows
+            -- on EmailVariation, but "match partial" is not implemented to PostgreSQL, yet.
+    constraint EmailSendOrderC check ((sendOrder is null) = sent)
 );
 
 Create index EmailSendEmailVariationFKI on EmailSend (fromAddress, emailId, variationId);

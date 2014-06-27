@@ -23,7 +23,7 @@ Delete from EmailSend
     returning *
 $$;
 
-Create index EmailSendQueueI on EmailSend (toAddress) where not sent;
+Create index EmailSendQueueI on EmailSend (sendOrder) where not sent;
 
 Create or replace function NextEmailToSend(
         messageFrame int default 1,
@@ -56,7 +56,7 @@ With FirstWaitingEmail as (select EmailSend.fromAddress,
                         and EmailVariation.state = 'send'
                         and (NextEmailToSend.fromAddress is null
                                 or EmailSend.fromAddress = NextEmailToSend.fromAddress)
-                order by EmailSend.toAddress
+                order by EmailSend.sendOrder
                     limit 1
                     offset random() * NextEmailToSend.messageFrame),
     EmailToSend as (update EmailSend
