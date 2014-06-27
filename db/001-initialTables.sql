@@ -66,7 +66,8 @@ Create table Email (
     constraint EmailPK primary key (fromAddress, emailId),
     constraint EmailNameUK unique (name, fromAddress),
     constraint EmailFK foreign key (fromAddress)
-            references Sender on update cascade
+            references Sender on update cascade,
+    constraint EmailStateC check (state <= 'cancel')
 );
 
 Create table EmailVariation (
@@ -83,7 +84,8 @@ Create table EmailVariation (
     constraint EmailVariationFK foreign key (fromAddress, emailId)
             references Email on delete cascade on update cascade,
     constraint EmailVariationRevisedAtC check (revisedAt >= createdAt),
-    constraint EmailVariationBodyC check (((plainBody is not null) or (hTMLBody is not null)))
+    constraint EmailVariationBodyC check (((plainBody is not null) or (hTMLBody is not null))),
+    constraint EmailStateC check (state <= 'cancel')
 );
 
 Create sequence EmailSendOrder;

@@ -56,7 +56,7 @@ def main():
         if not postgres.connection().select('Sender', {'fromAddress': sender}):
             raise Exception('Sender does not exists.')
 
-    for emailSend in postgres.connection().callTable('RemoveNotAllowedEmailSend', sender):
+    for emailSend in postgres.connection().callTable('CancelNotAllowedEmailSend', sender):
         warning('Not allowed email messages removed from the queue:', emailSend)
 
     count = postgres.connection().call('EmailToSendCount', sender)
