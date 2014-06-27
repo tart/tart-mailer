@@ -63,51 +63,7 @@ Create trigger EmailVariationDefaultVariationIdT before insert on EmailVariation
  * update some subscribers who might complain outside the application.
  */
 
-Create or replace function SetSentToSubscriberState()
-    returns trigger
-    language plpgsql
-    as $$
-Begin
-    Update Subscriber
-        set state = 'sent'
-        where fromAddress = new.fromAddress
-                and toAddress = new.toAddress
-                and state < 'sent';
-
-    return new;
-End;
-$$;
-
-Create trigger EmailSendSetSubscriberStateOnInsertT before insert on EmailSend
-    for each row
-    when (new.sent)
-    execute procedure SetSentToSubscriberState();
-
-Create trigger EmailSendSetSubscriberStateOnUpdateT before update on EmailSend
-    for each row
-    when (new.sent)
-    execute procedure SetSentToSubscriberState();
-
-Create or replace function SetResponseReportToSubscriberState()
-    returns trigger
-    language plpgsql
-    as $$
-Begin
-    Update Subscriber
-        set state = 'responseReport'
-        where fromAddress = new.fromAddress
-                and toAddress = new.toAddress
-                and state < 'responseReport';
-
-    return new;
-End;
-$$;
-
-Create trigger EmailSendResponseReportSetSubscriberStateT before insert on EmailSendResponseReport
-    for each row
-    execute procedure SetResponseReportToSubscriberState();
-
-Create or replace function SetFeedbackTypeToSubscriberState()
+Create or replace function SetSubscriberState()
     returns trigger
     language plpgsql
     as $$
@@ -122,9 +78,62 @@ Begin
 End;
 $$;
 
-Create trigger EmailSendFeedbackSetSubscriberStateT before insert on EmailSendFeedback
+Create trigger EmailSendSetSubscriberStateOnInsertT before insert on EmailSend
     for each row
-    execute procedure SetFeedbackTypeToSubscriberState();
+    when (new.state > 'new')
+    execute procedure SetSubscriberState();
+
+Create trigger EmailSendSetSubscriberStateOnUpdateT before update on EmailSend
+    for each row
+    when (new.state > old.state)
+    execute procedure SetSubscriberState();
+
+
+/*
+ * Triggers to maintain the state column of the EmailSend table
+ *
+ * Values higher than 'sent' on the state column of the EmailSend table, are not really required for anything except
+ * the statistics views. These will be set by the following triggers. It will also cause the state column of
+ * the Subscriber table to be updated.
+ */
+
+Create or replace function SetEmailSendResponseReportState()
+    returns trigger
+    language plpgsql
+    as $$
+Begin
+    Update EmailSend
+        set state = 'responseReport'
+        where fromAddress = new.fromAddress
+                and toAddress = new.toAddress
+                and state = 'sent';
+
+    return new;
+End;
+$$;
+
+Create trigger EmailSendResponseReportSetEmailSendResponseReportStateT before insert on EmailSendResponseReport
+    for each row
+    execute procedure SetEmailSendResponseReportState();
+
+Create or replace function SetEmailSendFeedbackState()
+    returns trigger
+    language plpgsql
+    as $$
+Begin
+    Update EmailSend
+        set state = new.state
+        where fromAddress = new.fromAddress
+                and toAddress = new.toAddress
+                and state < new.state;
+
+    return new;
+End;
+$$;
+
+Create trigger EmailSendFeedbackSetEmailSendFeedbackStateT before insert on EmailSendFeedback
+    for each row
+    execute procedure SetEmailSendFeedbackState();
 
 
 /*
@@ -178,5 +187,5 @@ $$;
 
 Create trigger EmailSendResetSendOrderT before update on EmailSend
     for each row
-    when (new.sent and new.sendOrder is not null)
+    when (new.state > 'new' and new.sendOrder is not null)
     execute procedure ResetSendOrder();

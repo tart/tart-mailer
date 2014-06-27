@@ -18,19 +18,17 @@ Create or replace view SenderStatistics as
             order by Sender.fromAddress;
 
 Create or replace view EmailSentDateStatistics as
-    select EmailSend.fromAddress,
-            EmailSend.emailId,
-            EmailSend.revisedAt::date as sentDate,
+    select fromAddress,
+            emailId,
+            revisedAt::date as sentDate,
             count(*) as total,
-            count(EmailSendResponseReport) as responseReports,
-            coalesce(sum((EmailSendFeedback.state = 'trackerImage')::integer), 0) as trackerImages,
-            coalesce(sum((EmailSendFeedback.state = 'view')::integer), 0) as views,
-            coalesce(sum((EmailSendFeedback.state = 'redirect')::integer), 0) as redirects,
-            coalesce(sum((EmailSendFeedback.state = 'unsubscribe')::integer), 0) as unsubscribes
+            coalesce(sum((state = 'responseReport')::integer), 0) as responseReports,
+            coalesce(sum((state = 'trackerImage')::integer), 0) as trackerImages,
+            coalesce(sum((state = 'view')::integer), 0) as views,
+            coalesce(sum((state = 'redirect')::integer), 0) as redirects,
+            coalesce(sum((state = 'unsubscribe')::integer), 0) as unsubscribes
         from EmailSend
-            left join EmailSendResponseReport using (fromAddress, toAddress, emailId)
-            left join EmailSendFeedback using (fromAddress, toAddress, emailId)
-            where EmailSend.sent
+            where state >= 'sent'
             group by 1, 2, 3
             order by 1, 2, 3;
 
@@ -40,16 +38,14 @@ Create or replace view EmailVariationStatistics as
             EmailVariation.variationId,
             EmailVariation.state,
             count(EmailSend) as send,
-            coalesce(sum((EmailSend.sent)::integer), 0) as sent,
-            count(EmailSendResponseReport) as responseReports,
-            coalesce(sum((EmailSendFeedback.state = 'trackerImage')::integer), 0) as trackerImages,
-            coalesce(sum((EmailSendFeedback.state = 'view')::integer), 0) as views,
-            coalesce(sum((EmailSendFeedback.state = 'redirect')::integer), 0) as redirects,
-            coalesce(sum((EmailSendFeedback.state = 'unsubscribe')::integer), 0) as unsubscribes
+            coalesce(sum((EmailSend.state >= 'sent')::integer), 0) as sent,
+            coalesce(sum((EmailSend.state = 'responseReport')::integer), 0) as responseReports,
+            coalesce(sum((EmailSend.state = 'trackerImage')::integer), 0) as trackerImages,
+            coalesce(sum((EmailSend.state = 'view')::integer), 0) as views,
+            coalesce(sum((EmailSend.state = 'redirect')::integer), 0) as redirects,
+            coalesce(sum((EmailSend.state = 'unsubscribe')::integer), 0) as unsubscribes
         from EmailVariation
             left join EmailSend using (fromAddress, emailId, variationId)
-                left join EmailSendResponseReport using (fromAddress, toAddress, emailId)
-                left join EmailSendFeedback using (fromAddress, toAddress, emailId)
             group by 1, 2, 3
             order by 1, 2, 3;
 
@@ -88,18 +84,16 @@ Create or replace view EmailStatistics as
     with EmailVariationStats as (select fromAddress, emailId, count(*) as count
             from EmailVariation
             group by fromAddress, emailId),
-        EmailSendStats as (select fromAddress, emailId, count(*) as totalCount, sum(sent::int) as sentCount
-            from EmailSend
-            group by fromAddress, emailId),
-        EmailSendResponseReportStats as (select fromAddress, emailId, count(*) as count
-            from EmailSendResponseReport
-            group by fromAddress, emailId),
-        EmailSendFeedbackStats as (select fromAddress, emailId,
+        EmailSendStats as (select fromAddress,
+                emailId,
+                count(*) as totalCount,
+                sum((state >= 'sent')::int) as sentCount,
+                sum((state = 'responseReport')::int) as responseReportCount,
                 sum((state = 'trackerImage')::int) as trackerImageCount,
                 sum((state = 'view')::int) as viewCount,
                 sum((state = 'redirect')::int) as redirectCount,
                 sum((state = 'unsubscribe')::int) as unsubscribeCount
-            from EmailSendFeedback
+            from EmailSend
             group by fromAddress, emailId)
         select Email.fromAddress,
                 Email.emailId,
@@ -110,14 +104,12 @@ Create or replace view EmailStatistics as
                 coalesce(EmailVariationStats.count, 0) as variations,
                 coalesce(EmailSendStats.totalCount, 0) as totalMessages,
                 coalesce(EmailSendStats.sentCount, 0) as sentMessages,
-                coalesce(EmailSendResponseReportStats.count, 0) as responseReports,
-                coalesce(EmailSendFeedbackStats.trackerImageCount, 0) as trackerImages,
-                coalesce(EmailSendFeedbackStats.viewCount, 0) as views,
-                coalesce(EmailSendFeedbackStats.redirectCount, 0) as redirects,
-                coalesce(EmailSendFeedbackStats.unsubscribeCount, 0) as unsubscribes
+                coalesce(EmailSendStats.responseReportCount, 0) as responseReports,
+                coalesce(EmailSendStats.trackerImageCount, 0) as trackerImages,
+                coalesce(EmailSendStats.viewCount, 0) as views,
+                coalesce(EmailSendStats.redirectCount, 0) as redirects,
+                coalesce(EmailSendStats.unsubscribeCount, 0) as unsubscribes
             from Email
                 left join EmailVariationStats using (fromAddress, emailId)
                 left join EmailSendStats using (fromAddress, emailId)
-                left join EmailSendResponseReportStats using (fromAddress, emailId)
-                left join EmailSendFeedbackStats using (fromAddress, emailId)
                 order by 1, 2;

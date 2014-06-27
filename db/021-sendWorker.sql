@@ -3,7 +3,7 @@ Create or replace function RemoveNotAllowedEmailSend()
     language sql strict
     as $$
 Delete from EmailSend
-    where not sent
+    where state = 'new'
             and (fromAddress, toAddress) in (select fromAddress, toAddress
                         from Subscriber
                             where state in ('responseReport', 'unsubscribe'))
@@ -15,7 +15,7 @@ Create or replace function RemoveNotAllowedEmailSend(fromAddress varchar(200))
     language sql strict
     as $$
 Delete from EmailSend
-    where not sent
+    where state = 'new'
             and fromAddress = RemoveNotAllowedEmailSend.fromAddress
             and (fromAddress, toAddress) in (select fromAddress, toAddress
                         from Subscriber
@@ -23,7 +23,7 @@ Delete from EmailSend
     returning *
 $$;
 
-Create index EmailSendQueueI on EmailSend (sendOrder) where not sent;
+Create index EmailSendQueueI on EmailSend (sendOrder) where state = 'new';
 
 Create or replace function NextEmailToSend(
         messageFrame int default 1,
@@ -50,8 +50,8 @@ With FirstWaitingEmail as (select EmailSend.fromAddress,
                 Email.bulk
             from EmailSend
                 join EmailVariation using (fromAddress, emailId)
-                join Email using (fromAddress)
-                where not EmailSend.sent
+                join Email using (fromAddress, emailId)
+                where EmailSend.state = 'new'
                         and Email.state = 'sent'
                         and EmailVariation.state = 'sent'
                         and (NextEmailToSend.fromAddress is null
@@ -60,7 +60,7 @@ With FirstWaitingEmail as (select EmailSend.fromAddress,
                     limit 1
                     offset random() * NextEmailToSend.messageFrame),
     EmailToSend as (update EmailSend
-            set sent = true,
+            set state = 'sent',
                     variationId = FirstWaitingEmail.variationId
             from FirstWaitingEmail
                 where EmailSend.fromAddress = FirstWaitingEmail.fromAddress
@@ -89,8 +89,8 @@ Create or replace function EmailToSendCount()
     as $$
 Select count(*)
     from EmailSend
-        join Email using (fromAddress)
-        where not EmailSend.sent
+        join Email using (fromAddress, emailId)
+        where EmailSend.state = 'new'
                 and Email.state = 'sent'
                 and (EmailSend.fromAddress, EmailSend.emailId) in (select fromAddress, emailId
                             from EmailVariation
@@ -103,8 +103,8 @@ Create or replace function EmailToSendCount(fromAddress varchar(200))
     as $$
 Select count(*)
     from EmailSend
-        join Email using (fromAddress)
-        where not EmailSend.sent
+        join Email using (fromAddress, emailId)
+        where EmailSend.state = 'new'
                 and EmailSend.fromAddress = EmailToSendCount.fromAddress
                 and Email.state = 'sent'
                 and (EmailSend.fromAddress, EmailSend.emailId) in (select fromAddress, emailId

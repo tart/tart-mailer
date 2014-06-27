@@ -178,7 +178,7 @@ def sendTestEmail(**kwargs):
         })
 
         transaction.upsert('EmailSend', {
-            'sent': False,
+            'state': 'new',
             'variationId': kwargs['variationid'],
         }, {
             'fromAddress': kwargs['fromaddress'],

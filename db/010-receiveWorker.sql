@@ -4,7 +4,7 @@ Create or replace function LastEmailSendToEmailAddresses(toAddresses varchar(200
     as $$
 Select *
     from EmailSend
-        where sent
+        where state = 'sent'
                 and toAddress = any(toAddresses)
         order by revisedAt desc
             limit 1
@@ -16,7 +16,7 @@ Create or replace function LastEmailSendToEmailAddresses(fromAddress varchar(200
     as $$
 Select *
     from EmailSend
-        where sent
+        where state = 'sent'
                 and fromAddress = LastEmailSendToEmailAddresses.fromAddress
                 and toAddress = any(toAddresses)
         order by revisedAt desc
@@ -30,7 +30,7 @@ Create or replace function EmailSendFromUnsubscribeURL(unsubscribeURL text)
 select EmailSend.*
     from EmailSend
         join Sender using (fromAddress)
-        where EmailSend.sent
+        where EmailSend.state = 'sent'
                 and MessageHash(EmailSend) = regexp_replace(EmailSendFromUnsubscribeURL.unsubscribeURL,
                                                             '^' || Sender.returnURLRoot || 'unsubscribe/', '')
 $$;
@@ -42,7 +42,7 @@ Create or replace function EmailSendFromUnsubscribeURL(fromAddress varchar(200),
 select EmailSend.*
     from EmailSend
         join Sender using (fromAddress)
-        where EmailSend.sent
+        where EmailSend.state = 'sent'
                 and EmailSend.fromAddress = EmailSendFromUnsubscribeURL.fromAddress
                 and MessageHash(EmailSend) = regexp_replace(EmailSendFromUnsubscribeURL.unsubscribeURL,
                                                             '^' || Sender.returnURLRoot || 'unsubscribe/', '')

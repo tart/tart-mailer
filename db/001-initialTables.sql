@@ -94,7 +94,7 @@ Create table EmailSend (
     emailId Identifier not null,
     variationId Identifier,
     revisedAt timestamptz not null default now(),
-    sent boolean not null default false,
+    state EmailState not null default 'new',
     sendOrder Identifier default nextval('EmailSendOrder'::regclass),
     constraint EmailSendPK primary key (fromAddress, toAddress, emailId),
     constraint EmailSendFK foreign key (fromAddress, emailId)
@@ -107,7 +107,7 @@ Create table EmailSend (
             references EmailVariation,
             -- This foreign key should be set as "match partial" because we want it to match any of the rows
             -- on EmailVariation, but "match partial" is not implemented to PostgreSQL, yet.
-    constraint EmailSendOrderC check ((sendOrder is null) = sent)
+    constraint EmailSendOrderC check ((sendOrder is not null) = (state = 'new'))
 );
 
 Create index EmailSendEmailVariationFKI on EmailSend (fromAddress, emailId, variationId);
