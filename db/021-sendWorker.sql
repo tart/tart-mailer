@@ -72,6 +72,7 @@ With FirstWaitingEmail as (select EmailSend.fromAddress,
                     offset random() * NextEmailToSend.messageFrame),
     EmailToSend as (update EmailSend
             set state = 'sent',
+                    sentAt = now(),
                     variationId = FirstWaitingEmail.variationId
             from FirstWaitingEmail
                 where EmailSend.fromAddress = FirstWaitingEmail.fromAddress

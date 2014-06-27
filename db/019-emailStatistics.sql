@@ -20,7 +20,7 @@ Create or replace view SenderStatistics as
 Create or replace view EmailSentDateStatistics as
     select fromAddress,
             emailId,
-            revisedAt::date as sentDate,
+            sentAt::date as sentDate,
             count(*) as total,
             coalesce(sum((state = 'responseReport')::integer), 0) as responseReports,
             coalesce(sum((state = 'trackerImage')::integer), 0) as trackerImages,
