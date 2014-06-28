@@ -37,8 +37,8 @@ Select count(*)
 $$;
 
 Create or replace function NextEmailToSend(
-        messageFrame int default 1,
-        fromAddress varchar(200) default null
+        fromAddress varchar(200) default null,
+        sendOffset integer default 0
     ) returns table (
         fromName varchar(200),
         fromAddress varchar(200),
@@ -47,13 +47,15 @@ Create or replace function NextEmailToSend(
         plainBody text,
         hTMLBody text,
         unsubscribeURL text,
-        bulk boolean
+        bulk boolean,
+        sendOrder integer
     )
     language sql
     as $$
 With FirstWaitingEmail as (select EmailSend.fromAddress,
                 EmailSend.toAddress,
                 EmailSend.emailId,
+                EmailSend.sendOrder,
                 EmailVariation.variationId,
                 EmailVariation.subject,
                 EmailVariation.plainBody,
@@ -69,7 +71,7 @@ With FirstWaitingEmail as (select EmailSend.fromAddress,
                                 or EmailSend.fromAddress = NextEmailToSend.fromAddress)
                 order by EmailSend.sendOrder
                     limit 1
-                    offset random() * NextEmailToSend.messageFrame),
+                    offset NextEmailToSend.sendOffset),
     EmailToSend as (update EmailSend
             set state = 'sent',
                     sentAt = now(),
@@ -89,7 +91,8 @@ With FirstWaitingEmail as (select EmailSend.fromAddress,
             FormatEmailToSend(EmailToSend.hTMLBody, Subscriber.properties, Sender.returnURLRoot,
                               MessageHash(EmailToSend.EmailSend)),
             Sender.returnURLRoot || 'unsubscribe/' || MessageHash(EmailToSend.EmailSend),
-            EmailToSend.bulk
+            EmailToSend.bulk,
+            EmailToSend.sendOrder
         from EmailToSend
             join Sender using (fromAddress)
             join Subscriber using (fromAddress, toAddress)

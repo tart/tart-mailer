@@ -35,6 +35,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--sender', help='email address to send email messages')
     parser.add_argument('--amount', type=int, default=1, help='maximum email message amount to send')
+    parser.add_argument('--offset', type=int, default=0, help='message amount to skip for concurrency')
     parser.add_argument('--timeout', type=int, help='seconds to kill the process')
     parser.add_argument('--debug', action='store_true', help='debug mode')
     SMTP.addArguments(parser)
@@ -42,6 +43,7 @@ def main():
     arguments = vars(parser.parse_args())
     sender = arguments.pop('sender')
     amount = arguments.pop('amount')
+    offset = arguments.pop('offset')
     timeout = arguments.pop('timeout')
     debug = arguments.pop('debug')
     # Remaining arguments are for SMTP.
@@ -60,18 +62,18 @@ def main():
         warning('Not allowed email messages removed from the queue:', emailSend)
 
     count = postgres.connection().call('EmailToSendCount', sender)
-
     print(str(count) + ' waiting email messages to send.')
-    if count < amount:
-        amount = count
 
     sMTP = SMTP(**arguments)
     print('SMTP connection successful.')
 
-    for messageId in range(amount):
+    amount = min(amount, count)
+    offset = min(offset, count - amount)
+
+    for i in range(amount):
         with postgres.connection() as transaction:
             try:
-                email = transaction.call('NextEmailToSend', (min(amount, count - messageId), sender))
+                email = transaction.call('NextEmailToSend', (sender, offset))
             except postgres.NoRow:
                 print('No messages left to send. Probably another worker had sent them.')
                 break
@@ -97,7 +99,7 @@ def main():
 
             sMTP.sendmail(email['fromaddress'], email['toaddress'], message.as_string())
 
-        print(str(messageId) + '. email message sent to ' + email['toaddress'])
+        print(str(email['sendorder']) + '. email message sent to ' + email['toaddress'])
 
 if __name__ == '__main__':
     main()
