@@ -101,12 +101,12 @@ $$;
 
 Create trigger EmailSendSetSubscriberStateOnInsertT before insert on EmailSend
     for each row
-    when (new.state > 'new')
+    when (new.state > 'cancelled')
     execute procedure SetSubscriberState();
 
 Create trigger EmailSendSetSubscriberStateOnUpdateT before update on EmailSend
     for each row
-    when (new.state > old.state)
+    when (new.state > old.state and new.state > 'cancelled')
     execute procedure SetSubscriberState();
 
 

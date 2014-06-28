@@ -45,7 +45,7 @@ Create table Subscriber (
     revisedAt timestamptz not null default now(),
     locale LocaleCode,
     properties hstore default ''::hstore not null,
-    state EmailState default 'new',
+    state EmailState not null default 'new',
     constraint SubscriberPK primary key (fromAddress, toAddress),
     constraint SubscriberFK foreign key (fromAddress)
             references Sender on update cascade,

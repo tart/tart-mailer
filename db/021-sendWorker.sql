@@ -16,7 +16,7 @@ Update EmailSend
                     or (fromAddress, emailId) in (select fromAddress, emailId
                                 from EmailVariation
                                     group by fromAddress, emailId
-                                        having min(state) = 'cancelled'))
+                                        having 'cancelled' = all (array_agg(state))))
     returning *
 $$;
 
