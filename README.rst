@@ -110,3 +110,10 @@ Version 2.0
 * Add email and email variation status
 * Decide variations while sending messages
 * Do not allow null on locale, use C as the default locale
+
+Version 2.1
+
+* Store email message status
+* Improve statistics views
+* Send messages in order
+* Add --offset to sent worker for concurrency
