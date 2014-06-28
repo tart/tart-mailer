@@ -52,15 +52,8 @@ Create or replace function NextEmailToSend(
     )
     language sql
     as $$
-With FirstWaitingEmail as (select EmailSend.fromAddress,
-                EmailSend.toAddress,
-                EmailSend.emailId,
-                EmailSend.sendOrder,
-                EmailVariation.variationId,
-                EmailVariation.subject,
-                EmailVariation.plainBody,
-                EmailVariation.hTMLBody,
-                Email.bulk
+With FirstWaitingEmailSend as (select EmailSend.sendOrder,
+                first(EmailVariation.variationId order by random()) as variationId
             from EmailSend
                 join EmailVariation using (fromAddress, emailId)
                 join Email using (fromAddress, emailId)
@@ -69,31 +62,34 @@ With FirstWaitingEmail as (select EmailSend.fromAddress,
                         and EmailVariation.state = 'sent'
                         and (NextEmailToSend.fromAddress is null
                                 or EmailSend.fromAddress = NextEmailToSend.fromAddress)
+                        and (EmailSend.variationId is null
+                                or EmailVariation.variationId = EmailSend.variationId)
+                group by EmailSend.sendOrder
                 order by EmailSend.sendOrder
                     limit 1
                     offset NextEmailToSend.sendOffset),
     EmailToSend as (update EmailSend
             set state = 'sent',
                     sentAt = now(),
-                    variationId = FirstWaitingEmail.variationId
-            from FirstWaitingEmail
-                where EmailSend.fromAddress = FirstWaitingEmail.fromAddress
-                        and EmailSend.toAddress = FirstWaitingEmail.toAddress
-                        and EmailSend.emailId = FirstWaitingEmail.emailId
-            returning FirstWaitingEmail.*,
-                    EmailSend)
+                    variationId = FirstWaitingEmailSend.variationId
+            from FirstWaitingEmailSend
+                where EmailSend.state = 'new'
+                        and EmailSend.sendOrder = FirstWaitingEmailSend.sendOrder
+            returning EmailSend.*)
     select Sender.fromName,
             Sender.fromAddress,
             Subscriber.toAddress,
-            FormatEmailToSend(EmailToSend.subject, Subscriber.properties),
-            FormatEmailToSend(EmailToSend.plainBody, Subscriber.properties, Sender.returnURLRoot,
-                              MessageHash(EmailToSend.EmailSend)),
-            FormatEmailToSend(EmailToSend.hTMLBody, Subscriber.properties, Sender.returnURLRoot,
-                              MessageHash(EmailToSend.EmailSend)),
-            Sender.returnURLRoot || 'unsubscribe/' || MessageHash(EmailToSend.EmailSend),
-            EmailToSend.bulk,
+            FormatEmailToSend(EmailVariation.subject, Subscriber.properties),
+            FormatEmailToSend(EmailVariation.plainBody, Subscriber.properties, Sender.returnURLRoot,
+                              MessageHash(EmailToSend)),
+            FormatEmailToSend(EmailVariation.hTMLBody, Subscriber.properties, Sender.returnURLRoot,
+                              MessageHash(EmailToSend)),
+            Sender.returnURLRoot || 'unsubscribe/' || MessageHash(EmailToSend),
+            Email.bulk,
             EmailToSend.sendOrder
         from EmailToSend
             join Sender using (fromAddress)
             join Subscriber using (fromAddress, toAddress)
+            join Email using (fromAddress, emailId)
+            join EmailVariation using (fromAddress, emailId, variationId)
 $$;
