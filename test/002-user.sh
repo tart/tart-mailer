@@ -8,7 +8,7 @@ echo
 emailHash=$(echo "Select MessageHash(EmailSend) from EmailSend limit 1" | psql -XAt)
 
 echo "Trying to get the tracker image..."
-curl http://localhost:8000/trackerImage/$emailHash
+curl http://localhost:8000/track/$emailHash
 echo
 echo
 

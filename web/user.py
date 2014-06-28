@@ -36,8 +36,9 @@ def index():
     '''Index page to check that the web server works.'''
     return ''
 
+@app.route('/track/<emailHash>')
 @app.route('/trackerImage/<emailHash>')
-def trackerImage(emailHash):
+def track(emailHash):
     postgres.connection().call('NewEmailSendFeedback', (emailHash, 'tracked', flask.request.remote_addr))
 
     # Return 1px * 1px transparent image.

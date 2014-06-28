@@ -24,7 +24,7 @@ Create or replace function FormatEmailToSend(
 With Formatter as (select * from each(properties)
         union select * from (values ('unsubscribeurl', returnURLRoot || 'unsubscribe/' || messageHash),
                         ('redirecturl', returnURLRoot || 'redirect/' || messageHash),
-                        ('trackerimageurl', returnURLRoot || 'trackerImage/' || messageHash),
+                        ('trackerimageurl', returnURLRoot || 'track/' || messageHash),
                         ('viewurl', returnURLRoot || 'view/' || messageHash)) as URLVariable
                 where returnURLRoot is not null and messageHash is not null)
     select coalesce((select FormatEmailToSend($1, array_agg(key), array_agg(value)) from Formatter), $1)
