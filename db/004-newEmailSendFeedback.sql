@@ -8,7 +8,7 @@ Create or replace function NewEmailSendFeedback(
 With NewEmailSendFeedback as (insert into EmailSendFeedback (fromAddress, toAddress, emailId, state, iPAddress)
     select fromAddress, toAddress, emailId, NewEmailSendFeedback.state, NewEmailSendFeedback.iPAddress
         from EmailSend
-            where EmailSend.state in ('sent', 'trackerImage', 'view', 'redirect', 'unsubscribe')
+            where EmailSend.state >= 'sent'
                     and MessageHash(EmailSend) = NewEmailSendFeedback.messageHash
                     and not exists (select 1 from EmailSendFeedback
                                 where EmailSendFeedback.fromAddress = EmailSend.fromAddress

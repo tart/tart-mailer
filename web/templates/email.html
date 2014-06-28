@@ -65,10 +65,10 @@
                         <option value="new" {{ 'selected' if email['state'] == 'new' }}
                                 {{ 'disabled' if email['state'] != 'new' and not force }} >new</option>
 
-                        <option value="sent" {{ 'selected' if email['state'] == 'sent' }} >sent</option>
+                        <option value="cancelled" {{ 'selected' if email['state'] == 'cancelled' }}
+                                {{ 'disabled' if email['state'] == 'new' and not force }} >cancelled</option>
 
-                        <option value="cancel" {{ 'selected' if email['state'] == 'cancel' }}
-                                {{ 'disabled' if email['state'] == 'new' and not force }} >cancel</option>
+                        <option value="sent" {{ 'selected' if email['state'] == 'sent' }} >sent</option>
                     </select>
                 </td>
             </tr>
@@ -158,12 +158,12 @@
                                         {{ 'disabled' if emailVariation['state'] != 'new' and
                                                          not force }} >new</option>
 
+                                <option value="cancelled" {{ 'selected' if emailVariation['state'] == 'cancelled' }}
+                                        {{ 'disabled' if emailVariation['state'] == 'new' and
+                                                         not force }} >cancelled</option>
+
                                 <option value="sent"
                                         {{ 'selected' if emailVariation['state'] == 'sent' }} >sent</option>
-
-                                <option value="cancel" {{ 'selected' if emailVariation['state'] == 'cancel' }}
-                                        {{ 'disabled' if emailVariation['state'] == 'new' and
-                                                         not force }} >cancel</option>
                             </select>
                         </td>
                     </tr>
@@ -258,9 +258,9 @@
                         <select name="state">
                             <option value="new" selected>new</option>
 
-                            <option value="sent">sent</option>
+                            <option value="cancelled" disabled>cancelled</option>
 
-                            <option value="cancel" disabled>cancel</option>
+                            <option value="sent">sent</option>
                         </select>
                     </td>
                 </tr>

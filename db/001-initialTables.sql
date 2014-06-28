@@ -29,13 +29,13 @@ Create table Sender (
 
 Create type EmailState as enum (
     'new',
-    'cancel',
+    'cancelled',
     'sent',
-    'responseReport',
-    'trackerImage',
-    'view',
-    'redirect',
-    'unsubscribe'
+    'responseReported',
+    'tracked',
+    'viewed',
+    'redirected',
+    'unsubscribed'
 );
 
 Create table Subscriber (
@@ -127,13 +127,13 @@ Create table EmailSendFeedback (
     constraint EmailSendFeedbackPK primary key (fromAddress, toAddress, emailId, state),
     constraint EmailSendFeedbackFK foreign key (fromAddress, toAddress, emailId)
             references EmailSend on delete cascade on update cascade,
-    constraint EmailSendFeedbackStateC check (state between 'trackerImage' and 'unsubscribe')
+    constraint EmailSendFeedbackStateC check (state >= 'tracked')
 );
 
 Create index EmailSendFeedbackEmailFKI on EmailSendFeedback (fromAddress, emailId, state);
 
 Create unique index EmailSendFeedbackUnsubscribeUK on EmailSendFeedback (fromAddress, toAddress)
-    where state = 'unsubscribe';
+    where state = 'unsubscribed';
 
 Create table EmailSendResponseReport (
     fromAddress EmailAddress not null,

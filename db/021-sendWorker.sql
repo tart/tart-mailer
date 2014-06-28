@@ -12,7 +12,7 @@ Update EmailSend
                             where state in ('cancelled', 'responseReported', 'unsubscribed'))
                     or (fromAddress, emailId) in (select fromAddress, emailId
                                 from Email
-                                    where state = 'cancel')
+                                    where state = 'cancelled')
                     or (fromAddress, emailId) in (select fromAddress, emailId
                                 from EmailVariation
                                     group by fromAddress, emailId

@@ -21,7 +21,7 @@ With NewEmailSend as (insert into EmailSend (fromAddress, toAddress, emailId)
                         and Email.state = 'sent'
                         and Subscriber.locale = any (Email.locale)
                         and Subscriber.properties @> SendBulkEmail.properties
-                        and Subscriber.state in ('new', 'sent', 'trackerImage', 'view', 'redirect')
+                        and Subscriber.state in ('new', 'sent', 'tracked', 'viewed', 'redirected')
                         and EmailSend.fromAddress is null
                 order by Subscriber.revisedAt
                     limit SendBulkEmail.maxSubscriber

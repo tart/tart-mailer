@@ -20,4 +20,4 @@ Select Base64ForURL(digest('secret1' || $1.fromAddress ||
 $$;
 
 Create unique index EmailSendMessageHashI on EmailSend (MessageHash(EmailSend))
-    where state in ('sent', 'trackerImage', 'view', 'redirect', 'unsubscribe');
+    where state >= 'sent';

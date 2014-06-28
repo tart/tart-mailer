@@ -15,7 +15,7 @@ With InsertedEmail as (insert into Email (fromAddress, redirectURL)
                 from Subscriber
                     where fromAddress = SendToSubscriber.fromAddress
                             and toAddress = SendToSubscriber.toAddress
-                            and state in ('new', 'sent', 'trackerImage', 'view', 'redirect')
+                            and state in ('new', 'sent', 'tracked', 'viewed', 'redirected')
             returning *),
         InsertedEmailVariation as (insert into EmailVariation (fromAddress, emailId, subject, plainBody, hTMLBody)
             select fromAddress, emailId, subject, plainBody, hTMLBody

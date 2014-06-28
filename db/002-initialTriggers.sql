@@ -1,4 +1,25 @@
 /*
+ * Drop all triggers first
+ *
+ * Function from http://stackoverflow.com/questions/3093214/drop-all-triggers-from-postgres-db
+ */
+
+Do language plpgsql $$
+DECLARE
+    triggNameRecord RECORD;
+    triggTableRecord RECORD;
+BEGIN
+    FOR triggNameRecord IN select distinct(trigger_name) from information_schema.triggers where trigger_schema = 'public' LOOP
+        FOR triggTableRecord IN SELECT distinct(event_object_table) from information_schema.triggers where trigger_name = triggNameRecord.trigger_name LOOP
+            RAISE NOTICE 'Dropping trigger: % on table: %', triggNameRecord.trigger_name, triggTableRecord.event_object_table;
+            EXECUTE 'DROP TRIGGER ' || triggNameRecord.trigger_name || ' ON ' || triggTableRecord.event_object_table || ';';
+        END LOOP;
+    END LOOP;
+END;
+$$;
+
+
+/*
  * Triggers to maintain the revisedAt columns
  *
  * The function sets now() to the revisedAt columns of the following tables. Note that it cannot be overriden but
@@ -103,7 +124,7 @@ Create or replace function SetEmailSendResponseReportState()
     as $$
 Begin
     Update EmailSend
-        set state = 'responseReport'
+        set state = 'responseReported'
         where fromAddress = new.fromAddress
                 and toAddress = new.toAddress
                 and state = 'sent';
