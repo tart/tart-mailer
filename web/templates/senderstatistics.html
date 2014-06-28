@@ -25,7 +25,9 @@
 
     {{ table(emailVariations, identifiers.keys()) }}
 
-    <h2>Email Subscriber Locales</h2>
+    {% if emailSubscriberLocales %}
+        <h2>Email Subscriber Locales</h2>
 
-    {{ table(emailSubscriberLocales, identifiers.keys()) }}
+        {{ table(emailSubscriberLocales, identifiers.keys()) }}
+    {% endif %}
 {% endblock %}

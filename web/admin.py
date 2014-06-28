@@ -231,11 +231,11 @@ def senderStatistics(**kwargs):
             'identifiers': kwargs,
             'emailSentDates': transaction.select('EmailSentDateStatistics', kwargs),
             'emailVariations': transaction.select('EmailVariationStatistics', kwargs),
-            'emailSubscriberLocales': transaction.select('EmailSubscriberLocaleStatistics', kwargs),
         }
 
         if 'emailid' in kwargs:
             context['email'] = transaction.selectOne('Email', kwargs)
+            context['emailSubscriberLocales'] = transaction.select('EmailSubscriberLocaleStatistics', kwargs)
         else:
             context['emails'] = transaction.select('EmailStatistics', kwargs)
 
