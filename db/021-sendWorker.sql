@@ -5,18 +5,18 @@ Create or replace function CancelNotAllowedEmailSend(fromAddress varchar(200) de
     language sql
     as $$
 Update EmailSend
-    set state = 'cancel'
+    set state = 'cancelled'
     where state = 'new'
             and ((fromAddress, toAddress) in (select fromAddress, toAddress
                         from Subscriber
-                            where state in ('cancel', 'responseReport', 'unsubscribe'))
+                            where state in ('cancelled', 'responseReported', 'unsubscribed'))
                     or (fromAddress, emailId) in (select fromAddress, emailId
                                 from Email
                                     where state = 'cancel')
                     or (fromAddress, emailId) in (select fromAddress, emailId
                                 from EmailVariation
                                     group by fromAddress, emailId
-                                        having min(state) = 'cancel'))
+                                        having min(state) = 'cancelled'))
     returning *
 $$;
 
