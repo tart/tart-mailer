@@ -110,6 +110,7 @@ Create table EmailSend (
             references EmailVariation,
             -- This foreign key should be set as "match partial" because we want it to match any of the rows
             -- on EmailVariation, but "match partial" is not implemented to PostgreSQL, yet.
+    constraint EmailSendVariationIdC check (variationId is not null or state < 'sent'),
     constraint EmailSendOrderC check ((sendOrder is not null) = (state = 'new')),
     constraint EmailSendSentAtC check ((sentAt is not null) = (state >= 'sent')),
     constraint EmailSendRevisedAtC check (revisedAt >= sentAt)
