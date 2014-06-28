@@ -188,25 +188,3 @@ Create trigger EmailVariationSetEmailStateOnUpdateT before update on EmailVariat
     for each row
     when (new.state > old.state)
     execute procedure SetStateToEmail();
-
-
-/*
- * Trigger to reset the sendOrder columns
- *
- * It is done to save some space.
- */
-
-Create or replace function ResetSendOrder()
-    returns trigger
-    language plpgsql
-    as $$
-Begin
-    new.sendOrder = null;
-    return new;
-End;
-$$;
-
-Create trigger EmailSendResetSendOrderT before update on EmailSend
-    for each row
-    when (new.state > 'new' and new.sendOrder is not null)
-    execute procedure ResetSendOrder();
