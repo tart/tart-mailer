@@ -55,9 +55,11 @@ Create or replace function NextEmailToSend(
 With FirstWaitingEmailSend as (select EmailSend.sendOrder,
                 first(EmailVariation.variationId order by random()) as variationId
             from EmailSend
-                join EmailVariation using (fromAddress, emailId)
+                join Subscriber using (fromAddress, toAddress)
                 join Email using (fromAddress, emailId)
+                join EmailVariation using (fromAddress, emailId)
                 where EmailSend.state = 'new'
+                        and Subscriber.state in ('new', 'sent', 'tracked', 'viewed', 'redirected')
                         and Email.state = 'sent'
                         and EmailVariation.state = 'sent'
                         and (NextEmailToSend.fromAddress is null
