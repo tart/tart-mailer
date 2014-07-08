@@ -19,6 +19,11 @@ from __future__ import absolute_import
 import email
 import email.message
 
+def parse(data):
+    if isinstance(data, str):
+         return email.message_from_string(data, Message)
+    return email.message_from_bytes(data, Message)
+
 class Message(email.message.Message):
     '''Extend the Message class on the standart library.'''
 

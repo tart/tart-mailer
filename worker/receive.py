@@ -21,13 +21,12 @@ import os
 import signal
 import argparse
 import re
-import email
 
 os.sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
-from libtart import postgres
-from libtart.email.server import IMAP4, IMAP4SSL
-from libtart.email.message import Message
-from libtart.helpers import warning
+import libtart.postgres
+import libtart.email.server
+import libtart.email.message
+import libtart.helpers
 
 def main():
     parser = argparse.ArgumentParser()
@@ -37,30 +36,34 @@ def main():
     parser.add_argument('--debug', action='store_true', help='debug mode')
     parser.add_argument('--protocol', default='IMAP4', help='protocol to connect to the mail server, default IMAP4')
     parser.add_argument('--delete', action='store_true', help='delete processed messages from the mail server')
-    IMAP4.addArguments(parser)
+    libtart.email.server.IMAP4.addArguments(parser)
 
     arguments = vars(parser.parse_args())
-    options = dict((k, arguments.pop(k)) for k in arguments.keys() if k in ('sender', 'amount', 'timeout', 'debug',
-                                                                            'protocol', 'delete'))
-    # Remaining arguments are for IMAP4.
+    sender = arguments.pop('sender')
+    amount = arguments.pop('amount')
+    timeout = arguments.pop('timeout')
+    debug = arguments.pop('debug')
+    protocol = arguments.pop('protocol')
+    delete = arguments.pop('delete')
+    # Remaining arguments are about mail server.
 
-    if options['timeout']:
-        signal.alarm(options['timeout'])
+    if timeout:
+        signal.alarm(timeout)
 
-    if options['debug']:
-        postgres.debug = True
-        IMAP4.debug = True
+    if debug:
+        libtart.postgres.debug = True
+        libtart.email.server.IMAP4.debug = True
 
-    if options['sender']:
-        if not postgres.connection().select('Sender', {'fromAddress': options['sender']}):
+    if sender:
+        if not libtart.postgres.connection().select('Sender', {'fromAddress': sender}):
             raise Exception('Sender does not exists.')
 
-    server = globals()[options['protocol']](**dict((k, v) for k, v in arguments.items() if v is not None))
+    server = libtart.email.server.__dict__[protocol](**dict((k, v) for k, v in arguments.items() if v is not None))
     messageIds = server.execute('search', 'utf-8', 'UNSEEN')[0].split()
     print(str(len(messageIds)) + ' email messages to process.')
 
-    for messageId in messageIds[:options['amount']]:
-        message = email.message_from_string(server.execute('fetch', messageId, '(RFC822)')[0][1], Message)
+    for messageId in messageIds[:amount]:
+        message = libtart.email.message.parse(server.execute('fetch', messageId, '(RFC822)')[0][1])
         message.check()
 
         ##
@@ -71,7 +74,7 @@ def main():
                                                         'multipart/alternative'):
 
             if message.get_content_type() != 'multipart/report':
-                warning('Unexpected message will be processed as returned original:', message)
+                libtart.helpers.warning('Unexpected message will be processed as returned original:', message)
 
             # In all the different cases, the returned original is always in the last payload.
             returnedOriginal = message.lastPayload()
@@ -92,32 +95,36 @@ def main():
                 # Aditional fields for the standart response reports.
                 report['fields'] = dict(message.get_payload()[-2].recursiveHeaders())
 
-            if addResponseReport(options['sender'], report):
-                print(messageId + '. email message processed as returned original.')
+            if addResponseReport(sender, report):
+                print(str(int(messageId)) + '. email message processed as returned original.')
 
-                if options['delete']:
+                if delete:
                     server.execute('store', messageId, '+FLAGS', '\Deleted')
             else:
-                warning('Email messages cannot be saved to the database as response report:', message)
+                libtart.helpers.warning('Email messages cannot be saved to the database as response report:', message)
 
         elif message.lastPayload().get_content_type() in ('application/zip', 'application/x-zip-compressed'):
             from zipfile import ZipFile
-            from cStringIO import StringIO
+            try:
+               # cStringIO is gone on Python 3.
+               from cStringIO import StringIO as IO
+            except ImportError:
+               from io import BytesIO as IO
 
-            with ZipFile(StringIO((message.lastPayload().get_payload(decode=True)))) as archive:
+            with ZipFile(IO((message.lastPayload().get_payload(decode=True)))) as archive:
                 if addDMARCReport(archive.read(archive.namelist()[0])):
-                    print(messageId + '. email message processed as DMARC report.')
+                    print(str(int(messageId)) + '. email message processed as DMARC report.')
 
-                    if options['delete']:
+                    if delete:
                         server.execute('store', messageId, '+FLAGS', '\Deleted')
                 else:
-                    warning('Email messages cannot be saved to the database as DMARC report:', message)
+                    libtart.helpers.warning('Email messages cannot be saved to the database as DMARC report:', message)
 
         else:
-            warning('Unexpected MIME type:', message)
+            libtart.helpers.warning('Unexpected MIME type:', message)
 
-    if options['delete']:
-        if options['debug']:
+    if delete:
+        if debug:
             print('Deleted emails will be left on the server in debug mode.')
         else:
             server.execute('expunge')
@@ -127,7 +134,7 @@ def addResponseReport(fromAddress, report):
 
     if 'originalHeaders' in report and 'list-unsubscribe' in report['originalHeaders']:
         unsubscribeURL = report['originalHeaders']['list-unsubscribe'][1:-1]
-        emailSend = postgres.connection().call('EmailSendFromUnsubscribeURL', ([fromAddress] or []) + [unsubscribeURL])
+        emailSend = libtart.postgres.connection().call('EmailSendFromUnsubscribeURL', ([fromAddress] or []) + [unsubscribeURL])
 
     else:
         addresses = []
@@ -154,16 +161,16 @@ def addResponseReport(fromAddress, report):
 
         if addresses:
             try:
-                emailSend = postgres.connection().call('LastEmailSendToEmailAddresses', ([fromAddress] or []) +
+                emailSend = libtart.postgres.connection().call('LastEmailSendToEmailAddresses', ([fromAddress] or []) +
                                                                                          [addresses])
-            except postgres.NoRow: pass
+            except libtart.postgres.NoRow: pass
 
     if emailSend:
         report['fromAddress'] = emailSend['fromaddress']
         report['toAddress'] = emailSend['toaddress']
         report['emailId'] = emailSend['emailid']
 
-        postgres.connection().insert('EmailSendResponseReport', report)
+        libtart.postgres.connection().insert('EmailSendResponseReport', report)
         return True
 
     return False
@@ -184,7 +191,7 @@ def addDMARCReport(body):
         'body': body.decode('utf-8-sig')
     }
 
-    with postgres.connection() as transaction:
+    with libtart.postgres.connection() as transaction:
         transaction.insert('DMARCReport', report)
 
         for record in tree.iter('record'):

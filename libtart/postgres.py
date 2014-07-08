@@ -170,7 +170,7 @@ Select typname
         query += ' returning *'
 
         try:
-            return self.__execute(query, values.values() * 2, False)
+            return self.__execute(query, list(values.values()) * 2, False)
         except NoRow:
             return None
 
@@ -181,7 +181,7 @@ Select typname
         query = 'Update ' + tableName + ' set ' + ', '.join(k + ' = %s' for k in setColumns.keys())
         query += self.whereClause(where) + ' returning *'
 
-        return self.__execute(query, setColumns.values() + where.values(), table)
+        return self.__execute(query, list(setColumns.values()) + list(where.values()), table)
 
     def updateOne(self, *args, **kwargs):
         return self.update(*args, table=False, **kwargs)

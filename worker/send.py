@@ -46,7 +46,7 @@ def main():
     offset = arguments.pop('offset')
     timeout = arguments.pop('timeout')
     debug = arguments.pop('debug')
-    # Remaining arguments are for SMTP.
+    # Remaining arguments are about mail server.
 
     if timeout:
         signal.alarm(timeout)
