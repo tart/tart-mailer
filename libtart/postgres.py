@@ -107,7 +107,7 @@ Select typname
         if isinstance(parameters, dict):
             query += ', '.join(k + ' := %s' for k in parameters.keys())
             parameters = parameters.values()
-        elif hasattr(parameters, '__iter__'):
+        elif isinstance(parameters, list) or isinstance(parameters, tuple):
             query += ', '.join(['%s'] * len(parameters))
         elif parameters is None:
             parameters = []
