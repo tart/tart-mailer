@@ -42,6 +42,8 @@ Create or replace function NextEmailToSend(
     ) returns table (
         fromName varchar(200),
         fromAddress varchar(200),
+        returnPath varchar(200),
+        replyTo varchar(200),
         toAddress varchar(200),
         subject varchar(1000),
         plainBody text,
@@ -80,6 +82,8 @@ With FirstWaitingEmailSend as (select EmailSend.sendOrder,
             returning EmailSend.*)
     select Sender.fromName,
             Sender.fromAddress,
+            Sender.returnPath,
+            Sender.replyTo,
             Subscriber.toAddress,
             FormatEmailToSend(EmailVariation.subject, Subscriber.properties),
             FormatEmailToSend(EmailVariation.plainBody, Subscriber.properties, Sender.returnURLRoot,

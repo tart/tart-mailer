@@ -91,6 +91,13 @@ def main():
 
             message['Subject'] = email['subject']
             message['From'] = formataddr((email['fromname'], email['fromaddress']))
+
+            if email['returnpath']:
+                message['Return-Path'] = '<' + email['returnpath'] + '>'
+
+            if email['replyto']:
+                message['Reply-To'] = '<' + email['replyto'] + '>'
+
             message['To'] = email['toaddress']
             message['List-Unsubscribe'] = '<' + email['unsubscribeurl'] + '>'
 

@@ -16,6 +16,26 @@
             </tr>
 
             <tr>
+                <td>Return Path:</td>
+                <td>
+                    <input type="text" name="returnpath" size="100" maxlength="200"
+                           pattern="[a-z0-9._\-+!']+@[a-z0-9.\-]+.[a-z0-9]+"
+                           title="must be a valid email address"
+                           value="{{ sender['returnpath'] or '' }}" />
+                </td>
+            </tr>
+
+            <tr>
+                <td>Reply To:</td>
+                <td>
+                    <input type="text" name="replyto" size="100" maxlength="200"
+                           pattern="[a-z0-9._\-+!']+@[a-z0-9.\-]+.[a-z0-9]+"
+                           title="must be a valid email address"
+                           value="{{ sender['replyto'] or '' }}" />
+                </td>
+            </tr>
+
+            <tr>
                 <td>Password:</td>
                 <td>
                     <input type="text" name="password" size="100" maxlength="100" required

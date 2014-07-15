@@ -24,6 +24,8 @@ Create table Sender (
     fromName varchar(200) not null,
     createdAt timestamptz not null default now(),
     returnURLRoot HTTPURL not null,
+    returnPath EmailAddress,
+    replyTo EmailAddress,
     constraint SenderPK primary key (fromAddress)
 );
 
