@@ -225,7 +225,7 @@ def preview(**kwargs):
 @app.route('/sender/statistics')
 @app.route('/sender/<string:fromaddress>/statistics')
 @app.route('/sender/<string:fromaddress>/email/<int:emailid>/statistics')
-def senderStatistics(**kwargs):
+def emailStatistics(**kwargs):
     with postgres.connection() as transaction:
         context = {
             'identifiers': kwargs,
@@ -239,7 +239,7 @@ def senderStatistics(**kwargs):
         else:
             context['emails'] = transaction.select('EmailStatistics', kwargs)
 
-    return flask.render_template('senderstatistics.html', **context)
+    return flask.render_template('emailstatistics.html', **context)
 
 @app.route('/domain/statistics')
 @app.route('/domain/<string:domain>/statistics')
