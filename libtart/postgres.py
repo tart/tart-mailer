@@ -190,7 +190,7 @@ Select typname
         try:
             return self.updateOne(tableName, setColumns, where)
         except NoRow:
-            return self.insert(tableName, OrderedCaseInsensitiveDict(setColumns.items() + where.items()))
+            return self.insert(tableName, OrderedCaseInsensitiveDict(list(setColumns.items()) + list(where.items())))
 
     def delete(self, tableName, where={}, table=True):
         """Execute a delete for a single table."""
