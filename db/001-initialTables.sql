@@ -59,7 +59,7 @@ Create sequence EmailId;
 Create table Email (
     fromAddress EmailAddress not null,
     emailId Identifier not null default nextval('EmailId'::regclass),
-    name Name not null default currval('EmailId'::regclass)::text || '. Name',
+    name Name not null default currval('EmailId'::regclass)::text || '. Email',
     createdAt timestamptz not null default now(),
     bulk boolean not null default false,
     redirectURL HTTPURL,
