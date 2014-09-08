@@ -42,7 +42,7 @@ def track(emailHash):
     postgres.connection().call('NewEmailSendFeedback', (emailHash, 'tracked', flask.request.remote_addr))
 
     # Return 1px * 1px transparent image.
-    return flask.send_file(io.BytesIO('GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'), mimetype='image/gif')
+    return flask.send_file(io.BytesIO(b'GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'), mimetype='image/gif')
 
 @app.route('/view/<emailHash>')
 def view(emailHash):
