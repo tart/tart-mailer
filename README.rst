@@ -2,62 +2,89 @@
 
 An application to maintain a mailing list, send bulk mails.
 
+
 Dependencies
 ------------
 
+These are required for the application:
+
 * PostgreSQL 9.2 with contrib and Python
-* Python 2.7 or 3.3 with standart library
+* Python 2.7 or 3.3 with standard library
 * Psycopg2 2.5
 * Flask 0.10
 
 Use Python 3, if you need unicode support.
 
+These are required for installation:
+
+* uWSGI 2.0
+* Nginx 1.6
+
+
 Installation
 ------------
 
-All configuration parameters are optional. PostgreSQL connection parameters can be given as environment variables
-via libpg. See http://www.postgresql.org/docs/current/static/libpq-envars.html for the list.
+First of all, a PostgreSQL database is required. The scripts under the db/ directory should be executed
+in order.  db/003-emailHash.sql includes the hash function for user URL's.  Is is better to change the secrets
+in it, before.  Executing only the new scripts should be sufficient for upgrading.  All of the scripts can be
+executed in order like this::
 
-Flesk configuration parameters can be given as environment variables with FLESK_ prefix. See
+    $ (echo ' Begin;'; cat db/*.sql; echo 'Commit;') | psql mailer
+
+All configuration parameters of the application are optional. PostgreSQL connection parameters can be given
+as environment variables via libpg. See http://www.postgresql.org/docs/current/static/libpq-envars.html for
+the list.  Flesk configuration parameters can be given as environment variables with FLESK_ prefix. See
 http://flask.pocoo.org/docs/config/ for the default ones.
 
-A seperate PostgreSQL database is required. The scripts under the db/ directory should be executed in order.
-db/003-emailHash.sql includes the hash function for user URL's. Is is better to change the secrets in it, before.
-Executing only the new scripts should be sufficient for upgrading. All of the scripts can be executed in order like
-this::
+There are separate web servers under the web/ directory.  One of them is for users to redirect, unsubscribe...
+One is a RESTful API for other applications.  Other one is for administrators to list emails, send new ones...
+They can be run directly for testing::
 
-    (echo ' Begin;'; cat db/*.sql; echo 'Commit;') | psql
+    $ PGDATABASE=mailer web/admin.py
 
-There are seperate web servers. One of them is for users to redirect, unsubscribe... One is a RESTful API for
-other applications. Other one is for administrators to list emails, send new ones... They both can be run directly::
+Running standalone web servers is intended only for development.  Init script and uWSGI configurations provided
+under the etc/ directory.  Copy and edit them for installation::
 
-    web/user.py
+    # mkdir /etc/mailer
+    
+    # cp etc/uwsgi.conf /etc/mailer/
 
-    web/api.py
+    # cp etc/linux.init.sh /etc/init.d/mailer
 
-    web/admin.py
+It is better to serve the application behind a general purpose web server.  Nginx is a good choice because it
+can pass the requests with uwsgi.  The most simple Nginx virtual server configuration can be like this::
 
-Email messages are send and received asynchronously. Executables under worker/ directory should be run periodically,
-to process the messages waiting to be sent or received. Command line arguments of the executables will be listed by::
+    server {
+        listen      80;
 
-    worker/send.py --help
+        location / {
+            include     uwsgi_params;
+            uwsgi_pass  unix:/var/run/tart-mailer.sock;
+        }
+    }
 
-    worker/receive.py --help
+Currently authentication is not included for the admin pages.  It is advised to secure the admin/ location
+on the web server. 
 
-Running standalone web servers is intended for debugging only. See deployment page of the Flask documentation [1]
-to run them in production. There are example configurations under the conf/ directory for Nginx and uWSGI. Also,
-there is a test script under the test/ directory.
+Email messages are send and received asynchronously.  Executables under worker/ directory should be run
+periodically, to process the messages waiting to be sent or received.  Command line arguments of the executables
+can be listed by::
 
-[1] http://flask.pocoo.org/docs/deploying/uwsgi/
+    $ worker/send.py --help
+
+    $ worker/receive.py --help
+
+Cron daemon can be used to run the workers in the background.  See etc/crontab for example.
+
 
 License
 -------
 
-This tool is released under the ISC License, whose text is included to the
-source files. The ISC License is registered with and approved by the
-Open Source Initiative [1].
+This tool is released under the ISC License, whose text is included to the source files.  The ISC License is
+registered with and approved by the Open Source Initiative [1].
 
 [1] http://opensource.org/licenses/isc-license.txt
+
 
 Coding Style
 ------------
@@ -67,6 +94,7 @@ them in lower-case. That is why column names, which will be keys of the dictiona
 rule should be kept even the dictionary is not return from the database, for convenience. HTML forms are
 also mapped to dictionaries. Input names on the forms should also be lower-case as they will be the keys
 of the dictionaries.
+
 
 Changelog
 ---------
