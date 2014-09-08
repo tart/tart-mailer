@@ -145,3 +145,9 @@ Version 2.1
 * Improve statistics views
 * Send messages in order
 * Add --offset to sent worker for concurrency
+
+Version 2.2
+
+* Fix Python 3 compatibility issues
+* Add Return-Path and Reply-To fields
+* Provide installation instructions
