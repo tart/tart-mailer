@@ -1,0 +1,20 @@
+{% extends 'layout.html' %}
+
+{% from 'tables.html' import linkTable %}
+
+{% block body %}
+    {% if 'fromaddress' in identifiers %}
+        <h1>Emails from {{ identifiers['fromaddress'] }}</h1>
+    {% else %}
+        <h1>Emails</h1>
+    {% endif %}
+
+    {{ linkTable(emails, {'editEmail': 'edit', 'emailStatistics': 'statistics', 'prepareBulkEmail': 'send'},
+                 identifiers.keys()) }}
+
+    {% if 'fromaddress' in identifiers %}
+        <p>
+            <a href="{{ url_for('newEmail', **identifiers) }}">New Email</a>
+        </p>
+    {% endif %}
+{% endblock %}

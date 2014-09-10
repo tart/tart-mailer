@@ -82,13 +82,15 @@ def removeSender(**kwargs):
 
         return index(**kwargs)
 
+@app.route('/subscriber')
+@app.route('/sender/<string:fromaddress>/subscriber')
+def listSubscribers(**kwargs):
+    return flask.render_template('subscribers.html', identifiers=kwargs,
+                                 subscribers=postgres.connection().select('Subscriber', kwargs))
+
 @app.route('/sender/<string:fromaddress>/subscriber/new')
 def newSubscriber(**kwargs):
-    identifiers = {key: kwargs.pop(key) for key in ('fromaddress',)}
-    kwargs['subscriber'] = {'fromaddress': identifiers['fromaddress']}
-    kwargs['propertyCount'] = 10
-
-    return flask.render_template('subscriber.html', **kwargs)
+    return flask.render_template('subscriber.html', identifiers=kwargs, subscriber=kwargs, propertyCount=10)
 
 @app.route('/sender/<string:fromaddress>/subscriber/new', methods=['POST'])
 def saveSubscriber(**kwargs):
@@ -286,7 +288,7 @@ def uRLFor(*args, **kwargs):
 app.jinja_env.globals.update(url_for=uRLFor)
 
 def formData(**kwargs):
-    """Hydrate flask.request.form to a complex dictionary. Elements like x[] will become a an array in x. Element
+    """Hydrate flask.request.form to a complex dictionary.  Elements like x[] will become an array in x.  Element
     pairs like y[3][key] and y[3][value] will become a dictionary in y."""
 
     for key, value in flask.request.form.items():

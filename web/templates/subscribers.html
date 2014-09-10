@@ -1,0 +1,19 @@
+{% extends 'layout.html' %}
+
+{% from 'tables.html' import table %}
+
+{% block body %}
+    {% if 'fromaddress' in identifiers %}
+        <h1>Subscribers of {{ identifiers['fromaddress'] }}</h1>
+    {% else %}
+        <h1>Subscribers</h1>
+    {% endif %}
+
+    {{ table(subscribers, identifiers.keys()) }}
+
+    {% if 'fromaddress' in identifiers %}
+        <p>
+            <a href="{{ url_for('newSubscriber', **identifiers) }}">New Subscriber</a>
+        </p>
+    {% endif %}
+{% endblock %}

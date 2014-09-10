@@ -33,7 +33,7 @@ debug = False
 @singleton
 class connection(psycopg2.extensions.connection):
     """The purpose of the class is to add practical functions to the connection class on the psycopg2 library.
-    Unlike the parent class autocommit enabled by default but it will be disabled on demand."""
+    Unlike the parent class autocommit enabled by default, disabled on demand."""
 
     def __init__(self, dsn=''):
         psycopg2.extensions.connection.__init__(self, dsn)

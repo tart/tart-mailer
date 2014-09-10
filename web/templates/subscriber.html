@@ -3,7 +3,7 @@
 {% from 'tables.html' import dictionaryInputTable %}
 
 {% block body %}
-    <h1>New Subscriber from {{ subscriber['fromaddress'] }}</h1>
+    <h1>New Subscriber from {{ identifiers['fromaddress'] }}</h1>
 
     <form method="POST" action="{{ url_for('saveSubscriber', **subscriber) }}">
         <table>

@@ -1,7 +1,7 @@
 {% macro cell(value) %}
     {% if value is string %}
         {{ value }}
-    {% elif value is iterable %}
+    {% elif value is iterable and value is not mapping %}
         {{ value|join(', ') }}
     {% elif value is not none %}
         {{ value|string }}
