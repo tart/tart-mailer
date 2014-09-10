@@ -100,6 +100,12 @@ def saveSubscriber(**kwargs):
 
         return index(**kwargs)
 
+@app.route('/email')
+@app.route('/sender/<string:fromaddress>/email')
+def listEmails(**kwargs):
+    return flask.render_template('emails.html', identifiers=kwargs,
+                                 emails=postgres.connection().select('EmailStatistics', kwargs))
+
 @app.route('/sender/<string:fromaddress>/email/new')
 def newEmail(**kwargs):
     identifiers = {key: kwargs.pop(key) for key in ('fromaddress',)}

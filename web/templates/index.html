@@ -19,15 +19,19 @@
 
     <strong>{{ senderMessage }}</strong>
 
-    {{ linkTable(senders, {'editSender': 'edit', 'listSubscribers': 'subscribers',
-                           'newEmail': 'newEmail', 'emailStatistics': 'statistics'}) }}
+    {{ linkTable(senders, {'editSender': 'edit', 'listSubscribers': 'subscribers', 'listEmails': 'emails',
+                           'emailStatistics': 'statistics'}) }}
 
     <p>
-        <a href="{{ url_for('newSender') }}">Add New Sender</a>
+        <a href="{{ url_for('newSender') }}">New Sender</a>
     </p>
 
     <p>
         <a href="{{ url_for('listSubscribers') }}">All Subscribers</a>
+    </p>
+
+    <p>
+        <a href="{{ url_for('listEmails') }}">All Emails</a>
     </p>
 
     <p>
