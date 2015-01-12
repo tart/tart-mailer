@@ -165,7 +165,7 @@ def getData(data={}):
     for key in flask.request.args.keys():
         if key.lower() in (k.lower() for k in data.keys()):
             raise werkzeug.exceptions.BadRequest(key + ' already defined')
-    return collections.OrderedCaseInsensitiveDict(data.items() + flask.request.args.items())
+    return collections.OrderedCaseInsensitiveDict(list(data.items()) + list(flask.request.args.items()))
 
 def postData(data={}):
     if not flask.request.json:
@@ -173,7 +173,7 @@ def postData(data={}):
     for key in flask.request.json.keys():
         if key.lower() in (k.lower() for k in data.keys()):
             raise werkzeug.exceptions.BadRequest(key + ' already defined')
-    return collections.OrderedCaseInsensitiveDict(data.items() + flask.request.json.items())
+    return collections.OrderedCaseInsensitiveDict(list(data.items()) + list(flask.request.json.items()))
 
 def paginate(tableName, conditions):
     response = {}
